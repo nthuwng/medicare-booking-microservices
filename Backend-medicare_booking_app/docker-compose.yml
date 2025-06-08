@@ -11,13 +11,62 @@ services:
     depends_on:
       - user-service
 
+  # Thêm dịch vụ user-service
   user-service:
-    build: ./user_service
+    build: ./services/user_service
     ports:
       - "8081:8081"
     environment:
       - PORT=8081
     volumes:
-      - ./user_service:/app
+      - ./services/user_service:/app
+      - /app/node_modules # tránh node_modules của host ghi đè
+    command: npm start
+
+  # Thêm dịch vụ appointment-service
+  appointment-service:
+    build: ./services/appointment_service
+    ports:
+      - "8082:8082"
+    environment:
+      - PORT=8082
+    volumes:
+      - ./services/appointment_service:/app
+      - /app/node_modules # tránh node_modules của host ghi đè
+    command: npm start
+
+  # Thêm dịch vụ doctor-service
+  doctor-service:
+    build: ./services/doctor_service
+    ports:
+      - "8083:8083"
+    environment:
+      - PORT=8083
+    volumes:
+      - ./services/doctor_service:/app
+      - /app/node_modules # tránh node_modules của host ghi đè
+    command: npm start
+
+    # Thêm dịch vụ notification-service
+  notification-service:
+    build: ./services/notification_service
+    ports:
+      - "8084:8084"
+    environment:
+      - PORT=8084
+    volumes:
+      - ./services/notification_service:/app
+      - /app/node_modules # tránh node_modules của host ghi đè
+    command: npm start
+
+    # Thêm dịch vụ payment-service
+  payment-service:
+    build: ./services/payment_service
+    ports:
+      - "8085:8085"
+    environment:
+      - PORT=8085
+    volumes:
+      - ./services/payment_service:/app
       - /app/node_modules # tránh node_modules của host ghi đè
     command: npm start

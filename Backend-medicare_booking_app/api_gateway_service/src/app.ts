@@ -8,9 +8,10 @@ const port = process.env.PORT || 8080;
 
 const SERVICES = {
   USER_SERVICE: process.env.USER_SERVICE_URL || 'http://user-service:8081',
-//   DOCTOR_SERVICE: process.env.DOCTOR_SERVICE_URL || 'http://doctor-service:8082',
-//   BOOKING_SERVICE: process.env.BOOKING_SERVICE_URL || 'http://booking-service:8083',
-//   NOTIFICATION_SERVICE: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:8084'
+  APPOINTMENT_SERVICE: process.env.APPOINTMENT_SERVICE_URL || 'http://appointment-service:8082',
+  DOCTOR_SERVICE: process.env.DOCTOR_SERVICE_URL || 'http://doctor-service:8083',
+  NOTIFICATION_SERVICE: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:8084',
+  PAYMENT_SERVICE: process.env.PAYMENT_SERVICE_URL || 'http://payment-service:8085',
 };
 
 app.use('/api/users', createProxyMiddleware({
@@ -18,6 +19,38 @@ app.use('/api/users', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: {
     '^/api/users': ''
+  }
+}));
+
+app.use('/api/appointment', createProxyMiddleware({
+  target: SERVICES.APPOINTMENT_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/appointment': ''
+  }
+}));
+
+app.use('/api/doctor', createProxyMiddleware({
+  target: SERVICES.DOCTOR_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/doctor': ''
+  }
+}));
+
+app.use('/api/notification', createProxyMiddleware({
+  target: SERVICES.NOTIFICATION_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/notification': ''
+  }
+}));
+
+app.use('/api/payment', createProxyMiddleware({
+  target: SERVICES.PAYMENT_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/payment': ''
   }
 }));
 
