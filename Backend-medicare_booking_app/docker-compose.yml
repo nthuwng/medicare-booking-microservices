@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   api-gateway:
     build: ./api_gateway_service
@@ -8,22 +6,54 @@ services:
     environment:
       - PORT=8080
       - USER_SERVICE_URL=http://user-service:8081
+      - APPOINTMENT_SERVICE_URL=http://appointment-service:8082
+      - DOCTOR_SERVICE_URL=http://doctor-service:8083
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8084
+      - PAYMENT_SERVICE_URL=http://payment-service:8085
     depends_on:
       - user-service
+      - appointment-service
+      - doctor-service
+      - notification-service
+      - payment-service
+    networks:
+      - healthcare_network
 
-  # Thêm dịch vụ user-service
+  # User service database
+  user_db:
+    image: mysql:8.0
+    container_name: user_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: user_db
+    ports:
+      - "3307:3306"  # Fixed: MySQL default port is 3306
+    volumes:
+      - user_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
+
+  # User service
   user-service:
     build: ./services/user_service
     ports:
       - "8081:8081"
     environment:
       - PORT=8081
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://root:medicare_booking@user_db:3306/user_db  # Fixed port
     volumes:
       - ./services/user_service:/app
-      - /app/node_modules # tránh node_modules của host ghi đè
+      - /app/node_modules
+    depends_on:
+      - user_db
+    networks:
+      - healthcare_network
     command: npm start
 
-  # Thêm dịch vụ appointment-service
+  # Appointment service
   appointment-service:
     build: ./services/appointment_service
     ports:
@@ -32,10 +62,12 @@ services:
       - PORT=8082
     volumes:
       - ./services/appointment_service:/app
-      - /app/node_modules # tránh node_modules của host ghi đè
+      - /app/node_modules
+    networks:
+      - healthcare_network
     command: npm start
 
-  # Thêm dịch vụ doctor-service
+  # Doctor service
   doctor-service:
     build: ./services/doctor_service
     ports:
@@ -44,10 +76,12 @@ services:
       - PORT=8083
     volumes:
       - ./services/doctor_service:/app
-      - /app/node_modules # tránh node_modules của host ghi đè
+      - /app/node_modules
+    networks:
+      - healthcare_network
     command: npm start
 
-    # Thêm dịch vụ notification-service
+  # Notification service
   notification-service:
     build: ./services/notification_service
     ports:
@@ -56,10 +90,12 @@ services:
       - PORT=8084
     volumes:
       - ./services/notification_service:/app
-      - /app/node_modules # tránh node_modules của host ghi đè
+      - /app/node_modules
+    networks:
+      - healthcare_network
     command: npm start
 
-    # Thêm dịch vụ payment-service
+  # Payment service
   payment-service:
     build: ./services/payment_service
     ports:
@@ -68,5 +104,16 @@ services:
       - PORT=8085
     volumes:
       - ./services/payment_service:/app
-      - /app/node_modules # tránh node_modules của host ghi đè
+      - /app/node_modules
+    networks:
+      - healthcare_network
     command: npm start
+
+# Define networks
+networks:
+  healthcare_network:
+    driver: bridge
+
+# Define volumes
+volumes:
+  user_mysql_data:
