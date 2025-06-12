@@ -12,7 +12,7 @@ COPY src/ ./src/
 COPY tsconfig.json ./
 
 # Mở port container
-EXPOSE 8084
+EXPOSE 8087
 
 # Chạy service
 CMD ["npm", "start"]

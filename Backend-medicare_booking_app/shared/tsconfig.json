@@ -1,0 +1,13 @@
+// shared/tsconfig.json
+{
+  "extends": "../tsconfig.json", // Kế thừa từ tsconfig.json ở thư mục gốc
+  "compilerOptions": {
+    "outDir": "./dist", // Thư mục đầu ra cho các file đã biên dịch của shared
+    "rootDir": "./", // Thư mục gốc của shared
+    "composite": true,
+    "declaration": true, // Quan trọng: Bắt buộc tạo file .d.ts để các service khác có thể import types
+    "tsBuildInfoFile": "./node_modules/.tsbuildinfo/shared.tsbuildinfo"
+  },
+  "include": ["./**/*.ts"], // Bao gồm tất cả các file TypeScript trong shared
+  "exclude": ["node_modules"]
+}

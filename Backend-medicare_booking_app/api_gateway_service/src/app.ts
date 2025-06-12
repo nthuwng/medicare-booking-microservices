@@ -12,6 +12,8 @@ const SERVICES = {
   DOCTOR_SERVICE: process.env.DOCTOR_SERVICE_URL || 'http://doctor-service:8083',
   NOTIFICATION_SERVICE: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:8084',
   PAYMENT_SERVICE: process.env.PAYMENT_SERVICE_URL || 'http://payment-service:8085',
+  AUTH_SERVICE: process.env.AUTH_SERVICE_URL || 'http://auth-service:8086',
+  RATING_SERVICE: process.env.RATING_SERVICE_URL || 'http://rating-service:8087',
 };
 
 app.use('/api/users', createProxyMiddleware({
@@ -53,6 +55,23 @@ app.use('/api/payment', createProxyMiddleware({
     '^/api/payment': ''
   }
 }));
+
+app.use('/api/auth', createProxyMiddleware({
+  target: SERVICES.AUTH_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/auth': ''
+  }
+}));
+
+app.use('/api/rating', createProxyMiddleware({
+  target: SERVICES.RATING_SERVICE,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/rating': ''
+  }
+}));
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

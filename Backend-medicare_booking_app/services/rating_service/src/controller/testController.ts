@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
 const testController = (req: Request, res: Response) => {
-  res.send("Payment_services 8085 is running ");
+  res.send("Rating_services 8087 is running ");
 };
 export default testController;

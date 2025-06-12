@@ -1,0 +1,52 @@
+// ./tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2022", // Phiên bản ECMAScript mục tiêu
+    "module": "CommonJS", // Kiểu module đầu ra
+    "lib": ["ES2022"], // Thư viện định nghĩa loại (type definitions)
+    "rootDir": ".", // Thư mục gốc chứa các file nguồn
+    "outDir": "dist", // Thư mục đầu ra cho các file đã biên dịch (ít dùng ở đây vì mỗi service có outDir riêng)
+    "strict": true, // Bật tất cả các kiểm tra kiểu nghiêm ngặt
+    "esModuleInterop": true, // Cho phép tương tác tốt hơn với các module CommonJS
+    "skipLibCheck": true, // Bỏ qua kiểm tra kiểu cho các file .d.ts trong node_modules
+    "forceConsistentCasingInFileNames": true, // Đảm bảo tên file nhất quán (case-sensitive)
+
+    // Cấu hình cho Monorepo Workspaces (quan trọng!)
+    "baseUrl": ".", // Thư mục cơ sở để phân giải các module không tương đối
+    "paths": {
+      // Định nghĩa các alias để import dễ dàng từ thư mục shared/
+      // Ví dụ: import { UserType } from '@shared/types';
+      "@shared/*": ["shared/*"],
+      // Bạn cũng có thể thêm alias cho các service nếu muốn import nội bộ
+      "@auth-service/*": ["services/auth_service/src/*"],
+      "@user-management-service/*": ["services/user_service/src/*"],
+      "@doctor-management-service/*": [
+        "services/doctor_service/src/*"
+      ],
+      "@appointment-service/*": ["services/appointment_service/src/*"],
+      "@payment-service/*": ["services/payment_service/src/*"],
+      "@rating-service/*": ["services/rating_service/src/*"],
+      "@notification-service/*": ["services/notification_service/src/*"],
+      "@api-gateway/*": ["api_gateway_service/src/*"]
+    },
+    "composite": true, // Bật chế độ project references (giúp biên dịch incremental hiệu quả)
+    "declaration": true, // Tạo file .d.ts
+    "sourceMap": true, // Tạo source map
+    "inlineSources": true
+  },
+  "references": [
+    // Định nghĩa các project con trong monorepo.
+    // Đây là nơi TypeScript biết về các service và shared package.
+    { "path": "./services/auth_service" },
+    { "path": "./services/user_service" },
+    { "path": "./services/doctor_service" },
+    { "path": "./services/appointment_service" },
+    { "path": "./services/payment_service" },
+    { "path": "./services/rating_service" },
+    { "path": "./services/notification_service" },
+    { "path": "./api_gateway_service" },
+    { "path": "./shared" } // Tham chiếu đến gói shared
+  ],
+  "exclude": ["node_modules", "dist", "**/node_modules", "**/dist"], // Loại trừ các thư mục này khỏi việc biên dịch
+  "include": [] // Không bao gồm file nào ở root, chỉ dùng để tham chiếu các project con
+}
