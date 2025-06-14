@@ -165,4 +165,3 @@ networks:
 volumes:
   user_mysql_data:
   auth_mysql_data:
-
