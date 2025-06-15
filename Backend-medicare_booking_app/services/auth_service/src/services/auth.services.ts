@@ -84,10 +84,22 @@ const verifyJwtToken = async (token: string): Promise<JwtPayload | null> => {
   }
 };
 
+const handleGetUserById = async (id: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  console.log(user);
+  return user;
+};
+
 export {
   hashPassword,
   handleRegister,
   handleLoginApi,
   comparePassword,
   verifyJwtToken,
+  handleGetUserById,
 };

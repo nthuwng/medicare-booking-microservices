@@ -4,6 +4,7 @@ import {
   hashPassword,
   handleLoginApi,
   verifyJwtToken,
+  handleGetUserById,
 } from "../services/auth.services";
 import { createUserSchema } from "../validation/user.validation";
 
@@ -98,4 +99,23 @@ const postVerifyTokenAPI = async (req: Request, res: Response) => {
   }
 };
 
-export { postRegisterAPI, postLoginAPI, postVerifyTokenAPI };
+const getUserByIdApi = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const user = await handleGetUserById(id);
+    res.status(200).json({
+      success: true,
+      message: "Lấy thông tin người dùng thành công.",
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy thông tin người dùng.",
+      data: null,
+    });
+  }
+};
+
+export { postRegisterAPI, postLoginAPI, postVerifyTokenAPI, getUserByIdApi };
