@@ -4,7 +4,7 @@ import { getChannel } from "../connection";
 
 // Khởi tạo consumer để lắng nghe queue "auth.get_user"
 export const initAuthGetUserConsumer = async () => {
-  const channel = getChannel(); // lấy channel đã connect trước đó
+  const channel = getChannel();
 
   await channel.assertQueue("auth.get_user", { durable: false });
 

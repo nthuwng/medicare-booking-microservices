@@ -5,9 +5,17 @@ import {
   handleLoginApi,
   verifyJwtToken,
   handleGetAccount,
+  handleChangePassword,
+  comparePassword,
+  handleGetUserById,
+  handleGetUserByIdAndPassword,
 } from "../services/auth.services";
-import { createUserSchema } from "../validation/user.validation";
 import {
+  changePasswordSchema,
+  createUserSchema,
+} from "../validation/user.validation";
+import {
+  JwtPayload,
   LoginResponse,
   RegisterResponse,
   VerifyTokenResponse,
@@ -190,9 +198,57 @@ const getAccountApi = async (req: Request, res: Response) => {
   }
 };
 
+const putUpdatePasswordApi = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+  const { error } = changePasswordSchema.validate({
+    oldPassword,
+    newPassword,
+    confirmPassword,
+  });
+
+  const checkUser = req.user as JwtPayload;
+  if (checkUser?.userId !== id) {
+    res.status(403).json({
+      success: false,
+      message: "Bạn chỉ có thể đổi mật khẩu của chính mình",
+    });
+    return;
+  }
+  if (error) {
+    res.status(400).json({ message: error.message });
+    return;
+  }
+
+  const user = await handleGetUserByIdAndPassword(id);
+
+  const checkPassword = await comparePassword(
+    oldPassword,
+    user?.password || ""
+  );
+  if (!checkPassword) {
+    res.status(400).json({ message: "Mật khẩu cũ không chính xác" });
+    return;
+  }
+
+  try {
+    await handleChangePassword(id, newPassword);
+    res
+      .status(200)
+      .json({ success: true, message: "Mật khẩu đã được thay đổi thành công" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy thay đổi mật khẩu người dùng.",
+      data: null,
+    });
+  }
+};
+
 export {
   postRegisterAPI,
   postLoginAPI,
   postVerifyTokenAPI,
   getAccountApi,
+  putUpdatePasswordApi,
 };

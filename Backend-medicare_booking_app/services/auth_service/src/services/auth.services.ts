@@ -31,7 +31,7 @@ const handleRegister = async (
     },
   });
   if (existingUser) {
-    return { success: false, message: "User already exists" };
+    return { success: false, message: "User đã tồn tại trong hệ thống" };
   }
   const user = await prisma.user.create({
     data: {
@@ -124,6 +124,15 @@ const handleGetUserById = async (id: string) => {
   return user;
 };
 
+const handleGetUserByIdAndPassword = async (id: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+  return user;
+};
+
 const handleGetAccount = async (token: string) => {
   const decoded = await verifyJwtToken(token);
   if (!decoded || !decoded.userId) {
@@ -142,6 +151,15 @@ const handleGetAccount = async (token: string) => {
   return user;
 };
 
+const handleChangePassword = async (id: string, password: string) => {
+  const hashedPassword = await hashPassword(password);
+  const user = await prisma.user.update({
+    where: { id },
+    data: { password: hashedPassword },
+  });
+  return user;
+};
+
 export {
   hashPassword,
   handleRegister,
@@ -150,4 +168,6 @@ export {
   verifyJwtToken,
   handleGetUserById,
   handleGetAccount,
+  handleChangePassword,
+  handleGetUserByIdAndPassword,
 };

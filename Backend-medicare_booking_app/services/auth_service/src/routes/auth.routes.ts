@@ -4,7 +4,9 @@ import {
   postLoginAPI,
   postVerifyTokenAPI,
   getAccountApi,
+  putUpdatePasswordApi,
 } from "../controllers/auth.controller";
+import { authenticateToken } from "src/middleware/jwt.middleware";
 
 const router = express.Router();
 
@@ -13,7 +15,7 @@ const authRoutes = (app: Express) => {
   router.post("/login", postLoginAPI);
   router.post("/verify-token", postVerifyTokenAPI);
   router.get("/account", getAccountApi);
-
+  router.put("/users/:id/password",authenticateToken, putUpdatePasswordApi);
 
   app.use("/", router);
 };
