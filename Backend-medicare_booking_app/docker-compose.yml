@@ -1,6 +1,6 @@
 services:
   rabbitmq:
-    image: rabbitmq:3.13-management
+    image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq
     ports:
       - "5672:5672" # AMQP protocol port
@@ -96,19 +96,45 @@ services:
       - healthcare_network
     command: npm start
 
+# User service database
+  doctor_db:
+    image: mysql:8.0
+    container_name: doctor_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: doctor_db
+    ports:
+      - "3309:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - doctor_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
   # Doctor service
   doctor-service:
-    build: ./services/doctor_service
+    build:
+      context: ./services/doctor_service
+      dockerfile: Dockerfile
     ports:
       - "8083:8083"
     environment:
       - PORT=8083
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:medicare_booking@doctor_db:3306/doctor_db # Fixed port
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
       - ./services/doctor_service:/app
       - /app/node_modules
+      - ./shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      doctor_db:
+        condition: service_started
     networks:
       - healthcare_network
-    command: npm start
+    command: npm run dev
 
   # Notification service
   notification-service:
@@ -171,7 +197,6 @@ services:
       - ./services/auth_service:/app
       - /app/node_modules
       - ./shared:/shared
-
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -202,5 +227,6 @@ networks:
 # Define volumes
 volumes:
   user_mysql_data:
+  doctor_mysql_data:
   auth_mysql_data:
   rabbitmq_data:

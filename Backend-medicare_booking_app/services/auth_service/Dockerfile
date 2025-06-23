@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20-alpine
 
 # Tạo thư mục làm việc
 WORKDIR /app

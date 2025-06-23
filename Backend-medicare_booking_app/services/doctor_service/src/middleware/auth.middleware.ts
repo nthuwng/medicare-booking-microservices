@@ -1,6 +1,9 @@
 import { AuthVerifyResponse, UserType } from "@shared/index";
 import { Request, Response, NextFunction } from "express";
-import { checkAdminViaRabbitMQ, verifyTokenViaRabbitMQ } from "src/queue/publishers/user.publisher";
+import {
+  checkAdminViaRabbitMQ,
+  verifyTokenViaRabbitMQ,
+} from "src/queue/publishers/doctor.publisher";
 
 const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   (async () => {
