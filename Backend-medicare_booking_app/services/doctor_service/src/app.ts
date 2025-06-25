@@ -3,6 +3,7 @@ import "dotenv/config";
 import doctorRoutes from "./routes/doctorRoutes";
 import specialtiesRoutes from "./routes/specialtiesRoutes";
 import { connectRabbitMQ } from "./queue/connection";
+import clinicRoutes from "./routes/clinicRoutes";
 
 const app = express();
 const port = process.env.PORT || 8083;
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 //config Routes
 doctorRoutes(app);
 specialtiesRoutes(app);
+clinicRoutes(app);
 
 // Start server
 const startApplication = async () => {

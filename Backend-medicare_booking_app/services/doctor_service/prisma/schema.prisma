@@ -26,7 +26,7 @@ enum ApprovalStatus {
 
 // Specialties table
 model Specialty {
-  specialtyId   Int     @id @default(autoincrement()) @map("specialty_id")
+  id            Int     @id @default(autoincrement()) @map("specialty_id")
   specialtyName String  @map("specialty_name") @db.VarChar(255)
   iconPath      String? @map("icon_path") @db.VarChar(255)
   description   String? @db.Text
@@ -39,7 +39,7 @@ model Specialty {
 
 // Clinics table
 model Clinic {
-  clinicId    Int     @id @default(autoincrement()) @map("clinic_id")
+  id          Int     @id @default(autoincrement()) @map("clinic_id")
   clinicName  String  @map("clinic_name") @db.VarChar(255)
   city        String? @db.VarChar(100)
   district    String? @db.VarChar(100)
@@ -57,14 +57,14 @@ model Clinic {
 
 // Doctors table
 model Doctor {
-  doctorProfileId Int            @id @default(autoincrement()) @map("doctor_profile_id")
-  userId          Int            @unique @map("user_id")
+  id              String         @id @default(uuid()) @map("doctor_profile_id")
+  userId          String         @unique @map("user_id")
   fullName        String         @map("full_name") @db.VarChar(255)
   phone           String?        @db.VarChar(20)
   specialtyId     Int            @map("specialty_id")
   clinicId        Int            @map("clinic_id")
   bio             String?        @db.Text
-  experienceYears Int?           @map("experience_years")
+  experienceYears Int?           @default(0) @map("experience_years")
   gender          Gender
   avatarUrl       String?        @map("avatar_url") @db.VarChar(255)
   approvalStatus  ApprovalStatus @default(Pending) @map("approval_status")
@@ -72,8 +72,8 @@ model Doctor {
   createdAt       DateTime       @default(now()) @map("created_at")
 
   // Relations
-  specialty Specialty  @relation(fields: [specialtyId], references: [specialtyId])
-  clinic    Clinic     @relation(fields: [clinicId], references: [clinicId])
+  specialty Specialty  @relation(fields: [specialtyId], references: [id])
+  clinic    Clinic     @relation(fields: [clinicId], references: [id])
   schedules Schedule[]
   fees      Fee[]
 
@@ -82,33 +82,33 @@ model Doctor {
 
 // Schedules table
 model Schedule {
-  scheduleId      Int      @id @default(autoincrement()) @map("schedule_id")
-  doctorProfileId Int      @map("doctor_profile_id")
-  clinicId        Int      @map("clinic_id")
-  date            DateTime @db.Date
-  startTime       DateTime @map("start_time") @db.Time
-  endTime         DateTime @map("end_time") @db.Time
-  isAvailable     Boolean  @default(true) @map("is_available")
+  id  Int      @id @default(autoincrement()) @map("schedule_id")
+  doctorId    String      @map("doctor_profile_id")
+  clinicId    Int      @map("clinic_id")
+  date        DateTime @db.Date
+  startTime   DateTime @map("start_time") @db.Time
+  endTime     DateTime @map("end_time") @db.Time
+  isAvailable Boolean  @default(true) @map("is_available")
 
   // Relations
-  doctor Doctor @relation(fields: [doctorProfileId], references: [doctorProfileId])
-  clinic Clinic @relation(fields: [clinicId], references: [clinicId])
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+  clinic Clinic @relation(fields: [clinicId], references: [id])
 
   @@map("schedules")
 }
 
 // Fees table
 model Fee {
-  feeId           Int      @id @default(autoincrement()) @map("fee_id")
-  doctorProfileId Int      @map("doctor_profile_id")
+  id           Int      @id @default(autoincrement()) @map("fee_id")
+  doctorId        String      @map("doctor_profile_id")
   clinicId        Int      @map("clinic_id")
   consultationFee Decimal  @default(0.00) @map("consultation_fee") @db.Decimal(10, 2)
   bookingFee      Decimal  @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
   createdAt       DateTime @default(now()) @map("created_at")
 
   // Relations
-  doctor Doctor @relation(fields: [doctorProfileId], references: [doctorProfileId])
-  clinic Clinic @relation(fields: [clinicId], references: [clinicId])
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+  clinic Clinic @relation(fields: [clinicId], references: [id])
 
   @@map("fees")
 }
