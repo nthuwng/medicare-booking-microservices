@@ -121,8 +121,6 @@ const getDoctorByIdService = async (id: string) => {
     },
   });
 
-  console.log("doctor", doctor);
-
   //Lấy user_id từ admin
   const userId = await prisma.doctor.findUnique({
     where: { id: id },

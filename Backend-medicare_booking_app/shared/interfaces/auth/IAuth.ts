@@ -52,7 +52,18 @@ export interface VerifyTokenResponse {
   };
 }
 
-export type LoginServiceResponse = { success: false; message: string } | string; // string for successful login (token)
+export type LoginServiceResponse =
+  | { success: false; message: string }
+  | { access_token: string; refresh_token: string }; // object for successful login
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data: {
+    access_token: string;
+    token_type: string;
+  } | null;
+}
 
 export type RegisterServiceResponse =
   | {

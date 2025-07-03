@@ -81,7 +81,39 @@ const handleLoginApi = async (
     const access_token = jwt.sign(payload, secret, {
       expiresIn: expiresIn,
     });
-    return access_token;
+
+    // Generate refresh token
+    const refreshSecret = config.jwt.refreshSecret;
+    const refreshExpiresIn: any = config.jwt.refreshExpiresIn;
+    if (!refreshSecret) {
+      return {
+        success: false,
+        message: `JWT_REFRESH_SECRET is not defined in environment variables`,
+      };
+    }
+
+    const refresh_token = jwt.sign(payload, refreshSecret, {
+      expiresIn: refreshExpiresIn,
+    });
+
+    // Save refresh token to database
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+    // Note: This will work after running migration to create refresh_tokens table
+    try {
+      await prisma.refreshToken.create({
+        data: {
+          token: refresh_token,
+          userId: user.id,
+          expiresAt: expiresAt,
+        },
+      });
+    } catch (error) {
+      console.log("Refresh token table not created yet, skipping save");
+    }
+
+    return { access_token, refresh_token };
   } catch (error) {
     console.error("Error in handleLoginApi:", error);
     return { success: false, message: "Error in handleLoginApi:" };
@@ -160,6 +192,145 @@ const handleChangePassword = async (id: string, password: string) => {
   return user;
 };
 
+const verifyRefreshToken = async (token: string): Promise<JwtPayload> => {
+  const refreshSecret = config.jwt.refreshSecret;
+  if (!refreshSecret) {
+    throw new Error(
+      "JWT_REFRESH_SECRET is not defined in environment variables"
+    );
+  }
+
+  const decoded = jwt.verify(token, refreshSecret);
+  if (typeof decoded === "string") {
+    throw new Error("Invalid refresh token payload");
+  }
+
+  const formatted = {
+    ...decoded,
+    iat: decoded.iat
+      ? dayjs.unix(decoded.iat).format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
+    exp: decoded.exp
+      ? dayjs.unix(decoded.exp).format("YYYY-MM-DD HH:mm:ss")
+      : undefined,
+  };
+
+  return formatted as JwtPayload;
+};
+
+const handleRefreshToken = async (refreshToken: string) => {
+  try {
+    // Verify refresh token
+    const decoded = await verifyRefreshToken(refreshToken);
+
+    // Check if refresh token exists in database and is not revoked
+    const storedToken = await prisma.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        userId: decoded.userId,
+        isRevoked: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!storedToken) {
+      throw new Error("Invalid or expired refresh token");
+    }
+
+    // Get user information
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Generate new access token
+    const payload = {
+      userId: user.id,
+      email: user.email,
+      userType: user.userType,
+    };
+
+    const secret = config.jwt.secret;
+    const expiresIn: any = config.jwt.expiresIn;
+    if (!secret) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
+    const newAccessToken = jwt.sign(payload, secret, {
+      expiresIn: expiresIn,
+    });
+
+    // Generate new refresh token
+    const refreshSecret = config.jwt.refreshSecret;
+    const refreshExpiresIn: any = config.jwt.refreshExpiresIn;
+    if (!refreshSecret) {
+      throw new Error(
+        "JWT_REFRESH_SECRET is not defined in environment variables"
+      );
+    }
+
+    const newRefreshToken = jwt.sign(payload, refreshSecret, {
+      expiresIn: refreshExpiresIn,
+    });
+
+    // Revoke old refresh token
+    await prisma.refreshToken.update({
+      where: { id: storedToken.id },
+      data: { isRevoked: true },
+    });
+
+    // Save new refresh token
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+
+    try {
+      await prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: user.id,
+          expiresAt: expiresAt,
+        },
+      });
+    } catch (error) {
+      console.log("Error saving new refresh token:", error);
+    }
+
+    return {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const handleRevokeRefreshToken = async (refreshToken: string) => {
+  try {
+    const storedToken = await prisma.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        isRevoked: false,
+      },
+    });
+
+    if (storedToken) {
+      await prisma.refreshToken.update({
+        where: { id: storedToken.id },
+        data: { isRevoked: true },
+      });
+    }
+
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export {
   hashPassword,
   handleRegister,
@@ -170,4 +341,7 @@ export {
   handleGetAccount,
   handleChangePassword,
   handleGetUserByIdAndPassword,
+  handleRefreshToken,
+  handleRevokeRefreshToken,
+  verifyRefreshToken,
 };

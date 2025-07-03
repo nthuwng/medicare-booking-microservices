@@ -192,7 +192,9 @@ services:
       - DATABASE_URL=mysql://root:medicare_booking@auth_db:3306/auth_db
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - JWT_SECRET=4a47a04c-579e-4585-889b-8129913ae93e
-      - JWT_EXPIRES_IN=1d
+      - JWT_EXPIRES_IN=10s
+      - JWT_REFRESH_SECRET=b7c1e22b-97d0-405a-870c-651be092d96f
+      - JWT_REFRESH_EXPIRES_IN=7d
     volumes:
       - ./services/auth_service:/app
       - /app/node_modules

@@ -9,6 +9,8 @@ import {
   comparePassword,
   handleGetUserById,
   handleGetUserByIdAndPassword,
+  handleRefreshToken,
+  handleRevokeRefreshToken,
 } from "../services/auth.services";
 import {
   changePasswordSchema,
@@ -19,6 +21,7 @@ import {
   LoginResponse,
   RegisterResponse,
   VerifyTokenResponse,
+  RefreshTokenResponse,
 } from "@shared/interfaces/auth/IAuth";
 
 const postRegisterAPI = async (req: Request, res: Response) => {
@@ -79,13 +82,22 @@ const postLoginAPI = async (req: Request, res: Response) => {
     }
 
     const result = await handleLoginApi(email, password);
-    // Check if result is a string (successful login returns token)
-    if (typeof result === "string") {
+    // Check if result is an object with access_token (successful login)
+    if (typeof result === "object" && "access_token" in result) {
+      // Set refresh token as HTTP-only cookie
+      res.cookie("refresh_token", result.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // HTTPS only in production
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        path: "/",
+      });
+
       const response: LoginResponse = {
         success: true,
         message: "Đăng nhập thành công",
         data: {
-          access_token: result,
+          access_token: result.access_token,
           token_type: "Bearer",
         },
       };
@@ -245,10 +257,131 @@ const putUpdatePasswordApi = async (req: Request, res: Response) => {
   }
 };
 
+const postRefreshTokenApi = async (req: Request, res: Response) => {
+  try {
+    const refresh_token = req.cookies.refresh_token;
+
+    if (!refresh_token) {
+      res.status(400).json({
+        success: false,
+        message: "Refresh token không tìm thấy trong cookie",
+        data: null,
+      });
+      return;
+    }
+
+    const result = await handleRefreshToken(refresh_token);
+
+    // Set new refresh token as HTTP-only cookie
+    res.cookie("refresh_token", result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      path: "/",
+    });
+
+    const response: RefreshTokenResponse = {
+      success: true,
+      message: "Refresh token thành công",
+      data: {
+        access_token: result.access_token,
+        token_type: "Bearer",
+      },
+    };
+
+    res.status(200).json(response);
+  } catch (error: any) {
+    console.error("Refresh token error:", error);
+    const response: RefreshTokenResponse = {
+      success: false,
+      message: error.message || "Refresh token thất bại",
+      data: null,
+    };
+    res.status(401).json(response);
+  }
+};
+
+const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
+  try {
+    const refresh_token = req.cookies.refresh_token;
+
+    if (!refresh_token) {
+      res.status(400).json({
+        success: false,
+        message: "Refresh token không tìm thấy trong cookie",
+      });
+      return;
+    }
+
+    await handleRevokeRefreshToken(refresh_token);
+
+    // Clear the refresh token cookie
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Đăng xuất thành công",
+    });
+  } catch (error: any) {
+    console.error("Revoke refresh token error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi đăng xuất",
+    });
+  }
+};
+
+const getRefreshTokenApi = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: "Token không được cung cấp",
+    });
+    return;
+  }
+  try {
+    const decoded = await verifyJwtToken(token);
+    if (decoded) {
+      const response: VerifyTokenResponse = {
+        success: true,
+        message: "Token hợp lệ",
+        data: {
+          userId: decoded.userId,
+          email: decoded.email,
+          userType: decoded.userType,
+          isValid: true,
+        },
+      };
+      res.status(200).json(response);
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Token không hợp lệ hoặc đã hết hạn",
+        data: null,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy thông tin tài khoản.",
+      data: null,
+    });
+  }
+};
+
 export {
   postRegisterAPI,
   postLoginAPI,
   postVerifyTokenAPI,
   getAccountApi,
   putUpdatePasswordApi,
+  postRefreshTokenApi,
+  postRevokeRefreshTokenApi,
 };
