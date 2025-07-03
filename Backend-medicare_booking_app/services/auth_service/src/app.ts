@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { connectRabbitMQ } from "./queue/connection";
 import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 import { startCleanupRefreshTokensJob } from "./jobs/cleanupRefreshTokens.job";
+import initDatabase from "./config/seed";
 
 const app = express();
 const port = process.env.PORT || 8086;
@@ -34,6 +35,7 @@ const startApplication = async () => {
     });
 
     startCleanupRefreshTokensJob();
+    initDatabase();
   } catch (error) {
     console.error("❌ Failed to start application:", error);
     process.exit(1); // Thoát ứng dụng nếu có lỗi khởi động quan trọng
