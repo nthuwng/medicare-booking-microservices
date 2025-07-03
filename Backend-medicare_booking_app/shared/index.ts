@@ -5,3 +5,5 @@ export * from "./interfaces/common";
 export * from "./interfaces/clinic";
 export * from "./interfaces/doctor";
 export * from "./interfaces/specialties";
+export * from "./interfaces/fee";
+export * from "./interfaces/schedule";

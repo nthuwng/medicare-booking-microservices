@@ -1,6 +1,7 @@
 import { prisma } from "../config/client";
 import {
   createAdmin,
+  deleteAdmin,
   findAdminByUserId,
   getAllAdmin,
 } from "src/repository/admin.repo";
@@ -92,10 +93,17 @@ const getAllAdminService = async () => {
   const admins = await getAllAdmin();
   return admins;
 };
+
+const deleteAdminService = async (id: string) => {
+  const admin = await deleteAdmin(id);
+  return admin;
+};
+
 export {
   createAdminProfile,
   getAdminByIdService,
   checkTypeAndCreateAdminProfile,
   checkUserExits,
   getAllAdminService,
+  deleteAdminService,
 };

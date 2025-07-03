@@ -1,4 +1,4 @@
-FROM node:20
+FROM node:20-alpine
 
 # Tạo thư mục làm việc
 WORKDIR /app
@@ -6,6 +6,10 @@ WORKDIR /app
 # Copy package files và cài đặt dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy Prisma schema và generate Prisma client
+COPY prisma ./prisma/
+RUN npx prisma generate
 
 # Copy source code
 COPY src/ ./src/

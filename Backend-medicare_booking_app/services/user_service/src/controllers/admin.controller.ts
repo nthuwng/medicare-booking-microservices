@@ -3,6 +3,7 @@ import {
   createAdminProfile,
   getAdminByIdService,
   getAllAdminService,
+  deleteAdminService
 } from "../services/admin.service";
 
 const createAdminController = async (req: Request, res: Response) => {
@@ -49,8 +50,24 @@ const getAllAdmintController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+const deleteAdminController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await deleteAdminService(id);
+    res.status(201).json({
+      success: true,
+      message: "Xóa thông tin admin thành công.",
+    });
+  } catch (error: any) {
+    console.error("Error deleting admin:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createAdminController,
   getAdminByIdController,
   getAllAdmintController,
+  deleteAdminController
 };

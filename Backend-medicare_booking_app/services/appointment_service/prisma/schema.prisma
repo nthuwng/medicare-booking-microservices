@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  Pending
+  Confirmed
+  Completed
+  Cancelled
+}
+
+model Appointment {
+  id              String            @id @default(uuid()) @map("appointment_id")
+  patientId       String            @map("patient_id") @db.VarChar(255)
+  doctorId        String            @map("doctor_id") @db.VarChar(255)
+  scheduleId      Int               @map("schedule_id")
+  clinicId        Int               @map("clinic_id")
+  appointmentDate DateTime          @map("appointment_date")
+  appointmentTime DateTime          @map("appointment_time")
+  status          AppointmentStatus @default(Pending)
+  reason          String?           @db.Text
+  createdAt       DateTime          @default(now())
+
+  @@map("appointments")
+}

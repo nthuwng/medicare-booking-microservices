@@ -29,4 +29,12 @@ const getAllAdmin = async () => {
   const admins = await prisma.admin.findMany();
   return admins;
 };
-export { createAdmin, findAdminByUserId, getAllAdmin };
+
+const deleteAdmin = async (id: string) => {
+  const admin = await prisma.admin.delete({
+    where: { id: id },
+  });
+  return admin;
+};
+
+export { createAdmin, findAdminByUserId, getAllAdmin, deleteAdmin };

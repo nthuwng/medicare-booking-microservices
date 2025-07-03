@@ -1,5 +1,6 @@
 import {
   createPatient,
+  deletePatient,
   findPatientByUserId,
   getAllPatient,
   getPatientById,
@@ -116,10 +117,16 @@ const getAllPatientService = async () => {
   return patients;
 };
 
+const deletePatientService = async (id: string) => {
+  const patient = await deletePatient(id);
+  return patient;
+};
+
 export {
   createPatientProfile,
   checkTypeAndCreatePatientProfile,
   checkUserExits,
   getPatientByIdService,
   getAllPatientService,
+  deletePatientService
 };

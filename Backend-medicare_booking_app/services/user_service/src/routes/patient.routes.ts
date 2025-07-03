@@ -3,6 +3,7 @@ import {
   createPatientController,
   getPatientByIdController,
   getAllPatientController,
+  deletePatientController
 } from "../controllers/patient.controller";
 import {
   authenticateToken,
@@ -15,6 +16,7 @@ const patientRoutes = (app: Express) => {
   router.post("/", authenticateToken, createPatientController);
   router.get("/:id", authenticateToken, getPatientByIdController);
   router.get("/", authenticateToken, authorizeAdmin, getAllPatientController);
+  router.delete("/:id", authenticateToken, authorizeAdmin, deletePatientController);
 
   app.use("/patients", router);
 };

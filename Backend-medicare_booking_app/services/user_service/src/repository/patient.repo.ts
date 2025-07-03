@@ -67,10 +67,18 @@ const getAllPatient = async () => {
   return patients;
 };
 
+const deletePatient = async (id: string) => {
+  const patient = await prisma.patient.delete({
+    where: { id: id },
+  });
+  return patient;
+};
+
 export {
   findPatientByUserId,
   createPatient,
   getUserIdByPatientId,
   getPatientById,
-  getAllPatient
+  getAllPatient,
+  deletePatient
 };

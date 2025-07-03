@@ -3,6 +3,7 @@ import {
   createPatientProfile,
   getPatientByIdService,
   getAllPatientService,
+  deletePatientService
 } from "../services/patient.service";
 
 const createPatientController = async (req: Request, res: Response) => {
@@ -49,8 +50,24 @@ const getAllPatientController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+const deletePatientController = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    await deletePatientService(id);
+    res.status(201).json({
+      success: true,
+      message: "Xóa thông tin patient thành công.",
+    });
+  } catch (error: any) {
+    console.error("Error deleting patient:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createPatientController,
   getPatientByIdController,
   getAllPatientController,
+  deletePatientController
 };

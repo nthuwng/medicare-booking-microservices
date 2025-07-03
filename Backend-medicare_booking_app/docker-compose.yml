@@ -82,19 +82,45 @@ services:
       - healthcare_network
     command: npm run dev
 
+  appointment_db:
+    image: mysql:8.0
+    container_name: appointment_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: appointment_db
+    ports:
+      - "3310:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - appointment_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
+
   # Appointment service
   appointment-service:
-    build: ./services/appointment_service
+    build:
+      context: ./services/appointment_service
+      dockerfile: Dockerfile
     ports:
       - "8082:8082"
     environment:
       - PORT=8082
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:medicare_booking@appointment_db:3306/appointment_db # Fixed port
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
       - ./services/appointment_service:/app
       - /app/node_modules
+      - ./shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      appointment_db:
+        condition: service_started
     networks:
       - healthcare_network
-    command: npm start
+    command: npm run dev
 
 # User service database
   doctor_db:
@@ -192,7 +218,7 @@ services:
       - DATABASE_URL=mysql://root:medicare_booking@auth_db:3306/auth_db
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - JWT_SECRET=4a47a04c-579e-4585-889b-8129913ae93e
-      - JWT_EXPIRES_IN=10s
+      - JWT_EXPIRES_IN=1d
       - JWT_REFRESH_SECRET=b7c1e22b-97d0-405a-870c-651be092d96f
       - JWT_REFRESH_EXPIRES_IN=7d
     volumes:
@@ -231,4 +257,5 @@ volumes:
   user_mysql_data:
   doctor_mysql_data:
   auth_mysql_data:
+  appointment_mysql_data:
   rabbitmq_data:
