@@ -12,13 +12,13 @@ import {
 const router = express.Router();
 
 router.post(
-  "/:doctorProfileId/fee",
+  "/:doctorProfileId",
   authenticateToken,
   authorizeAdmin,
   createFeeController
 );
 router.get(
-  "/:doctorProfileId/fee",
+  "/:doctorProfileId",
   authenticateToken,
   authorizeAdmin,
   getFeeController

@@ -16,7 +16,7 @@
     "dev:notification_service": "docker-compose up --build notification-service",
     "dev:payment_service": "docker-compose up --build payment-service",
     "dev:rating_service": "docker-compose up --build rating-service",
-    "dev:mysql": "docker-compose up -d --build auth_db user_db"
+    "dev:mysql": "docker-compose up -d --build auth_db user_db doctor_db appointment_db"
   },
   "author": "",
   "license": "ISC",

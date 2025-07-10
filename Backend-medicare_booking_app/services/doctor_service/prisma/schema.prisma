@@ -119,10 +119,23 @@ model Schedule {
   isAvailable Boolean  @default(true) @map("is_available")
 
   // Relations
-  doctor Doctor @relation(fields: [doctorId], references: [id])
-  clinic Clinic @relation(fields: [clinicId], references: [id])
+  doctor   Doctor     @relation(fields: [doctorId], references: [id])
+  clinic   Clinic     @relation(fields: [clinicId], references: [id])
+  TimeSlot TimeSlot[]
 
   @@map("schedules")
+}
+
+model TimeSlot {
+  id         Int      @id @default(autoincrement())
+  scheduleId String   @map("schedule_id")
+  startTime  DateTime @map("start_time") @db.Time
+  endTime    DateTime @map("end_time") @db.Time
+  isBooked   Boolean  @default(false) @map("is_booked")
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@map("time_slots")
 }
 
 // Fees table - Updated to work with new structure
