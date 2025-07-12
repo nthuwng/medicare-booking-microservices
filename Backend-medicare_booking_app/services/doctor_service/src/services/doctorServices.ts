@@ -38,7 +38,7 @@ const createDoctorProfile = async (
     bio,
     experience_years,
     gender,
-    license_number,
+    title,
   } = body;
 
   // Parse clinic_ids and specialty_ids if they come as strings
@@ -87,7 +87,7 @@ const createDoctorProfile = async (
     bio || "",
     experience_years || 0,
     gender || "",
-    license_number || ""
+    title || ""
   );
 
   return {
@@ -123,7 +123,7 @@ const checkTypeAndCreateDoctorProfile = async (
   bio: string,
   experience_years: number,
   gender: string,
-  license_number: string
+  title: string
 ) => {
   const userType = (await getUserByIdViaRabbitMQ(userId)) as UserInfo;
 
@@ -141,7 +141,7 @@ const checkTypeAndCreateDoctorProfile = async (
     bio,
     experience_years,
     gender,
-    license_number
+    title
   );
   return doctor;
 };
@@ -406,7 +406,7 @@ const handleGetAllApprovedDoctors = async (page: number, pageSize: number) => {
   };
 };
 
-const checkDoctorViaRabbitMQ = async (doctorId: string) => {
+const checkDoctorInfor = async (doctorId: string) => {
   const doctor = await findDoctorById(doctorId);
   if (!doctor) {
     throw new Error("Doctor không tồn tại");
@@ -426,5 +426,5 @@ export {
   handleGetAllDoctors,
   countTotalDoctorPage,
   handleGetAllApprovedDoctors,
-  checkDoctorViaRabbitMQ,
+  checkDoctorInfor,
 };

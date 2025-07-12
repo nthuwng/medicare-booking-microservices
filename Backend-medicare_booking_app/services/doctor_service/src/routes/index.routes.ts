@@ -4,6 +4,7 @@ import clinicRoutes from "./clinicRoutes";
 import feeRoutes from "./feeRoutes";
 import scheduleRoutes from "./schedule";
 import specialtiesRoutes from "./specialtiesRoutes";
+import timeSlotRoutes from "./timeSlotRoutes";
 
 const routers = (app: Express) => {
   app.use("/doctors", doctorRoutes);
@@ -11,6 +12,7 @@ const routers = (app: Express) => {
   app.use("/fees", feeRoutes);
   app.use("/schedules", scheduleRoutes);
   app.use("/specialties", specialtiesRoutes);
+  app.use("/time-slots", timeSlotRoutes);
 };
 
 export default routers;

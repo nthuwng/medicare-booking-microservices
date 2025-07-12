@@ -1,4 +1,5 @@
-import { checkDoctorViaRabbitMQ } from "src/services/doctorServices";
+
+import { checkDoctorInfor } from "src/services/doctorServices";
 import { getChannel } from "../connection";
 
 // Khởi tạo consumer để lắng nghe queue "auth.get_user"
@@ -12,7 +13,7 @@ export const initCheckDoctorConsumer = async () => {
 
     try {
       const { doctorId } = JSON.parse(msg.content.toString());
-      const doctor = await checkDoctorViaRabbitMQ(doctorId);
+      const doctor = await checkDoctorInfor(doctorId);
 
       // Gửi phản hồi đến queue được chỉ định trong `replyTo`
       channel.sendToQueue(

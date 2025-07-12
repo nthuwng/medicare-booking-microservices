@@ -24,6 +24,14 @@ enum ApprovalStatus {
   Rejected
 }
 
+enum Title {
+  BS // Bác sĩ
+  ThS // Thạc sĩ
+  TS // Tiến sĩ
+  PGS // Phó Giáo sư
+  GS // Giáo sư
+}
+
 // Specialties table
 model Specialty {
   id            Int     @id @default(autoincrement()) @map("specialty_id")
@@ -66,7 +74,7 @@ model Doctor {
   gender          Gender
   avatarUrl       String?        @map("avatar_url") @db.VarChar(255)
   approvalStatus  ApprovalStatus @default(Pending) @map("approval_status")
-  licenseNumber   String         @unique @map("license_number") @db.VarChar(50)
+  title           Title?         @map("title")
   createdAt       DateTime       @default(now()) @map("created_at")
 
   // Relations (many-to-many)
@@ -114,28 +122,37 @@ model Schedule {
   doctorId    String   @map("doctor_profile_id")
   clinicId    Int      @map("clinic_id")
   date        DateTime @db.Date
-  startTime   DateTime @map("start_time") @db.Time
-  endTime     DateTime @map("end_time") @db.Time
   isAvailable Boolean  @default(true) @map("is_available")
 
-  // Relations
-  doctor   Doctor     @relation(fields: [doctorId], references: [id])
-  clinic   Clinic     @relation(fields: [clinicId], references: [id])
-  TimeSlot TimeSlot[]
+  doctor    Doctor             @relation(fields: [doctorId], references: [id])
+  clinic    Clinic             @relation(fields: [clinicId], references: [id])
+  timeSlots ScheduleTimeSlot[]
 
+  @@unique([doctorId, clinicId, date])
   @@map("schedules")
 }
 
 model TimeSlot {
-  id         Int      @id @default(autoincrement())
-  scheduleId String   @map("schedule_id")
-  startTime  DateTime @map("start_time") @db.Time
-  endTime    DateTime @map("end_time") @db.Time
-  isBooked   Boolean  @default(false) @map("is_booked")
+  id        Int      @id @default(autoincrement())
+  startTime DateTime @map("start_time") @db.Time
+  endTime   DateTime @map("end_time") @db.Time
 
-  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  scheduleTimeSlots ScheduleTimeSlot[]
 
   @@map("time_slots")
+}
+
+model ScheduleTimeSlot {
+  scheduleId     String @map("schedule_id")
+  timeSlotId     Int    @map("time_slot_id")
+  maxBooking     Int    @default(3)
+  currentBooking Int    @default(0)
+
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  timeSlot TimeSlot @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+
+  @@id([scheduleId, timeSlotId])
+  @@map("schedule_time_slots")
 }
 
 // Fees table - Updated to work with new structure

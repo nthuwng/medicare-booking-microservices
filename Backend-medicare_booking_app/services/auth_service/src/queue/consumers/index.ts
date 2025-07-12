@@ -1,4 +1,5 @@
 import { initAuthCheckAdminConsumer } from "./authCheckAdmin.consumer";
+import { initAuthCheckDoctorConsumer } from "./authCheckDoctor.consumer";
 import { initAuthCheckPatientConsumer } from "./authCheckPatient.consumer";
 import { initAuthGetAllUserConsumer } from "./authGetAllUser.consumer";
 import { initAuthGetUserConsumer } from "./authGetUser.consumer";
@@ -11,6 +12,7 @@ export const initializeAllRabbitMQConsumers = async () => {
     await initAuthCheckAdminConsumer();
     await initAuthGetAllUserConsumer();
     await initAuthCheckPatientConsumer();
+    await initAuthCheckDoctorConsumer();
 
     console.log("✅ All RabbitMQ consumers auth_service initialized successfully.");
   } catch (error) {

@@ -7,20 +7,16 @@ import {
 import {
   authenticateToken,
   authorizeAdmin,
+  authorizeDoctor,
 } from "src/middleware/auth.middleware";
 
 const router = express.Router();
 
-router.post(
-  "/schedules",
-  authenticateToken,
-  authorizeAdmin,
-  createScheduleController
-);
+router.post("/", authenticateToken, authorizeDoctor, createScheduleController);
 router.get(
-  "/schedules/:doctorId",
+  "/",
   authenticateToken,
-  authorizeAdmin,
+  authorizeDoctor,
   getScheduleByDoctorIdController
 );
 

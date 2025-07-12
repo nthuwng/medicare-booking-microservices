@@ -16,9 +16,15 @@ const checkAdminViaRabbitMQ = async (userId: string) => {
   return rpcRequest("auth.checkAdmin", { userId });
 };
 
+const checkDoctorViaRabbitMQ = async (userId: string) => {
+  return rpcRequest("auth.checkDoctor", { userId });
+};
+
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
   getUserByIdViaRabbitMQ,
   getAllDoctorsViaRabbitMQ,
+  checkDoctorViaRabbitMQ
 };

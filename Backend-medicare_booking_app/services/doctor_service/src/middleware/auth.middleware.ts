@@ -2,6 +2,7 @@ import { AuthVerifyResponse, UserType } from "@shared/index";
 import { Request, Response, NextFunction } from "express";
 import {
   checkAdminViaRabbitMQ,
+  checkDoctorViaRabbitMQ,
   verifyTokenViaRabbitMQ,
 } from "src/queue/publishers/doctor.publisher";
 
@@ -75,4 +76,31 @@ const authorizeAdmin = async (
   }
 };
 
-export { authenticateToken, authorizeAdmin };
+const authorizeDoctor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Missing userId" });
+      return;
+        }
+
+    const isDoctor = await checkDoctorViaRabbitMQ(userId);
+    if (isDoctor.isDoctor === false) {
+      res.status(403).json({
+        success: false,
+        message: "Bạn không phải là bác sĩ, bạn không có quyền truy cập.",
+      });
+      return;
+    }
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Authorization service error" });
+  }
+};
+
+
+export { authenticateToken, authorizeAdmin,authorizeDoctor };

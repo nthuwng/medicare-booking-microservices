@@ -8,3 +8,4 @@ export * from "./interfaces/specialties";
 export * from "./interfaces/fee";
 export * from "./interfaces/schedule";
 export * from "./interfaces/appointment";
+export * from "./interfaces/timeSlot";

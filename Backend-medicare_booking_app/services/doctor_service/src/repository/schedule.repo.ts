@@ -3,19 +3,15 @@ import { prisma } from "src/config/client";
 const createSchedule = async (
   doctorId: string,
   date: string,
-  startTime: string,
-  endTime: string,
-  isAvailable: boolean,
   clinicId: number
 ) => {
+  
   return await prisma.schedule.create({
     data: {
       doctorId,
       date: new Date(date),
-      startTime: new Date(`1970-01-01T${startTime}Z`),
-      endTime: new Date(`1970-01-01T${endTime}Z`),
-      isAvailable,
       clinicId,
+      isAvailable: true,
     },
     include: {
       doctor: {
@@ -67,7 +63,7 @@ const getScheduleById = async (scheduleId: string) => {
           phone: true,
           gender: true,
           avatarUrl: true,
-          licenseNumber: true,
+          title: true,
           approvalStatus: true,
           experienceYears: true,
         },

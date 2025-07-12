@@ -10,7 +10,7 @@ export interface CreateDoctorProfileData {
   bio?: string;
   experience_years?: number;
   gender?: Gender;
-  license_number?: string;
+  title?: string;
   approval_status?: ApprovalStatus;
   createdAt?: Date;
 }
@@ -49,7 +49,7 @@ export interface DoctorWithRelations {
   gender: Gender;
   avatarUrl?: string;
   approvalStatus: ApprovalStatus;
-  licenseNumber: string;
+  title?: string;
   createdAt: Date;
   specialties: Array<{
     specialty: {

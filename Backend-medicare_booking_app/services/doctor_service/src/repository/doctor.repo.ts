@@ -1,4 +1,4 @@
-import { ApprovalStatus, Gender } from "@prisma/client";
+import { ApprovalStatus, Gender, Title } from "@prisma/client";
 import { prisma } from "src/config/client";
 
 const createDoctor = async (
@@ -11,7 +11,7 @@ const createDoctor = async (
   bio: string,
   experience_years: number,
   gender: string,
-  license_number: string
+  title: string
 ) => {
   return prisma.doctor.create({
     data: {
@@ -22,7 +22,7 @@ const createDoctor = async (
       bio,
       experienceYears: +experience_years,
       gender: gender as Gender,
-      licenseNumber: license_number,
+      title: title as Title,
       specialties: {
         create: specialty_ids.map((specialtyId) => ({
           specialtyId: specialtyId,
@@ -149,6 +149,7 @@ const getDoctorsBySpecialty = async (specialtyId: number) => {
       experienceYears: true,
       avatarUrl: true,
       approvalStatus: true,
+      title: true,
       specialties: {
         where: { isActive: true },
         select: {
@@ -194,6 +195,7 @@ const getDoctorsByClinic = async (clinicId: number) => {
       experienceYears: true,
       avatarUrl: true,
       approvalStatus: true,
+      title: true,
       specialties: {
         where: { isActive: true },
         select: {
