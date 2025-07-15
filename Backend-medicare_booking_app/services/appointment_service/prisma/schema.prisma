@@ -34,55 +34,45 @@ enum PaymentStatus {
   Paid // Đã thanh toán
 }
 
-enum PaymentMethod {
-  Cash // Tiền mặt
-  BankTransfer // Chuyển khoản
-}
-
-// Main Appointment model
 model Appointment {
-  id String @id @default(uuid()) @map("appointment_id")
+  id              String            @id @default(uuid())
+  userId          String            @unique @map("user_id")
+  doctorId        String            @map("doctor_id")
+  clinicId        Int               @map("clinic_id")
+  specialtyId     Int               @map("specialty_id")
+  scheduleId      String            @map("schedule_id")
+  timeSlotId      Int               @map("time_slot_id")
+  appointmentDate DateTime          @map("appointment_date")
+  appointmentTime DateTime          @map("appointment_time")
+  status          AppointmentStatus @map("status")
 
-  // References to other services
-  userId      String @map("user_id") @db.VarChar(255)
-  doctorId    String @map("doctor_id") @db.VarChar(255)// Reference to doctor_service
-  clinicId    Int    @map("clinic_id") // Reference to doctor_service
-  specialtyId Int    @map("specialty_id") // Reference to doctor_service
-  scheduleId  String @map("schedule_id") @db.VarChar(255) // Reference to doctor_service
-  timeSlotId  Int    @map("time_slot_id") // Reference to doctor_service
+  patientId String @map("patient_id")
 
-  // Appointment details
-  appointmentDate DateTime          @map("appointment_date") @db.Date
-  appointmentTime DateTime          @map("appointment_time") @db.Time
-  status          AppointmentStatus @default(Pending)
-  bookingType     BookingType       @map("booking_type")
-
-  // Thông tin người khám bệnh (bệnh nhân thực tế)
-  patientName        String   @map("patient_name") @db.VarChar(255)
-  patientPhone       String   @map("patient_phone") @db.VarChar(20)
-  patientEmail       String?  @map("patient_email") @db.VarChar(255)
-  patientGender      Gender   @map("patient_gender")
-  patientDateOfBirth DateTime @map("patient_date_of_birth") @db.Date
-
-  // Địa chỉ người khám bệnh
-  patientCity     String @map("patient_city") @db.VarChar(100)
-  patientDistrict String @map("patient_district") @db.VarChar(100)
-  patientAddress  String @map("patient_address") @db.Text
-
-  // Thông tin người đặt lịch (chỉ có khi bookingType = Relative)
-  bookerName  String? @map("booker_name") @db.VarChar(255) // Tên người đặt
-  bookerPhone String? @map("booker_phone") @db.VarChar(20) // SĐT người đặt
-  reason      String? @map("reason") @db.Text
-
-  // Financial information (snapshot from doctor_service fees)
-  feeId         Int            @map("fee_id") // Reference to doctor_service fees table
-  bookingFee    Decimal        @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
-  totalFee      Decimal        @default(0.00) @map("total_fee") @db.Decimal(10, 2)
-  paymentStatus PaymentStatus  @default(Unpaid) @map("payment_status")
-  paymentMethod PaymentMethod? @map("payment_method")
+  feeId         Int           @map("fee_id")
+  totalFee      Decimal       @map("total_fee")
+  paymentStatus PaymentStatus @map("payment_status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("appointments")
+  patient AppointmentPatient @relation(fields: [patientId], references: [id])
+}
+
+model AppointmentPatient {
+  id                 String   @id @default(uuid())
+  patientName        String   @map("patient_name")
+  patientPhone       String   @map("patient_phone")
+  patientEmail       String?  @map("patient_email")
+  patientGender      Gender   @map("patient_gender")
+  patientDateOfBirth DateTime @map("patient_date_of_birth")
+  patientCity        String   @map("patient_city")
+  patientDistrict    String   @map("patient_district")
+  patientAddress     String   @map("patient_address")
+
+  bookerName  String? @map("booker_name")
+  bookerPhone String? @map("booker_phone")
+
+  reason String? @map("reason")
+
+  appointments Appointment[]
 }
