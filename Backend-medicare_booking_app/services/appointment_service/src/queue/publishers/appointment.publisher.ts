@@ -17,11 +17,11 @@ const checkPatientByIdViaRabbitMQ = async (userId: string) => {
 };
 
 const checkDoctorViaRabbitMQ = async (doctorId: string) => {
-  return rpcRequest("doctor.check_doctor", { doctorId });
+  return rpcRequest("doctor.check_doctor_", { doctorId });
 };
 
 const checkScheduleViaRabbitMQ = async (scheduleId: string) => {
-  return rpcRequest("doctor.check_schedule", { scheduleId });
+  return rpcRequest("schedule.check_schedule", { scheduleId });
 };
 
 export {

@@ -3,6 +3,7 @@ import {
   createScheduleController,
   getAllScheduleController,
   getScheduleByDoctorIdController,
+  getScheduleByIdController,
 } from "src/controller/scheduleController";
 import {
   authenticateToken,
@@ -20,9 +21,9 @@ const scheduleRoutes = (app: Express) => {
     createScheduleController
   );
   router.get("/", authenticateToken, authorizeAdmin, getAllScheduleController);
-
+  router.get("/:id", authenticateToken, authorizeAdmin, getScheduleByIdController);
   router.get(
-    "/:doctorId",
+    "/by-doctor/:doctorId",
     authenticateToken,
     authorizeDoctor,
     getScheduleByDoctorIdController

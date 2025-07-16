@@ -4,6 +4,7 @@ import initDatabase from "./config/seed";
 import scheduleRoutes from "./routes/schedule";
 import timeSlotRoutes from "./routes/timeSlotRoutes";
 import { connectRabbitMQ } from "./queue/connection";
+import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 
 const app = express();
 const port = process.env.PORT || 8088;
@@ -23,7 +24,7 @@ const startApplication = async () => {
     console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers
-
+    await initializeAllRabbitMQConsumers();
     //Khởi động HTTP Server (hoặc gRPC server)
     app.listen(port, () => {
       console.log(`✅ Schedule_service listening on port ${port}`);

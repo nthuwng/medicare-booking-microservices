@@ -3,10 +3,6 @@ import {
   CreateDoctorProfileData,
   UpdateDoctorStatusInput,
   UserInfo,
-  AddDoctorSpecialtyData,
-  AddDoctorClinicData,
-  RemoveDoctorSpecialtyData,
-  RemoveDoctorClinicData,
 } from "@shared/index";
 import { prisma } from "src/config/client";
 import {
@@ -17,12 +13,6 @@ import {
   createDoctor,
   findDoctorByUserId,
   findDoctorById,
-  addDoctorSpecialty,
-  removeDoctorSpecialty,
-  addDoctorClinic,
-  removeDoctorClinic,
-  getDoctorsBySpecialty,
-  getDoctorsByClinic,
 } from "src/repository/doctor.repo";
 
 const createDoctorProfile = async (
@@ -33,44 +23,32 @@ const createDoctorProfile = async (
     fullName,
     phone,
     avatar_url,
-    clinic_ids,
-    specialty_ids,
+    clinicId,
+    specialtyId,
     bio,
-    experience_years,
+    experienceYears,
     gender,
     title,
+    bookingFee,
   } = body;
-
-  // Parse clinic_ids and specialty_ids if they come as strings
-  const parsedClinicIds: number[] = Array.isArray(clinic_ids)
-    ? clinic_ids
-    : String(clinic_ids)
-        .split(",")
-        .map((id: string) => parseInt(id.trim()));
-
-  const parsedSpecialtyIds: number[] = Array.isArray(specialty_ids)
-    ? specialty_ids
-    : String(specialty_ids)
-        .split(",")
-        .map((id: string) => parseInt(id.trim()));
 
   // Kiểm tra user có tồn tại trong auth_service
   const userInfo = await checkUserExits(userId);
 
-  // Validate clinics exist
-  for (const clinicId of parsedClinicIds) {
+  // Validate clinic exists
+  if (clinicId) {
     const clinic = await prisma.clinic.findUnique({
-      where: { id: clinicId },
+      where: { id: +clinicId },
     });
     if (!clinic) {
       throw new Error(`Clinic với ID ${clinicId} không tồn tại`);
     }
   }
 
-  // Validate specialties exist
-  for (const specialtyId of parsedSpecialtyIds) {
+  // Validate specialty exists
+  if (specialtyId) {
     const specialty = await prisma.specialty.findUnique({
-      where: { id: specialtyId },
+      where: { id: +specialtyId },
     });
     if (!specialty) {
       throw new Error(`Specialty với ID ${specialtyId} không tồn tại`);
@@ -82,12 +60,13 @@ const createDoctorProfile = async (
     fullName,
     phone,
     avatar_url || "",
-    parsedClinicIds,
-    parsedSpecialtyIds,
+    clinicId,
+    specialtyId,
     bio || "",
-    experience_years || 0,
+    experienceYears || 0,
     gender || "",
-    title || ""
+    title || "",
+    bookingFee || 0
   );
 
   return {
@@ -118,12 +97,13 @@ const checkTypeAndCreateDoctorProfile = async (
   fullName: string,
   phone: string,
   avatar_url: string,
-  clinic_ids: number[],
-  specialty_ids: number[],
+  clinicId: number,
+  specialtyId: number,
   bio: string,
-  experience_years: number,
+  experienceYears: number,
   gender: string,
-  title: string
+  title: string,
+  bookingFee: number
 ) => {
   const userType = (await getUserByIdViaRabbitMQ(userId)) as UserInfo;
 
@@ -136,12 +116,13 @@ const checkTypeAndCreateDoctorProfile = async (
     fullName,
     phone,
     avatar_url || "",
-    clinic_ids,
-    specialty_ids,
+    clinicId,
+    specialtyId,
     bio,
-    experience_years,
+    experienceYears,
     gender,
-    title
+    title,
+    bookingFee
   );
   return doctor;
 };
@@ -172,7 +153,6 @@ const updateDoctorStatusService = async (
   if (!Object.values(ApprovalStatus).includes(status as ApprovalStatus)) {
     throw new Error("Trạng thái không hợp lệ");
   }
-
   const doctor = await findDoctorById(id);
 
   if (!doctor?.userId) {
@@ -192,150 +172,12 @@ const updateDoctorStatusService = async (
   return doctorUpdated;
 };
 
-// New services for managing doctor-specialty relationships
-const addDoctorSpecialtyService = async (data: AddDoctorSpecialtyData) => {
-  const { doctorId, specialtyId } = data;
-
-  // Check if doctor exists
-  const doctor = await findDoctorById(doctorId);
-  if (!doctor) {
-    throw new Error("Doctor không tồn tại");
-  }
-
-  // Check if specialty exists
-  const specialty = await prisma.specialty.findUnique({
-    where: { id: specialtyId },
-  });
-  if (!specialty) {
-    throw new Error("Specialty không tồn tại");
-  }
-
-  // Check if relationship already exists
-  const existingRelation = await prisma.doctorSpecialty.findUnique({
-    where: {
-      doctorId_specialtyId: {
-        doctorId,
-        specialtyId,
-      },
-    },
-  });
-
-  if (existingRelation) {
-    throw new Error("Doctor đã có specialty này rồi");
-  }
-
-  return await addDoctorSpecialty(doctorId, specialtyId);
-};
-
-const removeDoctorSpecialtyService = async (
-  data: RemoveDoctorSpecialtyData
-) => {
-  const { doctorId, specialtyId } = data;
-
-  // Check if relationship exists
-  const existingRelation = await prisma.doctorSpecialty.findUnique({
-    where: {
-      doctorId_specialtyId: {
-        doctorId,
-        specialtyId,
-      },
-    },
-  });
-
-  if (!existingRelation) {
-    throw new Error("Doctor không có specialty này");
-  }
-
-  return await removeDoctorSpecialty(doctorId, specialtyId);
-};
-
-// New services for managing doctor-clinic relationships
-const addDoctorClinicService = async (data: AddDoctorClinicData) => {
-  const { doctorId, clinicId } = data;
-
-  // Check if doctor exists
-  const doctor = await findDoctorById(doctorId);
-  if (!doctor) {
-    throw new Error("Doctor không tồn tại");
-  }
-
-  // Check if clinic exists
-  const clinic = await prisma.clinic.findUnique({
-    where: { id: clinicId },
-  });
-  if (!clinic) {
-    throw new Error("Clinic không tồn tại");
-  }
-
-  // Check if relationship already exists
-  const existingRelation = await prisma.doctorClinic.findUnique({
-    where: {
-      doctorId_clinicId: {
-        doctorId,
-        clinicId,
-      },
-    },
-  });
-
-  if (existingRelation) {
-    throw new Error("Doctor đã thuộc clinic này rồi");
-  }
-
-  return await addDoctorClinic(doctorId, clinicId);
-};
-
-const removeDoctorClinicService = async (data: RemoveDoctorClinicData) => {
-  const { doctorId, clinicId } = data;
-
-  // Check if relationship exists
-  const existingRelation = await prisma.doctorClinic.findUnique({
-    where: {
-      doctorId_clinicId: {
-        doctorId,
-        clinicId,
-      },
-    },
-  });
-
-  if (!existingRelation) {
-    throw new Error("Doctor không thuộc clinic này");
-  }
-
-  return await removeDoctorClinic(doctorId, clinicId);
-};
-
-// Service to get doctors by specialty
-const getDoctorsBySpecialtyService = async (specialtyId: number) => {
-  const specialty = await prisma.specialty.findUnique({
-    where: { id: specialtyId },
-  });
-
-  if (!specialty) {
-    throw new Error("Specialty không tồn tại");
-  }
-
-  return await getDoctorsBySpecialty(specialtyId);
-};
-
-// Service to get doctors by clinic
-const getDoctorsByClinicService = async (clinicId: number) => {
-  const clinic = await prisma.clinic.findUnique({
-    where: { id: clinicId },
-  });
-
-  if (!clinic) {
-    throw new Error("Clinic không tồn tại");
-  }
-
-  return await getDoctorsByClinic(clinicId);
-};
-
 const handleGetAllDoctors = async (page: number, pageSize: number) => {
   const skip = (page - 1) * pageSize;
   const doctors = await prisma.doctor.findMany({
     include: {
-      clinics: true,
-      specialties: true,
+      clinic: true,
+      specialty: true,
     },
     skip: skip,
     take: pageSize,
@@ -368,8 +210,8 @@ const handleGetAllApprovedDoctors = async (page: number, pageSize: number) => {
   const skip = (page - 1) * pageSize;
   const doctors = await prisma.doctor.findMany({
     include: {
-      clinics: true,
-      specialties: true,
+      clinic: true,
+      specialty: true,
     },
     where: {
       approvalStatus: ApprovalStatus.Approved,
@@ -414,12 +256,6 @@ export {
   createDoctorProfile,
   getDoctorByIdService,
   updateDoctorStatusService,
-  addDoctorSpecialtyService,
-  removeDoctorSpecialtyService,
-  addDoctorClinicService,
-  removeDoctorClinicService,
-  getDoctorsBySpecialtyService,
-  getDoctorsByClinicService,
   handleGetAllDoctors,
   countTotalDoctorPage,
   handleGetAllApprovedDoctors,

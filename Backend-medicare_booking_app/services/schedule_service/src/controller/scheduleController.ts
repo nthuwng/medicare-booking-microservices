@@ -3,7 +3,8 @@ import {
   countTotalSchedulePage,
   handleGetAllSchedule,
   scheduleService,
-  getScheduleByDoctorId
+  getScheduleByDoctorId,
+  getScheduleById,
 } from "src/services/scheduleServices";
 import { length } from "zod";
 
@@ -116,8 +117,31 @@ const getScheduleByDoctorIdController = async (req: Request, res: Response) => {
   }
 };
 
+const getScheduleByIdController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const schedule = await getScheduleById(id);
+    if (!schedule || schedule.data.schedule === null) {
+      res.status(200).json({
+        success: true,
+        message: "Lịch khám không tồn tại",
+        data: [],
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Lấy lịch khám thành công.",
+      data: schedule,
+    });
+  } catch (error: any) {
+    console.error("Error getting schedule by id:", error.message);
+  }
+};
+
 export {
   createScheduleController,
   getAllScheduleController,
   getScheduleByDoctorIdController,
+  getScheduleByIdController
 };

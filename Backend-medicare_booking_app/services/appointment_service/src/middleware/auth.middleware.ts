@@ -105,4 +105,6 @@ const authorizePatient = async (
     res.status(500).json({ message: "Authorization service error" });
   }
 };
+
+
 export { authenticateToken, authorizeAdmin, authorizePatient };

@@ -27,6 +27,8 @@
   "dependencies": {
     "@prisma/client": "6.3.0",
     "amqplib": "0.10.8",
+    "dayjs": "1.11.13",
+    "dayjs-plugin-utc": "0.1.2",
     "dotenv": "16.4.7",
     "express": "5.0.1"
   },

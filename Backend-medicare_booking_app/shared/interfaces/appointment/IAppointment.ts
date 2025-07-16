@@ -1,30 +1,66 @@
-import { ApprovalStatus, Gender } from "../common";
+import { Gender } from "../common/enums";
+
+export enum AppointmentStatus {
+  Pending = "Pending",
+  Confirmed = "Confirmed",
+  Completed = "Completed",
+  Cancelled = "Cancelled",
+}
+
+export enum PaymentStatus {
+  Unpaid = "Unpaid",
+  Paid = "Paid",
+}
 
 export interface CreateAppointmentInput {
-  doctorId: string;
   scheduleId: string;
-  clinicId: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  reason: string;
+  timeSlotId: string;
+  reason?: string;
+
+  // Patient information
+  patientName: string;
+  patientPhone: string;
+  patientEmail?: string;
+  patientGender: Gender;
+  patientDateOfBirth: string; // YYYY-MM-DD
+  patientCity: string;
+  patientDistrict: string;
+  patientAddress: string;
+
+  // Optional booker info (nếu đặt cho người khác)
+  bookerName?: string;
+  bookerPhone?: string;
 }
 
-export interface DoctorDetails {
-  id: string;
-  userId: string;
-  fullName: string;
-  phone: string;
-  bio: string;
-  experienceYears: number;
-  gender: Gender;
-  avatarUrl: string;
-  approvalStatus: ApprovalStatus;
-  licenseNumber: string;
-  createdAt: string;
-  specialties: any[];
-  clinics: any[];
-}
-
-export interface CheckDoctorOutput {
-  doctor: DoctorDetails;
+export interface AppointmentResponse {
+  appointment: {
+    id: string;
+    userId: string;
+    doctorId: string;
+    clinicId: number;
+    specialtyId: number;
+    scheduleId: string;
+    timeSlotId: number;
+    appointmentDateTime: Date;
+    status: AppointmentStatus;
+    patientId: string;
+    totalFee: number;
+    paymentStatus: PaymentStatus;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  patient: {
+    id: string;
+    patientName: string;
+    patientPhone: string;
+    patientEmail?: string;
+    patientGender: Gender;
+    patientDateOfBirth: Date;
+    patientCity: string;
+    patientDistrict: string;
+    patientAddress: string;
+    bookerName?: string;
+    bookerPhone?: string;
+    reason?: string;
+  };
 }

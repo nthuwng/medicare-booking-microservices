@@ -30,7 +30,7 @@ const scheduleService = async (body: CreateScheduleData) => {
 
   const checkClinic = await checkClinicViaRabbitMQ(clinicId.toString());
   if (!checkClinic) {
-    throw new Error("Phòng khám không tồn tại 111.");
+    throw new Error("Phòng khám không tồn tại.");
   }
 
   // Kiểm tra và validate các time slots
@@ -104,7 +104,6 @@ const scheduleService = async (body: CreateScheduleData) => {
   if (existingSchedules.length > 0) {
     // Sử dụng schedule đã tồn tại
     schedule = existingSchedules[0];
-    console.log("Using existing schedule:", schedule.id);
   } else {
     // Tạo schedule mới
     schedule = await createSchedule(doctorId, formatSelectedDay, +clinicId);
@@ -244,9 +243,26 @@ const getScheduleByDoctorId = async (doctorId: string) => {
   return schedule;
 };
 
+const getScheduleById = async (id: string) => {
+  const schedule = await prisma.schedule.findFirst({
+    where: { id: id },
+    include: {
+      timeSlots: {
+        include: {
+          timeSlot: true,
+        },
+      },
+    },
+  });
+  const doctor = await checkDoctorProfileViaRabbitMQ(schedule?.doctorId || "");
+
+  return { data: { schedule, doctor } };
+};
+
 export {
   scheduleService,
   countTotalSchedulePage,
   getScheduleByDoctorId,
   handleGetAllSchedule,
+  getScheduleById,
 };

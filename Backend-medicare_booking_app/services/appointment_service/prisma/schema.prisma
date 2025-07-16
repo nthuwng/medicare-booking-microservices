@@ -35,20 +35,18 @@ enum PaymentStatus {
 }
 
 model Appointment {
-  id              String            @id @default(uuid())
-  userId          String            @unique @map("user_id")
-  doctorId        String            @map("doctor_id")
-  clinicId        Int               @map("clinic_id")
-  specialtyId     Int               @map("specialty_id")
-  scheduleId      String            @map("schedule_id")
-  timeSlotId      Int               @map("time_slot_id")
-  appointmentDate DateTime          @map("appointment_date")
-  appointmentTime DateTime          @map("appointment_time")
-  status          AppointmentStatus @map("status")
+  id                  String            @id @default(uuid())
+  userId              String            @map("user_id")
+  doctorId            String            @map("doctor_id")
+  clinicId            Int               @map("clinic_id")
+  specialtyId         Int               @map("specialty_id")
+  scheduleId          String            @map("schedule_id")
+  timeSlotId          Int               @map("time_slot_id")
+  appointmentDateTime DateTime          @map("appointment_date_time")
+  status              AppointmentStatus @map("status")
 
   patientId String @map("patient_id")
 
-  feeId         Int           @map("fee_id")
   totalFee      Decimal       @map("total_fee")
   paymentStatus PaymentStatus @map("payment_status")
 

@@ -11,7 +11,7 @@ export enum ApprovalStatus {
 }
 
 export enum Gender {
-  MALE = "Male",
-  FEMALE = "Female",
-  OTHER = "Other",
+  Male = "Male",
+  Female = "Female",
+  Other = "Other",
 }

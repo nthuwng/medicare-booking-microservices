@@ -39,8 +39,8 @@ model Specialty {
   iconPath      String? @map("icon_path") @db.VarChar(255)
   description   String? @db.Text
 
-  // Relations (many-to-many with Doctor)
-  doctors DoctorSpecialty[]
+  // Relations (one-to-many with Doctor)
+  doctors Doctor[]
 
   @@map("specialties")
 }
@@ -55,14 +55,13 @@ model Clinic {
   phone       String? @db.VarChar(20)
   description String? @db.Text
 
-  // Relations (many-to-many with Doctor)
-  doctors   DoctorClinic[]
-  fees      Fee[]
+  // Relations (one-to-many with Doctor)
+  doctors Doctor[]
 
   @@map("clinics")
 }
 
-// Doctors table - Removed direct foreign keys to specialty and clinic
+// Doctors table - Added direct foreign keys to specialty and clinic
 model Doctor {
   id              String         @id @default(uuid()) @map("doctor_profile_id")
   userId          String         @unique @map("user_id")
@@ -74,58 +73,20 @@ model Doctor {
   avatarUrl       String?        @map("avatar_url") @db.VarChar(255)
   approvalStatus  ApprovalStatus @default(Pending) @map("approval_status")
   title           Title?         @map("title")
+  
+  // Foreign keys
+  specialtyId     Int            @map("specialty_id")
+  clinicId        Int            @map("clinic_id")
+  
+  // Consultation fee (moved from separate Fee table)
+  consultationFee Decimal        @default(0.00) @map("consultation_fee") @db.Decimal(10, 2)
+  bookingFee      Decimal        @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
+  
   createdAt       DateTime       @default(now()) @map("created_at")
 
-  // Relations (many-to-many)
-  specialties DoctorSpecialty[]
-  clinics     DoctorClinic[]
-  fees        Fee[]
+  // Relations (many-to-one)
+  specialty Specialty @relation(fields: [specialtyId], references: [id])
+  clinic    Clinic    @relation(fields: [clinicId], references: [id])
 
   @@map("doctors")
-}
-
-// Junction table for Doctor-Specialty many-to-many relationship
-model DoctorSpecialty {
-  doctorId    String   @map("doctor_id")
-  specialtyId Int      @map("specialty_id")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relations
-  doctor    Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  specialty Specialty @relation(fields: [specialtyId], references: [id], onDelete: Cascade)
-
-  @@id([doctorId, specialtyId])
-  @@map("doctor_specialties")
-}
-
-// Junction table for Doctor-Clinic many-to-many relationship
-model DoctorClinic {
-  doctorId  String   @map("doctor_id")
-  clinicId  Int      @map("clinic_id")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  clinic Clinic @relation(fields: [clinicId], references: [id], onDelete: Cascade)
-
-  @@id([doctorId, clinicId])
-  @@map("doctor_clinics")
-}
-
-// Fees table - Updated to work with new structure
-model Fee {
-  id              Int      @id @default(autoincrement()) @map("fee_id")
-  doctorId        String   @map("doctor_profile_id")
-  clinicId        Int      @map("clinic_id")
-  consultationFee Decimal  @default(0.00) @map("consultation_fee") @db.Decimal(10, 2)
-  bookingFee      Decimal  @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
-  createdAt       DateTime @default(now()) @map("created_at")
-
-  // Relations
-  doctor Doctor @relation(fields: [doctorId], references: [id])
-  clinic Clinic @relation(fields: [clinicId], references: [id])
-
-  @@map("fees")
 }
