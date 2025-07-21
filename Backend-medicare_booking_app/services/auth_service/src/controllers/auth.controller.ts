@@ -200,7 +200,9 @@ const getAccountApi = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: "Lấy thông tin tài khoản thành công.",
-      data: account,
+      data: {
+        user: account,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -394,5 +396,5 @@ export {
   putUpdatePasswordApi,
   postRefreshTokenApi,
   postRevokeRefreshTokenApi,
-  getAllUsersAPI
+  getAllUsersAPI,
 };
