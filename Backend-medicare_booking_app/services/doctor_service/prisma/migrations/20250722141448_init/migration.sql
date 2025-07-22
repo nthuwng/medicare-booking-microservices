@@ -12,7 +12,7 @@ CREATE TABLE `specialties` (
 CREATE TABLE `clinics` (
     `clinic_id` INTEGER NOT NULL AUTO_INCREMENT,
     `clinic_name` VARCHAR(255) NOT NULL,
-    `city` VARCHAR(100) NULL,
+    `city` ENUM('Hanoi', 'HoChiMinh') NULL,
     `district` VARCHAR(100) NULL,
     `street` VARCHAR(100) NULL,
     `phone` VARCHAR(20) NULL,

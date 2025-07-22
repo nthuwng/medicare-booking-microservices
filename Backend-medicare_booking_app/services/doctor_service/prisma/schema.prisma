@@ -24,6 +24,11 @@ enum ApprovalStatus {
   Rejected
 }
 
+enum City {
+  Hanoi
+  HoChiMinh
+}
+
 enum Title {
   BS // Bác sĩ
   ThS // Thạc sĩ
@@ -49,7 +54,7 @@ model Specialty {
 model Clinic {
   id          Int     @id @default(autoincrement()) @map("clinic_id")
   clinicName  String  @map("clinic_name") @db.VarChar(255)
-  city        String? @db.VarChar(100)
+  city        City?   @map("city")
   district    String? @db.VarChar(100)
   street      String? @db.VarChar(100)
   phone       String? @db.VarChar(20)
@@ -73,16 +78,16 @@ model Doctor {
   avatarUrl       String?        @map("avatar_url") @db.VarChar(255)
   approvalStatus  ApprovalStatus @default(Pending) @map("approval_status")
   title           Title?         @map("title")
-  
+
   // Foreign keys
-  specialtyId     Int            @map("specialty_id")
-  clinicId        Int            @map("clinic_id")
-  
+  specialtyId Int @map("specialty_id")
+  clinicId    Int @map("clinic_id")
+
   // Consultation fee (moved from separate Fee table)
-  consultationFee Decimal        @default(0.00) @map("consultation_fee") @db.Decimal(10, 2)
-  bookingFee      Decimal        @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
-  
-  createdAt       DateTime       @default(now()) @map("created_at")
+  consultationFee Decimal @default(0.00) @map("consultation_fee") @db.Decimal(10, 2)
+  bookingFee      Decimal @default(0.00) @map("booking_fee") @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations (many-to-one)
   specialty Specialty @relation(fields: [specialtyId], references: [id])

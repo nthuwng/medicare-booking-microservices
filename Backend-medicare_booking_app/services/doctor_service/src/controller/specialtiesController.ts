@@ -21,7 +21,7 @@ const createSpecialtiesController = async (req: Request, res: Response) => {
 
 const getSpecialtiesController = async (req: Request, res: Response) => {
   try {
-    const { page, pageSize } = req.query;
+    const { page, pageSize, specialtyName } = req.query;
     let currentPage = page ? +page : 1;
     if (currentPage <= 0) {
       currentPage = 1;
@@ -31,7 +31,8 @@ const getSpecialtiesController = async (req: Request, res: Response) => {
     );
     const specialties = await handleGetAllSpecialties(
       currentPage,
-      parseInt(pageSize as string)
+      parseInt(pageSize as string),
+      specialtyName as string
     );
 
     if (specialties.length === 0) {

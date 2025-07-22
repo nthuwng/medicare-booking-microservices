@@ -1,5 +1,8 @@
 import express, { Express } from "express";
-import { createClinicController } from "src/controller/clinicController";
+import {
+  createClinicController,
+  getClinicsController,
+} from "src/controller/clinicController";
 
 import {
   authenticateToken,
@@ -9,5 +12,7 @@ import {
 const router = express.Router();
 
 router.post("/", authenticateToken, authorizeAdmin, createClinicController);
+
+router.get("/", authenticateToken, authorizeAdmin, getClinicsController);
 
 export default router;

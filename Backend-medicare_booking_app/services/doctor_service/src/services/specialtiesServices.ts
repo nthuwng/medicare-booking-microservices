@@ -28,10 +28,19 @@ const handleCreateSpecialtiesProfile = async (
   return specialties;
 };
 
-const handleGetAllSpecialties = async (page: number, pageSize: number) => {
+const handleGetAllSpecialties = async (
+  page: number,
+  pageSize: number,
+  specialtyName?: string
+) => {
   const skip = (page - 1) * pageSize;
 
   const specialties = await prisma.specialty.findMany({
+    where: {
+      specialtyName: {
+        contains: specialtyName || "",
+      },
+    },
     skip: skip,
     take: pageSize,
   });
