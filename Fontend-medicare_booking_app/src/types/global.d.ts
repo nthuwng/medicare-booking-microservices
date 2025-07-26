@@ -40,6 +40,8 @@ declare global {
     email: string;
     userType: string;
     isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
   }
   interface IFetchAccount {
     user: IUser;

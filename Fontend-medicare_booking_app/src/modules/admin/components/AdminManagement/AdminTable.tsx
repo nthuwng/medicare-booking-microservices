@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Popconfirm, Button, App, Tag, Select } from "antd";
+import { Popconfirm, Button, App, Tag } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import utc from "dayjs/plugin/utc";
@@ -15,14 +15,10 @@ import {
 } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
-import {
-  getAllAdminsProfile,
-  getAllDoctorsProfile,
-  getAllUsers,
-} from "../../services/admin.api";
-import type { IAdminProfile, IDoctorProfile, IManageUser } from "../../types";
+import { getAllAdminsProfile, getAllUsers } from "../../services/admin.api";
+import type { IAdminProfile, IManageUser } from "../../types";
 
-const DoctorTable = () => {
+const AdminTable = () => {
   const actionRef = useRef<ActionType>(null);
   const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
   const [meta, setMeta] = useState({
@@ -36,7 +32,7 @@ const DoctorTable = () => {
     actionRef.current?.reload();
   };
 
-  const columns: ProColumns<IDoctorProfile>[] = [
+  const columns: ProColumns<IAdminProfile>[] = [
     {
       title: "Id",
       dataIndex: "id",
@@ -54,77 +50,47 @@ const DoctorTable = () => {
           </a>
         );
       },
-      width: 200,
-      ellipsis: true,
+      width: 300,
     },
     {
       title: "Tên",
-      dataIndex: "fullName",
-      ellipsis: true,
-      width: 200,
+      dataIndex: "full_name",
+      width: 150,
       fieldProps: {
         placeholder: "Nhập tên để tìm kiếm",
-        style: {
-          width: "180px",
-        },
       },
     },
     {
-      title: "Chức vụ",
-      dataIndex: "title",
-      valueType: "select",
-      valueEnum: {
-        BS: { text: "Bác sĩ" },
-        ThS: { text: "Thạc sĩ" },
-        TS: { text: "Tiến sĩ" },
-        PGS: { text: "Phó Giáo sư" },
-        GS: { text: "Giáo sư" },
-      },
-      render(dom, entity) {
-        return entity.title === "BS" ? (
-          <Tag color="blue">Bác sĩ</Tag>
-        ) : entity.title === "ThS" ? (
-          <Tag color="green">Thạc sĩ</Tag>
-        ) : entity.title === "TS" ? (
-          <Tag color="purple">Tiến sĩ</Tag>
-        ) : entity.title === "PGS" ? (
-          <Tag color="orange">Phó Giáo Sư</Tag>
-        ) : (
-          <Tag color="red">Giáo Sư</Tag>
-        );
-      },
-      fieldProps: {
-        placeholder: "Chọn chức vụ",
-        style: { width: "150px" },
-      },
-    },
-    {
-      title: "Số điện thoại:",
+      title: "Số điện thoại",
       dataIndex: "phone",
       fieldProps: {
         placeholder: "Nhập số điện thoại để tìm kiếm",
         style: {
-          width: "240px",
+          width: "250px",
         },
       },
     },
+
     {
-      title: "Giới tính",
-      dataIndex: "gender",
+      title: "Ảnh đại diện",
+      dataIndex: "avatar_url",
+      hideInSearch: true,
+      // render(dom, entity, index, action, schema) {
+      //   return <Image src={entity.avatarUrl} alt="avatar" />;
+      // },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "created_at",
       hideInSearch: true,
       render(dom, entity, index, action, schema) {
-        return entity.gender === "Male" ? (
-          <Tag color="blue">Nam</Tag>
-        ) : (
-          <Tag color="pink">Nữ</Tag>
-        );
+        return dayjs
+          .utc(entity.created_at)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm");
       },
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "approvalStatus",
-      hideInSearch: true,
-    },
+
     {
       title: "Action",
       hideInSearch: true,
@@ -157,31 +123,25 @@ const DoctorTable = () => {
 
   return (
     <>
-      <ProTable<IDoctorProfile>
+      <ProTable<IAdminProfile>
         columns={columns}
         actionRef={actionRef}
         cardBordered
         search={{
-          labelWidth: 0,
-          span: 6,
-          collapsed: false,
-          collapseRender: false,
+          labelWidth: 120,
         }}
         request={async (params, sort, filter) => {
           let query = "";
           if (params) {
             query += `page=${params.current}&pageSize=${params.pageSize}`;
-            if (params.fullName) {
-              query += `&fullName=${params.fullName}`;
+            if (params.full_name) {
+              query += `&fullName=${params.full_name}`;
             }
             if (params.phone) {
               query += `&phone=${params.phone}`;
             }
-            if (params.title) {
-              query += `&title=${params.title}`;
-            }
           }
-          const res = await getAllDoctorsProfile(query);
+          const res = await getAllAdminsProfile(query);
           if (res.data) {
             setMeta(res.data.meta);
           }
@@ -234,4 +194,4 @@ const DoctorTable = () => {
   );
 };
 
-export default DoctorTable;
+export default AdminTable;

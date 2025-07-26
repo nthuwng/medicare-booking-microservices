@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
-import { Popconfirm, Button, App, Tag, Select } from "antd";
+import { Popconfirm, Button, App, Tag } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
+dayjs.locale("vi");
+dayjs.extend(customParseFormat);
+dayjs.extend(relativeTime);
 import {
   DeleteTwoTone,
   EditTwoTone,
@@ -15,14 +16,10 @@ import {
 } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
-import {
-  getAllAdminsProfile,
-  getAllDoctorsProfile,
-  getAllUsers,
-} from "../../services/admin.api";
-import type { IAdminProfile, IDoctorProfile, IManageUser } from "../../types";
+import { getAllUsers } from "../../services/admin.api";
+import type { IManageUser } from "../../types";
 
-const DoctorTable = () => {
+const AccountTable = () => {
   const actionRef = useRef<ActionType>(null);
   const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
   const [meta, setMeta] = useState({
@@ -36,7 +33,7 @@ const DoctorTable = () => {
     actionRef.current?.reload();
   };
 
-  const columns: ProColumns<IDoctorProfile>[] = [
+  const columns: ProColumns<IManageUser>[] = [
     {
       title: "Id",
       dataIndex: "id",
@@ -54,76 +51,42 @@ const DoctorTable = () => {
           </a>
         );
       },
-      width: 200,
-      ellipsis: true,
     },
     {
-      title: "Tên",
-      dataIndex: "fullName",
-      ellipsis: true,
-      width: 200,
-      fieldProps: {
-        placeholder: "Nhập tên để tìm kiếm",
-        style: {
-          width: "180px",
-        },
-      },
-    },
-    {
-      title: "Chức vụ",
-      dataIndex: "title",
-      valueType: "select",
-      valueEnum: {
-        BS: { text: "Bác sĩ" },
-        ThS: { text: "Thạc sĩ" },
-        TS: { text: "Tiến sĩ" },
-        PGS: { text: "Phó Giáo sư" },
-        GS: { text: "Giáo sư" },
-      },
-      render(dom, entity) {
-        return entity.title === "BS" ? (
-          <Tag color="blue">Bác sĩ</Tag>
-        ) : entity.title === "ThS" ? (
-          <Tag color="green">Thạc sĩ</Tag>
-        ) : entity.title === "TS" ? (
-          <Tag color="purple">Tiến sĩ</Tag>
-        ) : entity.title === "PGS" ? (
-          <Tag color="orange">Phó Giáo Sư</Tag>
-        ) : (
-          <Tag color="red">Giáo Sư</Tag>
-        );
-      },
-      fieldProps: {
-        placeholder: "Chọn chức vụ",
-        style: { width: "150px" },
-      },
-    },
-    {
-      title: "Số điện thoại:",
-      dataIndex: "phone",
-      fieldProps: {
-        placeholder: "Nhập số điện thoại để tìm kiếm",
-        style: {
-          width: "240px",
-        },
-      },
-    },
-    {
-      title: "Giới tính",
-      dataIndex: "gender",
+      title: "Email",
+      dataIndex: "email",
       hideInSearch: true,
-      render(dom, entity, index, action, schema) {
-        return entity.gender === "Male" ? (
-          <Tag color="blue">Nam</Tag>
-        ) : (
-          <Tag color="pink">Nữ</Tag>
-        );
+    },
+    {
+      title: "Tìm kiếm email",
+      dataIndex: "email",
+      hideInTable: true,
+      fieldProps: {
+        placeholder: "Nhập email để tìm kiếm",
+        style: {
+          width: "200px",
+        },
       },
     },
     {
       title: "Trạng thái",
-      dataIndex: "approvalStatus",
+      dataIndex: "isActive",
       hideInSearch: true,
+      render(dom, entity, index, action, schema) {
+        return entity.isActive ? (
+          <Tag color="green">Đang hoạt động</Tag>
+        ) : (
+          <Tag color="red">Đã khóa</Tag>
+        );
+      },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      hideInSearch: true,
+      render(dom, entity, index, action, schema) {
+        return dayjs(entity.createdAt).format("DD/MM/YYYY HH:mm");
+      },
     },
     {
       title: "Action",
@@ -157,31 +120,22 @@ const DoctorTable = () => {
 
   return (
     <>
-      <ProTable<IDoctorProfile>
+      <ProTable<IManageUser>
         columns={columns}
         actionRef={actionRef}
         cardBordered
         search={{
-          labelWidth: 0,
-          span: 6,
-          collapsed: false,
-          collapseRender: false,
+          labelWidth: 120,
         }}
         request={async (params, sort, filter) => {
           let query = "";
           if (params) {
             query += `page=${params.current}&pageSize=${params.pageSize}`;
-            if (params.fullName) {
-              query += `&fullName=${params.fullName}`;
-            }
-            if (params.phone) {
-              query += `&phone=${params.phone}`;
-            }
-            if (params.title) {
-              query += `&title=${params.title}`;
+            if (params.email) {
+              query += `&email=${params.email}`;
             }
           }
-          const res = await getAllDoctorsProfile(query);
+          const res = await getAllUsers(query);
           if (res.data) {
             setMeta(res.data.meta);
           }
@@ -207,7 +161,7 @@ const DoctorTable = () => {
             );
           },
         }}
-        headerTitle="Danh sách thông tin admin"
+        headerTitle="Danh sách tài khoản"
         toolBarRender={() => [
           <Button icon={<ExportOutlined />} type="primary">
             Export
@@ -234,4 +188,4 @@ const DoctorTable = () => {
   );
 };
 
-export default DoctorTable;
+export default AccountTable;

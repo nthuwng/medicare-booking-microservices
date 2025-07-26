@@ -16,8 +16,9 @@ import { RiAdminFill } from "react-icons/ri";
 import { FaUserDoctor } from "react-icons/fa6";
 import { AiOutlineUser } from "react-icons/ai";
 import { LiaClinicMedicalSolid } from "react-icons/lia";
-// import NotificationBell from "../../common/NotificationBell";
+import { MdAccountCircle } from "react-icons/md";
 import NotificationAdmin from "@/components/admin/NotificationAdmin";
+import { FaUserInjured } from "react-icons/fa";
 type MenuItem = Required<MenuProps>["items"][number];
 
 const { Content, Footer, Sider } = Layout;
@@ -38,19 +39,29 @@ const LayoutAdmin = () => {
       icon: <AppstoreOutlined style={{ fontSize: "20px" }} />,
     },
     {
-      label: <span>Manage Users</span>,
+      label: <Link to="/admin/account-management">Account Manage</Link>,
+      key: "account-management",
+      icon: <MdAccountCircle size={20} />,
+    },
+    {
+      label: <span>User Profiles</span>,
       key: "user",
       icon: <Users size={20} />,
       children: [
         {
-          label: <Link to="/admin/doctor">Doctor</Link>,
-          key: "doctor",
+          label: <Link to="/admin/admin-management">Admin</Link>,
+          key: "admin-management",
+          icon: <RiAdminFill />,
+        },
+        {
+          label: <Link to="/admin/doctor-management">Doctor</Link>,
+          key: "doctor-management",
           icon: <FaUserDoctor />,
         },
         {
-          label: <Link to="/admin/admins">Admin</Link>,
-          key: "admin",
-          icon: <RiAdminFill />,
+          label: <Link to="/admin/patient-management">Patient</Link>,
+          key: "patient-management",
+          icon: <FaUserInjured />,
         },
       ],
     },
@@ -117,7 +128,7 @@ const LayoutAdmin = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 15px",
+              padding: "0 25px",
             }}
           >
             <span>
