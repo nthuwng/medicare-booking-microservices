@@ -15,23 +15,30 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import React, { useState, useEffect } from "react";
-import { getNotificationAPI } from "../../services/api";
+import { getNotificationAPI } from "../../../../services/api";
 import {
   connectAdminSocket,
   disconnectAdminSocket,
 } from "@/sockets/admin.socket";
+import NotificationModal from "./NotificationModal";
+import type { INotificationData } from "../../types";
+import { markAsReadNotification } from "../../services/admin.api";
 
 const { Title, Text } = Typography;
 
 interface IProps {
-  setModalNotification: (v: boolean) => void;
-  modalNotification: boolean;
+  setModalNotificationLayout: (v: boolean) => void;
+  modalNotificationLayout: boolean;
 }
 
 const NotificationAdmin = (props: IProps) => {
-  const { setModalNotification, modalNotification } = props;
+  const { modalNotificationLayout, setModalNotificationLayout } = props;
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [openModalNotification, setOpenModalNotification] = useState(false);
+  const [dataNotificationModal, setDataNotificationModal] =
+    useState<INotificationData | null>(null);
 
   const fetchNotifications = async () => {
     try {
@@ -60,13 +67,15 @@ const NotificationAdmin = (props: IProps) => {
     socketConnection.emit("join-admin-room");
 
     // Listen for doctor registration notifications
-    socketConnection.on("doctorRegistration", (data: any) => {
-      console.log("🔔 data: =>>>>>>>>>>>>>>>", data);
+    const handleDoctorRegistration = (data: any) => {
+      console.log("🔔 New doctor registration received:", data);
       // Re-fetch API sau khi có notification mới
       setTimeout(() => {
         fetchNotifications();
       }, 500);
-    });
+    };
+
+    socketConnection.on("doctorRegistration", handleDoctorRegistration);
 
     socketConnection.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
@@ -74,28 +83,40 @@ const NotificationAdmin = (props: IProps) => {
     });
 
     return () => {
+      socketConnection.off("doctorRegistration", handleDoctorRegistration);
+
       disconnectAdminSocket(socketConnection);
     };
   }, []);
 
   // Re-fetch khi dropdown mở
   useEffect(() => {
-    if (modalNotification) {
+    if (modalNotificationLayout) {
       fetchNotifications();
     }
-  }, [modalNotification]);
+  }, [modalNotificationLayout]);
 
   // Calculate unread count
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const handleNotificationClick = (notification: INotificationData) => {
+    setDataNotificationModal(notification);
+    setOpenModalNotification(true);
+    setModalNotificationLayout(false);
+  };
+
   // Handle mark as read
-  const handleMarkAsRead = (notificationId: string) => {
+  const handleMarkAsRead = async (notificationId: string) => {
     setNotifications((prev) =>
       prev.map((notif) =>
         notif.id === notificationId ? { ...notif, read: true } : notif
       )
     );
-    // TODO: Call API to mark as read on server
+    try {
+      await markAsReadNotification(notificationId);
+    } catch (error) {
+      console.error("Error marking as read:", error);
+    }
   };
 
   // Handle mark all as read
@@ -225,7 +246,10 @@ const NotificationAdmin = (props: IProps) => {
                     ? "#f6ffed"
                     : "transparent";
                 }}
-                onClick={() => handleMarkAsRead(item.id)}
+                onClick={() => {
+                  handleMarkAsRead(item.id);
+                  handleNotificationClick(item);
+                }}
               >
                 <List.Item.Meta
                   avatar={
@@ -319,36 +343,48 @@ const NotificationAdmin = (props: IProps) => {
   );
 
   return (
-    <Dropdown
-      open={modalNotification}
-      onOpenChange={setModalNotification}
-      dropdownRender={() => dropdownContent}
-      placement="bottomRight"
-      trigger={["click"]}
-      arrow={{ pointAtCenter: true }}
-      overlayStyle={{
-        position: "fixed",
-        zIndex: 1050,
-      }}
-    >
-      <Badge count={unreadCount} size="small" offset={[-10, 5]}>
-        <Button
-          type="text"
-          icon={<BellOutlined style={{ fontSize: "20px" }} />}
-          style={{
-            border: "none",
-            background: "transparent",
-            boxShadow: "none",
-            padding: "8px",
-            height: "40px",
-            width: "40px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        />
-      </Badge>
-    </Dropdown>
+    <>
+      <Dropdown
+        open={modalNotificationLayout}
+        onOpenChange={setModalNotificationLayout}
+        dropdownRender={() => dropdownContent}
+        placement="bottomRight"
+        trigger={["click"]}
+        arrow={{ pointAtCenter: true }}
+        overlayStyle={{
+          position: "fixed",
+          zIndex: 1050,
+        }}
+      >
+        <Badge count={unreadCount} size="small" offset={[-10, 5]}>
+          <Button
+            type="text"
+            icon={<BellOutlined style={{ fontSize: "20px" }} />}
+            style={{
+              border: "none",
+              background: "transparent",
+              boxShadow: "none",
+              padding: "8px",
+              height: "40px",
+              width: "40px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          />
+        </Badge>
+      </Dropdown>
+
+      {/* Modal */}
+      <NotificationModal
+        openModalNotification={openModalNotification}
+        setOpenModalNotification={setOpenModalNotification}
+        dataNotificationModal={dataNotificationModal}
+        setDataNotificationModal={setDataNotificationModal}
+        loading={loading}
+        setLoading={setLoading}
+      />
+    </>
   );
 };
 

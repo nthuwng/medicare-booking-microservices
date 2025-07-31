@@ -38,6 +38,21 @@ export const getAllDoctorsProfile = (query: string) => {
   return axios.get<IBackendRes<IModelPaginate<IDoctorProfile>>>(urlBackend);
 };
 
+export const getDoctorInfo = (doctorId: string) => {
+  const urlBackend = `/api/doctor/doctors/${doctorId}`;
+  return axios.get<IBackendRes<IDoctorProfile>>(urlBackend);
+};
+
+export const approveDoctor = (doctorId: string) => {
+  const urlBackend = `/api/doctor/doctors/${doctorId}`;
+  return axios.put<IBackendRes<IDoctorProfile>>(urlBackend);
+};
+
+export const markAsReadNotification = (notificationId: string) => {
+  const urlBackend = `/api/notification/mark-as-read/${notificationId}`;
+  return axios.put(urlBackend);
+};
+
 export const createSpecialty = (
   specialty_name: string,
   description: string,

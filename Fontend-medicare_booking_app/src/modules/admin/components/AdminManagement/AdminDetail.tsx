@@ -57,7 +57,7 @@ const AdminDetail = (props: IProps) => {
           <span>Chi tiết bệnh nhân</span>
         </div>
       }
-      width="40vw"
+      width="50vw"
       onClose={onClose}
       open={openViewDetail}
       styles={{

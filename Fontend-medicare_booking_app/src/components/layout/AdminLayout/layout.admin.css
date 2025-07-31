@@ -1,0 +1,95 @@
+/* Admin Layout Menu Hover Effects */
+.admin-menu .ant-menu-item {
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+.admin-menu .ant-menu-item:hover {
+  transform: scale(1.02);
+  background-color: #f0f9ff !important;
+  color: #1890ff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.admin-menu .ant-menu-item-selected {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.admin-menu .ant-menu-submenu-title {
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+  margin: 4px 8px;
+}
+
+.admin-menu .ant-menu-submenu-title:hover {
+  transform: scale(1.02);
+  background-color: #f0f9ff !important;
+  color: #1890ff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+.admin-menu .ant-menu-submenu .ant-menu-item {
+  margin: 2px 8px;
+  border-radius: 6px;
+}
+
+.admin-menu .ant-menu-submenu .ant-menu-item:hover {
+  transform: scale(1.01);
+  background-color: #f0f9ff !important;
+  color: #1890ff !important;
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.1);
+}
+
+/* Active state for submenu items */
+.admin-menu .ant-menu-submenu .ant-menu-item-selected {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.2);
+}
+
+/* Icon hover effects */
+.admin-menu .ant-menu-item:hover .anticon,
+.admin-menu .ant-menu-submenu-title:hover .anticon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Smooth transitions for all menu elements */
+.admin-menu * {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Header icons container */
+.admin-header .header-icons-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+}
+
+/* Header icons hover effects - unified style */
+.admin-header .notification-icon,
+.admin-header .ant-dropdown-trigger {
+  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+
+.admin-header .notification-icon:hover,
+.admin-header .ant-dropdown-trigger:hover {
+  transform: scale(1.05);
+  background-color: #f0f9ff;
+  color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}

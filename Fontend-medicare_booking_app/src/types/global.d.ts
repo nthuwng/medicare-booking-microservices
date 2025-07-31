@@ -1,3 +1,5 @@
+
+
 export {};
 
 declare global {
@@ -45,17 +47,5 @@ declare global {
   }
   interface IFetchAccount {
     user: IUser;
-  }
-
-  interface INotification {
-    id: string;
-    userId: string;
-    type: string;
-    title: string;
-    message: string;
-    data: any;
-    read: boolean;
-    createdAt: string;
-    updatedAt: string;
   }
 }

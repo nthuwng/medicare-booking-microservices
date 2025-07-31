@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./layout.admin.css";
 import {
   AppstoreOutlined,
   TeamOutlined,
@@ -17,7 +18,7 @@ import { FaUserDoctor } from "react-icons/fa6";
 import { AiOutlineUser } from "react-icons/ai";
 import { LiaClinicMedicalSolid } from "react-icons/lia";
 import { MdAccountCircle } from "react-icons/md";
-import NotificationAdmin from "@/components/admin/NotificationAdmin";
+import NotificationAdmin from "@/modules/admin/components/NotificationAdmin.tsx/NotificationAdmin";
 import { FaUserInjured } from "react-icons/fa";
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -26,7 +27,7 @@ const { Content, Footer, Sider } = Layout;
 const LayoutAdmin = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  const [modalNotification, setModalNotification] = useState(false);
+  const [modalNotificationLayout, setModalNotificationLayout] = useState(false);
 
   const handleLogout = async () => {
     //todo
@@ -117,6 +118,7 @@ const LayoutAdmin = () => {
             mode="inline"
             items={items}
             onClick={(e) => setActiveMenu(e.key)}
+            className="admin-menu"
           />
         </Sider>
         <Layout>
@@ -140,38 +142,17 @@ const LayoutAdmin = () => {
                 }
               )}
             </span>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                height: "40px",
-              }}
-            >
+            <div className="header-icons-container">
               {/* Notification - tích hợp trực tiếp */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                }}
-              >
+              <div className="notification-icon">
                 <NotificationAdmin
-                  setModalNotification={setModalNotification}
-                  modalNotification={modalNotification}
+                  setModalNotificationLayout={setModalNotificationLayout}
+                  modalNotificationLayout={modalNotificationLayout}
                 />
               </div>
 
               {/* User Dropdown */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "100%",
-                }}
-              >
+              <div className="notification-icon">
                 <Dropdown menu={{ items: itemsDropdown }} trigger={["click"]}>
                   <Space style={{ cursor: "pointer" }}>
                     <RiAdminFill fontSize={20} />
