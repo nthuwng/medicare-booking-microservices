@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   handleCreateNotification,
   handleGetNotification,
+  handleMarkAsRead,
 } from "src/services/notificationServices";
 
 const createNotificationAPI = async (req: Request, res: Response) => {
@@ -42,4 +43,24 @@ const getNotificationAPI = async (req: Request, res: Response) => {
   }
 };
 
-export { createNotificationAPI, getNotificationAPI };
+const markAsReadAPI = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const notification = await handleMarkAsRead(id);
+    if (!notification) {
+      res.status(404).json({
+        success: false,
+        message: "Thông báo không tồn tại.",
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Thông báo đã đọc thành công.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createNotificationAPI, getNotificationAPI, markAsReadAPI };

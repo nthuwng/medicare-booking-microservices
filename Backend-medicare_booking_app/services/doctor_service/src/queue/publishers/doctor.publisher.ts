@@ -23,12 +23,16 @@ const checkDoctorViaRabbitMQ = async (userId: string) => {
 
 const sendMessageRegisterDoctorViaRabbitMQ = async (
   userId: string,
+  approvalStatus: string,
+  avatar_url: string,
   doctorId: string,
   fullName: string,
   phone: string
 ) => {
   return publishNewDoctorRegistered("doctor.exchange", "doctor.registered", {
     userId,
+    approvalStatus,
+    avatar_url,
     doctorId,
     fullName,
     phone,

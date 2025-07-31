@@ -8,6 +8,8 @@ interface DoctorRegistrationPayload {
   doctorId: string;
   fullName: string;
   phone: string;
+  avatar_url: string;
+  approvalStatus: string;
 }
 
 export const initCreateNotificationConsumer = async () => {
@@ -45,8 +47,12 @@ export const initCreateNotificationConsumer = async () => {
         title: "Đăng ký bác sĩ mới - Chờ phê duyệt",
         message: `Bác sĩ ${payload.fullName} đã đăng ký tài khoản mới.SĐT: ${payload.phone} Email: ${user.email}`,
         data: {
+          doctorId: payload.doctorId,
+          email: user.email,
           doctorUserId: payload.userId,
+          approvalStatus: payload.approvalStatus,
           doctorName: payload.fullName,
+          avatar_url: payload.avatar_url,
           phone: payload.phone,
           registrationTime: new Date().toISOString(),
         },

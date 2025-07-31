@@ -39,7 +39,7 @@ const getDoctorByIdController = async (req: Request, res: Response) => {
 
 const updateDoctorStatusController = async (req: Request, res: Response) => {
   try {
-    const doctor = await updateDoctorStatusService(req.params.id, req.body);
+    const doctor = await updateDoctorStatusService(req.params.id);
     res.status(200).json({
       success: true,
       message: "Cập nhật trạng thái DOCTOR thành công.",

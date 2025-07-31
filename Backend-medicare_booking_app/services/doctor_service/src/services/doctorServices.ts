@@ -74,6 +74,8 @@ const createDoctorProfile = async (
   try {
     await sendMessageRegisterDoctorViaRabbitMQ(
       userId,
+      doctor.approvalStatus,
+      avatar_url || "",
       doctor.id,
       fullName,
       phone
@@ -162,13 +164,10 @@ const getDoctorByIdService = async (id: string) => {
 
 const updateDoctorStatusService = async (
   id: string,
-  body: UpdateDoctorStatusInput
 ) => {
-  const { status } = body;
 
-  if (!Object.values(ApprovalStatus).includes(status as ApprovalStatus)) {
-    throw new Error("Trạng thái không hợp lệ");
-  }
+
+
   const doctor = await findDoctorById(id);
 
   if (!doctor?.userId) {
@@ -183,7 +182,7 @@ const updateDoctorStatusService = async (
 
   const doctorUpdated = await prisma.doctor.update({
     where: { id: id },
-    data: { approvalStatus: status as ApprovalStatus },
+    data: { approvalStatus: ApprovalStatus.Approved },
   });
   return doctorUpdated;
 };

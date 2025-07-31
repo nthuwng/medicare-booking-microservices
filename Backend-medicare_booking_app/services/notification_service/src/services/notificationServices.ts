@@ -25,4 +25,12 @@ const handleGetNotification = async () => {
   return notifications;
 };
 
-export { handleCreateNotification, handleGetNotification };
+const handleMarkAsRead = async (notificationId: string) => {
+  const notification = await prisma.notification.update({
+    where: { id: notificationId },
+    data: { read: true },
+  });
+  return notification;
+};
+
+export { handleCreateNotification, handleGetNotification, handleMarkAsRead };

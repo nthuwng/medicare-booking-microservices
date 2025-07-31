@@ -3,7 +3,7 @@ import {
   createAdminController,
   getAdminByIdController,
   getAllAdmintController,
-  deleteAdminController
+  deleteAdminController,
 } from "../controllers/admin.controller";
 import {
   authenticateToken,
@@ -14,10 +14,14 @@ const router = express.Router();
 
 const adminRoutes = (app: Express) => {
   router.post("/", authenticateToken, authorizeAdmin, createAdminController);
-  router.get("/:id", authenticateToken,authorizeAdmin, getAdminByIdController);
+  router.get("/:id", authenticateToken, authorizeAdmin, getAdminByIdController);
   router.get("/", authenticateToken, authorizeAdmin, getAllAdmintController);
-  router.delete("/:id", authenticateToken, authorizeAdmin, deleteAdminController);
-
+  router.delete(
+    "/:id",
+    authenticateToken,
+    authorizeAdmin,
+    deleteAdminController
+  );
 
   app.use("/admins", router);
 };
