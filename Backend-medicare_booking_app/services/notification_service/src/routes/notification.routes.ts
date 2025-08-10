@@ -2,7 +2,8 @@ import express, { Express } from "express";
 import {
   createNotificationAPI,
   getNotificationAPI,
-  markAsReadAPI
+  getNotificationByUserIdAPI,
+  markAsReadAPI,
 } from "src/controllers/notificationControllers";
 import { authenticateToken } from "src/middlewares/auth.middleware";
 
@@ -12,6 +13,11 @@ const notificationRoutes = (app: Express) => {
   router.post("/create-notification", authenticateToken, createNotificationAPI);
 
   router.get("/get-notification", authenticateToken, getNotificationAPI);
+  router.get(
+    "/get-notification-by-user-id/:userId",
+    authenticateToken,
+    getNotificationByUserIdAPI
+  );
   router.put("/mark-as-read/:id", authenticateToken, markAsReadAPI);
   app.use("/", router);
 };

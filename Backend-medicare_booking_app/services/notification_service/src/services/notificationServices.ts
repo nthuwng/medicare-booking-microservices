@@ -1,6 +1,7 @@
 import { CreateClinicProfileData } from "@shared/index";
 import { CreateNotificationData } from "@shared/interfaces/notification";
 import { prisma } from "src/config/client";
+import { getUserByIdViaRabbitMQ } from "src/queue/publishers/notification.publisher";
 
 const handleCreateNotification = async (data: CreateNotificationData) => {
   const notification = await prisma.notification.create({
@@ -33,4 +34,21 @@ const handleMarkAsRead = async (notificationId: string) => {
   return notification;
 };
 
-export { handleCreateNotification, handleGetNotification, handleMarkAsRead };
+const handleGetNotificationByUserId = async (userId: string) => {
+  const user = await getUserByIdViaRabbitMQ(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const notifications = await prisma.notification.findMany({
+    where: { userId },
+  });
+  return notifications;
+};
+
+export {
+  handleCreateNotification,
+  handleGetNotification,
+  handleMarkAsRead,
+  handleGetNotificationByUserId,
+};

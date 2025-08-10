@@ -6,6 +6,7 @@ import {
   handleGetAllDoctors,
   countTotalDoctorPage,
   handleGetAllApprovedDoctors,
+  getDoctorByUserIdService
 } from "src/services/doctorServices";
 
 const createDoctorController = async (req: Request, res: Response) => {
@@ -156,10 +157,32 @@ const getAllApprovedDoctorsController = async (req: Request, res: Response) => {
   }
 };
 
+const getDoctorByUserIdController = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const doctor = await getDoctorByUserIdService(userId);
+    if (!doctor) {
+      res.status(404).json({
+        success: false,
+        message: "Doctor không tồn tại",
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Lấy thông tin DOCTOR theo userId thành công.",
+      data: doctor,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createDoctorController,
   getDoctorByIdController,
   updateDoctorStatusController,
   getAllDoctorsController,
   getAllApprovedDoctorsController,
+  getDoctorByUserIdController
 };

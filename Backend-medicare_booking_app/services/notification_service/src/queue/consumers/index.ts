@@ -1,10 +1,13 @@
-import { initCreateNotificationConsumer } from "./msgCreateNotification.consumer";
+import { initDoctorApprovedConsumer } from "./notification.approved.consumer";
+import { initDoctorRegisteredConsumer } from "./notification.registered.consumer";
+
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
-    await initCreateNotificationConsumer();
+    await initDoctorRegisteredConsumer();
+    await initDoctorApprovedConsumer();
     console.log(
-      "✅ All RabbitMQ consumers doctor_service initialized successfully."
+      "✅ All RabbitMQ consumers notification_service initialized successfully."
     );
   } catch (error) {
     console.error(

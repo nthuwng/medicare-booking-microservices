@@ -9,8 +9,8 @@ import {
   getAllDoctorsViaRabbitMQ,
   getUserByIdViaRabbitMQ,
   sendMessageRegisterDoctorViaRabbitMQ,
+  sendMessageUpdateDoctorStatusViaRabbitMQ,
 } from "src/queue/publishers/doctor.publisher";
-import { publishNewDoctorRegistered } from "src/queue/publishers/sendMessageRegisterDoctor";
 import {
   createDoctor,
   findDoctorByUserId,
@@ -162,12 +162,7 @@ const getDoctorByIdService = async (id: string) => {
   };
 };
 
-const updateDoctorStatusService = async (
-  id: string,
-) => {
-
-
-
+const updateDoctorStatusService = async (id: string) => {
   const doctor = await findDoctorById(id);
 
   if (!doctor?.userId) {
@@ -184,6 +179,23 @@ const updateDoctorStatusService = async (
     where: { id: id },
     data: { approvalStatus: ApprovalStatus.Approved },
   });
+
+  try {
+    await sendMessageUpdateDoctorStatusViaRabbitMQ(
+      doctorUpdated.userId,
+      doctorUpdated.approvalStatus,
+      doctorUpdated.avatarUrl || "",
+      doctorUpdated.id,
+      doctorUpdated.fullName,
+      doctorUpdated.phone || ""
+    );
+  } catch (publishError) {
+    console.error(
+      `[Doctor Service] Failed to publish new doctor updated for ${doctorUpdated.fullName}:`,
+      publishError
+    );
+  }
+
   return doctorUpdated;
 };
 
@@ -325,6 +337,19 @@ const checkDoctorInfor = async (doctorId: string) => {
   const doctor = await findDoctorById(doctorId);
   return doctor;
 };
+
+const getDoctorByUserIdService = async (userId: string) => {
+  const doctor = await findDoctorByUserId(userId);
+  if (!doctor) {
+    throw new Error("Doctor không tồn tại");
+  }
+  const userInfo = await getUserByIdViaRabbitMQ(doctor.userId);
+  return {
+    ...doctor,
+    userInfo,
+  };
+};
+
 export {
   createDoctorProfile,
   getDoctorByIdService,
@@ -333,4 +358,5 @@ export {
   countTotalDoctorPage,
   handleGetAllApprovedDoctors,
   checkDoctorInfor,
+  getDoctorByUserIdService,
 };

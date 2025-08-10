@@ -17,6 +17,6 @@ router.post(
   createSpecialtiesController
 );
 
-router.get("/", authenticateToken, authorizeAdmin, getSpecialtiesController);
+router.get("/", authenticateToken, getSpecialtiesController);
 
 export default router;

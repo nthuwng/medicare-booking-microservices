@@ -1,5 +1,5 @@
 import { rpcRequest } from "./rpcRequest";
-import { publishNewDoctorRegistered } from "./sendMessageRegisterDoctor";
+import { publishDoctorEvent } from "./DoctorEvent";
 
 const getUserByIdViaRabbitMQ = async (userId: string) => {
   return rpcRequest("auth.get_user", { userId });
@@ -29,7 +29,7 @@ const sendMessageRegisterDoctorViaRabbitMQ = async (
   fullName: string,
   phone: string
 ) => {
-  return publishNewDoctorRegistered("doctor.exchange", "doctor.registered", {
+  return publishDoctorEvent("doctor.registered", {
     userId,
     approvalStatus,
     avatar_url,
@@ -38,6 +38,25 @@ const sendMessageRegisterDoctorViaRabbitMQ = async (
     phone,
   });
 };
+
+const sendMessageUpdateDoctorStatusViaRabbitMQ = async (
+  userId: string,
+  approvalStatus: string,
+  avatar_url: string,
+  doctorId: string,
+  fullName: string,
+  phone: string
+) => {
+  return publishDoctorEvent("doctor.approved", {
+    userId,
+    approvalStatus,
+    avatar_url,
+    doctorId,
+    fullName,
+    phone,
+  });
+};
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
@@ -45,4 +64,5 @@ export {
   getAllDoctorsViaRabbitMQ,
   checkDoctorViaRabbitMQ,
   sendMessageRegisterDoctorViaRabbitMQ,
+  sendMessageUpdateDoctorStatusViaRabbitMQ,
 };

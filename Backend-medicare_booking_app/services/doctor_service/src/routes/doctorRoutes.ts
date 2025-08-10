@@ -5,6 +5,7 @@ import {
   updateDoctorStatusController,
   getAllDoctorsController,
   getAllApprovedDoctorsController,
+  getDoctorByUserIdController
 } from "../controllers/doctorController";
 import {
   authenticateToken,
@@ -17,6 +18,7 @@ router.post("/", authenticateToken, createDoctorController);
 router.get("/", authenticateToken, getAllDoctorsController);
 router.get("/approved", authenticateToken, getAllApprovedDoctorsController);
 router.get("/:id", authenticateToken, getDoctorByIdController);
+router.get("/profile/:userId", authenticateToken, getDoctorByUserIdController);
 
 router.put(
   "/:id",

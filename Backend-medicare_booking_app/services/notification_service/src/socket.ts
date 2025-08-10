@@ -18,6 +18,10 @@ export const initSocketIO = (server: any) => {
       socket.join("admins");
     });
 
+    socket.on("join-user-room", ({ userId }) => {
+      if (userId) socket.join(`user:${userId}`);
+    });
+
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
     });

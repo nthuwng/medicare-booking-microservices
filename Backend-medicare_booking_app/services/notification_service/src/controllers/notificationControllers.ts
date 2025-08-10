@@ -3,6 +3,7 @@ import {
   handleCreateNotification,
   handleGetNotification,
   handleMarkAsRead,
+  handleGetNotificationByUserId,
 } from "src/services/notificationServices";
 
 const createNotificationAPI = async (req: Request, res: Response) => {
@@ -43,6 +44,31 @@ const getNotificationAPI = async (req: Request, res: Response) => {
   }
 };
 
+const getNotificationByUserIdAPI = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    const notifications = await handleGetNotificationByUserId(userId as string);
+    if (!notifications || notifications.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "No notifications found",
+        data: [],
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      length: notifications.length,
+      message: "Get notifications successfully",
+      data: notifications,
+    });
+    return;
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const markAsReadAPI = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -63,4 +89,9 @@ const markAsReadAPI = async (req: Request, res: Response) => {
   }
 };
 
-export { createNotificationAPI, getNotificationAPI, markAsReadAPI };
+export {
+  createNotificationAPI,
+  getNotificationAPI,
+  markAsReadAPI,
+  getNotificationByUserIdAPI,
+};

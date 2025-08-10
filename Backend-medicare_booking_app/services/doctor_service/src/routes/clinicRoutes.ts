@@ -13,6 +13,6 @@ const router = express.Router();
 
 router.post("/", authenticateToken, authorizeAdmin, createClinicController);
 
-router.get("/", authenticateToken, authorizeAdmin, getClinicsController);
+router.get("/", authenticateToken, getClinicsController);
 
 export default router;
