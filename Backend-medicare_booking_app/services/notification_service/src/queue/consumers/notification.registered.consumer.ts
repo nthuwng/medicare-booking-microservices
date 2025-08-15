@@ -57,15 +57,12 @@ export const initDoctorRegisteredConsumer = async () => {
 
       // Broadcast cho tất cả admin đang online
       const io = getIO();
-      io.to("admins").emit("doctor.registered", {
-        notificationId: notification.id,
-        userId: payload.userId,
-        doctorId: payload.doctorId,
-        fullName: payload.fullName,
-        phone: payload.phone ?? "",
-        email: user?.email ?? "",
-        occurredAt: payload.occurredAt ?? new Date().toISOString(),
-      });
+      const dto = {
+        id: notification.id,
+        type: "DOCTOR_REGISTRATION",
+      };
+
+      io.to("admins").emit("doctor.registered", { notification: dto });
 
       channel.ack(msg);
     } catch (err) {

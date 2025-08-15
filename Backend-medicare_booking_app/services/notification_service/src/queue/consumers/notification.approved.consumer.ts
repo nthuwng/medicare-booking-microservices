@@ -57,14 +57,14 @@ export const initDoctorApprovedConsumer = async () => {
 
       // Gửi realtime đúng user
       const io = getIO();
+
+      const dto = {
+        id: notification.id,
+        type: "DOCTOR_APPROVED",
+      };
+
       io.to(`user:${payload.userId}`).emit("doctor.approved", {
-        notificationId: notification.id,
-        userId: payload.userId,
-        doctorId: payload.doctorId,
-        fullName: payload.fullName,
-        email: user?.email ?? "",
-        phone: payload.phone ?? "",
-        occurredAt: payload.occurredAt ?? new Date().toISOString(),
+        notification: dto,
       });
 
       channel.ack(msg);
