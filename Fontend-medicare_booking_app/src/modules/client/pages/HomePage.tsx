@@ -51,31 +51,8 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section với Banner */}
-      <section className="relative">
-        <Banner />
-
-        {/* Overlay content trên Banner - chỉ hiển thị tiêu đề và mô tả */}
-        <div className="absolute inset-0 flex items-center justify-center z-20">
-          <div className="text-center text-white px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight pointer-events-none">
-              Chăm sóc sức khỏe
-              <span className="block text-blue-200 mt-2">tại nhà</span>
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed opacity-95 pointer-events-none">
-              Kết nối với các bác sĩ chuyên môn cao, nhận tư vấn y tế chất lượng
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl min-w-[200px]">
-                Đặt lịch ngay
-              </button>
-              <button className="cursor-pointer border-2 border-white text-white hover:bg-white hover:text-gray-900 px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 min-w-[200px]">
-                Tìm hiểu thêm
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/*Banner */}
+      <Banner />
 
       {/* Statistics Section */}
       <section className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">

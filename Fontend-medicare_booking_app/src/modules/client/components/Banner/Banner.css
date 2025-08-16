@@ -19,6 +19,19 @@
   position: relative;
 }
 
+/* Đảm bảo các nút navigation luôn ở trên cùng và có thể nhấn được */
+.banner-container button {
+  position: relative;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Đảm bảo container navigation có z-index cao */
+.banner-container .absolute.inset-0 {
+  z-index: 1000;
+}
+
 /* CSS riêng cho từng slide */
 .slide-0 img {
   object-position: center 12% !important;
