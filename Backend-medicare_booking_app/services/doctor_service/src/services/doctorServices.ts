@@ -291,8 +291,82 @@ const countTotalDoctorPage = async (pageSize: number) => {
   return totalPages;
 };
 
-const handleGetAllApprovedDoctors = async (page: number, pageSize: number) => {
+const handleGetAllApprovedDoctors = async (
+  page: number,
+  pageSize: number,
+  fullName: string,
+  phone: string,
+  title: string,
+  specialtyId?: string,
+  clinicId?: string
+) => {
   const skip = (page - 1) * pageSize;
+
+  // Build where conditions
+  const whereConditions: any[] = [];
+
+  if (fullName && fullName.trim() !== "") {
+    whereConditions.push({
+      fullName: { contains: fullName },
+    });
+  }
+
+  if (phone && phone.trim() !== "") {
+    whereConditions.push({
+      phone: { contains: phone },
+    });
+  }
+
+  if (title && title.trim() !== "") {
+    // Map Vietnamese titles to enum values
+    const titleMapping: { [key: string]: string } = {
+      "bác sĩ": "BS",
+      "bac si": "BS",
+      "thạc sĩ": "ThS",
+      "thac si": "ThS",
+      "tiến sĩ": "TS",
+      "tien si": "TS",
+      "phó giáo sư": "PGS",
+      "pho giao su": "PGS",
+      "giáo sư": "GS",
+      "giao su": "GS",
+    };
+
+    let searchTitle = title.trim();
+
+    // Check if it's a Vietnamese title
+    if (titleMapping[searchTitle.toLowerCase()]) {
+      searchTitle = titleMapping[searchTitle.toLowerCase()];
+    }
+
+    // Validate title enum values
+    const validTitles = ["BS", "ThS", "TS", "PGS", "GS"];
+    if (!validTitles.includes(searchTitle)) {
+      throw new Error(
+        `Chức vụ "${title}" không hợp lệ. Các giá trị hợp lệ: Bác sĩ, Thạc sĩ, Tiến sĩ, Phó Giáo sư, Giáo sư hoặc BS, ThS, TS, PGS, GS`
+      );
+    }
+
+    whereConditions.push({
+      title: { equals: searchTitle as Title },
+    });
+  }
+
+  // Filter by specialtyId (if provided)
+  if (specialtyId && String(specialtyId).trim() !== "") {
+    const numericSpecialtyId = Number(specialtyId);
+    if (!Number.isNaN(numericSpecialtyId)) {
+      whereConditions.push({ specialtyId: numericSpecialtyId });
+    }
+  }
+
+  // Filter by clinicId (if provided)
+  if (clinicId && String(clinicId).trim() !== "") {
+    const numericClinicId = Number(clinicId);
+    if (!Number.isNaN(numericClinicId)) {
+      whereConditions.push({ clinicId: numericClinicId });
+    }
+  }
   const doctors = await prisma.doctor.findMany({
     include: {
       clinic: true,
@@ -300,6 +374,7 @@ const handleGetAllApprovedDoctors = async (page: number, pageSize: number) => {
     },
     where: {
       approvalStatus: ApprovalStatus.Approved,
+      ...(whereConditions.length > 0 ? { AND: whereConditions } : {}),
     },
     skip: skip,
     take: pageSize,
