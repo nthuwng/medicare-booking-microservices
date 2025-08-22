@@ -42,6 +42,7 @@ model Specialty {
   id            Int     @id @default(autoincrement()) @map("specialty_id")
   specialtyName String  @map("specialty_name") @db.VarChar(255)
   iconPath      String? @map("icon_path") @db.VarChar(255)
+  iconPublicId  String? @map("icon_public_id") @db.VarChar(255)
   description   String? @db.Text
 
   // Relations (one-to-many with Doctor)
@@ -52,14 +53,15 @@ model Specialty {
 
 // Clinics table
 model Clinic {
-  id          Int     @id @default(autoincrement()) @map("clinic_id")
-  clinicName  String  @map("clinic_name") @db.VarChar(255)
-  city        City?   @map("city")
-  iconPath    String? @map("icon_path") @db.VarChar(255)
-  district    String? @db.VarChar(100)
-  street      String? @db.VarChar(100)
-  phone       String? @db.VarChar(20)
-  description String? @db.Text
+  id           Int     @id @default(autoincrement()) @map("clinic_id")
+  clinicName   String  @map("clinic_name") @db.VarChar(255)
+  city         City?   @map("city")
+  iconPath     String? @map("icon_path") @db.VarChar(255)
+  iconPublicId String? @map("icon_public_id") @db.VarChar(255)
+  district     String? @db.VarChar(100)
+  street       String? @db.VarChar(100)
+  phone        String? @db.VarChar(20)
+  description  String? @db.Text
 
   // Relations (one-to-many with Doctor)
   doctors Doctor[]
@@ -77,6 +79,7 @@ model Doctor {
   experienceYears Int?           @default(0) @map("experience_years")
   gender          Gender
   avatarUrl       String?        @map("avatar_url") @db.VarChar(255)
+  avatarPublicId  String?        @map("avatar_public_id") @db.VarChar(255)
   approvalStatus  ApprovalStatus @default(Pending) @map("approval_status")
   title           Title?         @map("title")
 

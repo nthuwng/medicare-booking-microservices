@@ -2,10 +2,10 @@ import { CreateSpecialtiesProfileData } from "@shared/interfaces/specialties/ISp
 import { prisma } from "src/config/client";
 
 const handleCreateSpecialtiesProfile = async (
-  body: CreateSpecialtiesProfileData
+  body: CreateSpecialtiesProfileData,
 ) => {
-  const { specialty_name, description, icon_path } = body;
-  if (!specialty_name || !description || !icon_path) {
+  const { specialty_name, description , icon_path, icon_public_id} = body;
+  if (!specialty_name || !description || !icon_path || !icon_public_id) {
     throw new Error("Vui lòng nhập đầy đủ thông tin chuyên khoa");
   }
 
@@ -23,6 +23,7 @@ const handleCreateSpecialtiesProfile = async (
       specialtyName: specialty_name,
       description,
       iconPath: icon_path,
+      iconPublicId: icon_public_id,
     },
   });
   return specialties;

@@ -10,6 +10,7 @@ export interface CreateDoctorProfileData {
   title: string;
   bookingFee: number;
   consultationFee: number;
+  avatar_public_id: string;
 }
 
 export interface UpdateDoctorStatusInput {

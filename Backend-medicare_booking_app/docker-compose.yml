@@ -151,6 +151,9 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=mysql://root:medicare_booking@doctor_db:3306/doctor_db # Fixed port
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - CLOUDINARY_CLOUD_NAME=dwevfv0is
+      - CLOUDINARY_API_KEY=944935451945886
+      - CLOUDINARY_API_SECRET=WBB7Gx4Uz2ivsPFK1jM8_XxeeAo
     volumes:
       - ./services/doctor_service:/app
       - /app/node_modules

@@ -12,7 +12,8 @@ const createDoctor = async (
   experienceYears: number,
   gender: string,
   title: string,
-  bookingFee: number
+  bookingFee: number,
+  avatar_public_id: string
 ) => {
   return prisma.doctor.create({
     data: {
@@ -27,6 +28,7 @@ const createDoctor = async (
       specialtyId: +specialtyId,
       clinicId: +clinicId,
       bookingFee: +bookingFee,
+      avatarPublicId: avatar_public_id || "",
     },
     include: {
       specialty: true,

@@ -7,6 +7,7 @@ import {
   authenticateToken,
   authorizeAdmin,
 } from "src/middleware/auth.middleware";
+import fileUploadMiddleware from "src/middleware/multer";
 
 const router = express.Router();
 

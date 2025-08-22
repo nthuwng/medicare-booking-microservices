@@ -25,6 +25,7 @@ const createDoctorProfile = async (
     fullName,
     phone,
     avatar_url,
+    avatar_public_id,
     clinicId,
     specialtyId,
     bio,
@@ -32,6 +33,7 @@ const createDoctorProfile = async (
     gender,
     title,
     bookingFee,
+
   } = body;
 
   // Kiểm tra user có tồn tại trong auth_service
@@ -61,14 +63,15 @@ const createDoctorProfile = async (
     userId,
     fullName,
     phone,
-    avatar_url || "",
+      avatar_url || "",
     clinicId,
     specialtyId,
     bio || "",
     experienceYears || 0,
     gender || "",
     title || "",
-    bookingFee || 0
+    bookingFee || 0,
+    avatar_public_id || "",
   );
 
   try {
@@ -121,7 +124,8 @@ const checkTypeAndCreateDoctorProfile = async (
   experienceYears: number,
   gender: string,
   title: string,
-  bookingFee: number
+  bookingFee: number,
+  avatar_public_id: string
 ) => {
   const userType = (await getUserByIdViaRabbitMQ(userId)) as UserInfo;
 
@@ -140,7 +144,8 @@ const checkTypeAndCreateDoctorProfile = async (
     experienceYears,
     gender,
     title,
-    bookingFee
+    bookingFee,
+    avatar_public_id
   );
   return doctor;
 };

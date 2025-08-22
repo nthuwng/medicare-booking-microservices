@@ -3,6 +3,7 @@ CREATE TABLE `specialties` (
     `specialty_id` INTEGER NOT NULL AUTO_INCREMENT,
     `specialty_name` VARCHAR(255) NOT NULL,
     `icon_path` VARCHAR(255) NULL,
+    `icon_public_id` VARCHAR(255) NULL,
     `description` TEXT NULL,
 
     PRIMARY KEY (`specialty_id`)
@@ -14,6 +15,7 @@ CREATE TABLE `clinics` (
     `clinic_name` VARCHAR(255) NOT NULL,
     `city` ENUM('Hanoi', 'HoChiMinh') NULL,
     `icon_path` VARCHAR(255) NULL,
+    `icon_public_id` VARCHAR(255) NULL,
     `district` VARCHAR(100) NULL,
     `street` VARCHAR(100) NULL,
     `phone` VARCHAR(20) NULL,
@@ -32,6 +34,7 @@ CREATE TABLE `doctors` (
     `experience_years` INTEGER NULL DEFAULT 0,
     `gender` ENUM('Male', 'Female', 'Other') NOT NULL,
     `avatar_url` VARCHAR(255) NULL,
+    `avatar_public_id` VARCHAR(255) NULL,
     `approval_status` ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
     `title` ENUM('BS', 'ThS', 'TS', 'PGS', 'GS') NULL,
     `specialty_id` INTEGER NOT NULL,

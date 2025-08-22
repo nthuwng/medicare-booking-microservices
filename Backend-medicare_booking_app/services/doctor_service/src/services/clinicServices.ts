@@ -50,7 +50,8 @@ const findClinicById = async (id: string) => {
 const handleGetAllClinics = async (
   page: number,
   pageSize: number,
-  city?: string
+  city?: string,
+  clinicName?: string
 ) => {
   const skip = (page - 1) * pageSize;
 
@@ -58,6 +59,9 @@ const handleGetAllClinics = async (
     where: {
       city: {
         equals: city as any,
+      },
+      clinicName: {
+        contains: clinicName || "",
       },
     },
     skip: skip,

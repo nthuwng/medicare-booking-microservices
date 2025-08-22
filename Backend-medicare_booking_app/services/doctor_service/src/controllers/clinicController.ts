@@ -28,7 +28,7 @@ const createClinicController = async (req: Request, res: Response) => {
 
 const getClinicsController = async (req: Request, res: Response) => {
   try {
-    const { page, pageSize, city } = req.query;
+    const { page, pageSize, city, clinicName } = req.query;
     let currentPage = page ? +page : 1;
     if (currentPage <= 0) {
       currentPage = 1;
@@ -39,7 +39,8 @@ const getClinicsController = async (req: Request, res: Response) => {
     const clinics = await handleGetAllClinics(
       currentPage,
       parseInt(pageSize as string),
-      city as string
+      city as string,
+      clinicName as string
     );
 
     if (clinics.length === 0) {

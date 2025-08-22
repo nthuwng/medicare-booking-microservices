@@ -4,10 +4,14 @@ import {
   handleCreateSpecialtiesProfile,
   handleGetAllSpecialties,
 } from "src/services/specialtiesServices";
+import { uploadToCloudinary } from "src/services/upload.services";
 
 const createSpecialtiesController = async (req: Request, res: Response) => {
   try {
-    const specialties = await handleCreateSpecialtiesProfile(req.body);
+    const specialties = await handleCreateSpecialtiesProfile(
+      req.body,
+    );
+
     res.status(201).json({
       success: true,
       message: "Tạo thông tin chuyên khoa thành công.",
