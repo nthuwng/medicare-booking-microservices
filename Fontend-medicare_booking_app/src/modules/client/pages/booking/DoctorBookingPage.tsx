@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Input,
+  Select,
   Button,
   Typography,
   Spin,
@@ -16,25 +17,41 @@ import {
   HomeOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
-import SpecialtiesCard from "../components/BookingSpecialties/specialties.card";
-import type { ISpecialty } from "@/types";
-import { getAllSpecialtiesBooking } from "../services/client.api";
+import DoctorCard from "../../components/BookingDoctor/doctor.card";
+import type { IDoctorProfile, ISpecialty, IClinic } from "@/types";
+import {
+  getAllApprovedDoctorsBooking,
+  getAllSpecialtiesBooking,
+  getAllClinicsBooking,
+} from "../../services/client.api";
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
-const SpecialtyBookingPage = () => {
+const DoctorBookingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  const [dataSpecialties, setDataSpecialties] = useState<ISpecialty[]>(
-    []
+  const [dataDoctors, setDataDoctors] = useState<IDoctorProfile[]>([]);
+  const [specialties, setSpecialties] = useState<ISpecialty[]>([]);
+  const [clinics, setClinics] = useState<IClinic[]>([]);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<
+    string | undefined
+  >(undefined);
+  const [selectedClinic, setSelectedClinic] = useState<string | undefined>(
+    undefined
   );
 
-  const fetchSpecialties = async (searchQuery = "") => {
+  const fetchDoctors = async (
+    searchQuery = "",
+    overrideSpecialtyId?: string,
+    overrideClinicId?: string
+  ) => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -43,24 +60,59 @@ const SpecialtyBookingPage = () => {
       });
 
       if (searchQuery.trim()) {
-        queryParams.append("specialtyName", searchQuery.trim());
+        queryParams.append("fullName", searchQuery.trim());
+      }
+      const effectiveSpecialtyId =
+        overrideSpecialtyId !== undefined
+          ? overrideSpecialtyId
+          : selectedSpecialty;
+      if (effectiveSpecialtyId) {
+        queryParams.append("specialtyId", effectiveSpecialtyId);
+      }
+      const effectiveClinicId =
+        overrideClinicId !== undefined ? overrideClinicId : selectedClinic;
+      if (effectiveClinicId) {
+        queryParams.append("clinicId", effectiveClinicId);
       }
 
-      const response = await getAllSpecialtiesBooking(queryParams.toString());
+      const response = await getAllApprovedDoctorsBooking(
+        queryParams.toString()
+      );
       if (response.data) {
-        const specialties = response.data.result;
-        setDataSpecialties(specialties);
+        const doctors = response.data.result;
+        setDataDoctors(doctors);
       }
     } catch (error) {
-      console.error("Error fetching specialties:", error);
-      message.error("Không thể tải danh sách chuyên khoa");
+      console.error("Error fetching doctors:", error);
+      message.error("Không thể tải danh sách bác sĩ");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSpecialties();
+    // Preselect from URL query if available (coming from Specialty page)
+    const qs = new URLSearchParams(location.search);
+    const spId = qs.get("specialtyId") || undefined;
+    const spName = qs.get("specialtyName") || undefined;
+    const clId = qs.get("clinicId") || undefined;
+    const clName = qs.get("clinicName") || undefined;
+    if (spId) setSelectedSpecialty(spId);
+    if (spName) setSearchText("");
+    if (clId) setSelectedClinic(clId);
+    if (clName) setSearchText("");
+
+    const bootstrap = async () => {
+      // Load filter sources (specialties, clinics)
+      const [spRes, clRes] = await Promise.all([
+        getAllSpecialtiesBooking("page=1&pageSize=100"),
+        getAllClinicsBooking("page=1&pageSize=100"),
+      ]);
+      if (spRes.data) setSpecialties(spRes.data.result);
+      if (clRes.data) setClinics(clRes.data.result);
+      await fetchDoctors("", spId, clId);
+    };
+    bootstrap();
   }, []);
 
   const handleSearch = async () => {
@@ -68,9 +120,9 @@ const SpecialtyBookingPage = () => {
     setLoading(true);
 
     try {
-      await fetchSpecialties(searchText);
+      await fetchDoctors(searchText);
     } catch (error) {
-      console.error("Error searching specialties:", error);
+      console.error("Error searching doctors:", error);
       message.error("Có lỗi xảy ra khi tìm kiếm");
     } finally {
       setIsSearching(false);
@@ -81,15 +133,17 @@ const SpecialtyBookingPage = () => {
   const handleClearFilters = async () => {
     setSearchText("");
     setIsSearching(false);
-    await fetchSpecialties();
+    setSelectedSpecialty(undefined);
+    setSelectedClinic(undefined);
+    await fetchDoctors();
   };
 
   const handleRefetch = async () => {
     setLoading(true);
     try {
-      await fetchSpecialties(searchText);
+      await fetchDoctors(searchText);
     } catch (error) {
-      console.error("Error refetching specialties:", error);
+      console.error("Error refetching doctors:", error);
       message.error("Có lỗi xảy ra khi làm mới dữ liệu");
     } finally {
       setLoading(false);
@@ -120,14 +174,14 @@ const SpecialtyBookingPage = () => {
               <Button
                 type="link"
                 size="small"
-                onClick={() => navigate("/booking")}
+                onClick={() => navigate("/booking-options")}
                 className="!p-0 !h-auto !text-gray-600 hover:!text-blue-600"
               >
-                Đặt lịch
+                Hình thức đặt lịch
               </Button>
             </Breadcrumb.Item>
             <Breadcrumb.Item className="text-blue-600 font-medium">
-              Chuyên khoa
+              Tìm bác sĩ
             </Breadcrumb.Item>
           </Breadcrumb>
         </div>
@@ -139,30 +193,30 @@ const SpecialtyBookingPage = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <Title level={2} className="!mb-2 !text-gray-800">
-                Chuyên khoa dành cho bạn
+                Tìm bác sĩ
               </Title>
               <Text className="text-gray-600 text-lg">
-                Chọn chuyên khoa để xem các bác sĩ phù hợp
+                Chọn bác sĩ phù hợp với nhu cầu của bạn
               </Text>
             </div>
             <Button
               type="primary"
               size="large"
-              onClick={() => navigate("/booking")}
+              onClick={() => navigate("/booking-options")}
               className="bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
               Quay lại
             </Button>
           </div>
 
-          {/* Search Section */}
+          {/* Search & Filters */}
           <div className="bg-white rounded-xl p-6 shadow-sm border">
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               {/* Search */}
-              <div className="flex-1">
+              <div className="md:col-span-2">
                 <Input
                   size="large"
-                  placeholder="Tìm kiếm chuyên khoa..."
+                  placeholder="Tìm kiếm theo tên bác sĩ..."
                   prefix={<SearchOutlined className="text-gray-400" />}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -171,8 +225,40 @@ const SpecialtyBookingPage = () => {
                 />
               </div>
 
+              {/* Specialty Filter */}
+              <Select
+                allowClear
+                size="large"
+                placeholder="Chọn chuyên khoa"
+                value={selectedSpecialty}
+                onChange={(v) => setSelectedSpecialty(v)}
+                className="rounded-lg"
+              >
+                {specialties.map((s) => (
+                  <Option value={String(s.id)} key={s.id}>
+                    {s.specialtyName}
+                  </Option>
+                ))}
+              </Select>
+
+              {/* Clinic Filter */}
+              <Select
+                allowClear
+                size="large"
+                placeholder="Chọn phòng khám"
+                value={selectedClinic}
+                onChange={(v) => setSelectedClinic(v)}
+                className="rounded-lg"
+              >
+                {clinics.map((c) => (
+                  <Option value={String(c.id)} key={c.id}>
+                    {c.clinicName}
+                  </Option>
+                ))}
+              </Select>
+
               {/* Action Buttons */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 md:justify-end">
                 <Button
                   type="primary"
                   size="large"
@@ -207,9 +293,9 @@ const SpecialtyBookingPage = () => {
               <Text className="text-gray-600">
                 Tìm thấy{" "}
                 <span className="font-semibold text-blue-600">
-                  {dataSpecialties.length}
+                  {dataDoctors.length}
                 </span>{" "}
-                chuyên khoa
+                bác sĩ
               </Text>
             </div>
 
@@ -233,18 +319,18 @@ const SpecialtyBookingPage = () => {
         )}
 
         {/* Empty State */}
-        {!loading && dataSpecialties.length === 0 && (
+        {!loading && dataDoctors.length === 0 && (
           <Empty
-            description="Không tìm thấy chuyên khoa phù hợp"
+            description="Không tìm thấy bác sĩ phù hợp"
             className="py-12"
           />
         )}
 
-        {/* Specialties List */}
-        {!loading && dataSpecialties.length > 0 && (
-          <SpecialtiesCard
-            dataSpecialties={dataSpecialties}
-            setDataSpecialties={setDataSpecialties}
+        {/* Doctors List */}
+        {!loading && dataDoctors.length > 0 && (
+          <DoctorCard
+            dataDoctors={dataDoctors}
+            setDataDoctors={setDataDoctors}
             searchText={searchText}
           />
         )}
@@ -253,4 +339,4 @@ const SpecialtyBookingPage = () => {
   );
 };
 
-export default SpecialtyBookingPage;
+export default DoctorBookingPage;

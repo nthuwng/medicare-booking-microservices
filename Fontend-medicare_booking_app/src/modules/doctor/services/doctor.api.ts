@@ -5,7 +5,7 @@ import type {
   INotificationDataAdmin,
   ISpecialty,
 } from "@/types";
-import type { ISchedule } from "@/types/schedule";
+import type { ISchedule, ITimeSlotDetail } from "@/types/schedule";
 
 export const getDoctorProfileByUserId = (userId: string) => {
   const urlBackend = `/api/doctor/doctors/profile/${userId}`;
@@ -17,7 +17,7 @@ export const getAllSpecialtiesDoctorProFile = () => {
   return axios.get<IBackendRes<IModelPaginate<ISpecialty>>>(urlBackend);
 };
 
-export const getAllClinicsDoctorProFile = () => {
+export const getAllClinics = () => {
   const urlBackend = `/api/doctor/clinics?page=1&pageSize=100`;
   return axios.get<IBackendRes<IModelPaginate<IClinic>>>(urlBackend);
 };
@@ -85,3 +85,9 @@ export const getScheduleByDoctorId = (userId: string) => {
   const urlBackend = `/api/schedule/schedules/by-doctorId/${userId}`;
   return axios.get<IBackendRes<ISchedule[]>>(urlBackend);
 };
+
+export const getAllTimeSlots = () => {
+  const urlBackend = `/api/schedule/time-slots`;
+  return axios.get<IBackendRes<ITimeSlotDetail[]>>(urlBackend);
+};
+

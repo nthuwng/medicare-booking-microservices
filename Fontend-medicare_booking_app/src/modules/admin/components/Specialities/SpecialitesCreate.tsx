@@ -180,6 +180,7 @@ const SpecialitesCreate = (props: IProps) => {
         }}
         onCancel={() => {
           form.resetFields();
+          setFileListIcon([]);
           setOpenModalCreate(false);
         }}
         destroyOnClose={true}

@@ -73,6 +73,15 @@ const ClinicTable = () => {
     {
       title: "Hình ảnh",
       dataIndex: "iconPath",
+      render(dom, entity, index, action, schema) {
+        return (
+          <img
+            src={entity.iconPath}
+            alt=""
+            className="w-10 h-10 object-cover"
+          />
+        );
+      },
       hideInSearch: true,
     },
     {

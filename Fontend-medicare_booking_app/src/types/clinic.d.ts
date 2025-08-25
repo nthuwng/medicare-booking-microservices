@@ -7,6 +7,7 @@ export interface IClinic {
   phone: string;
   description: string;
   iconPath: string;
+  iconPublicId: string;
 }
 
 export interface IClinicTable {
@@ -18,4 +19,5 @@ export interface IClinicTable {
   phone: string;
   description: string;
   iconPath: string;
+  iconPublicId: string;
 }

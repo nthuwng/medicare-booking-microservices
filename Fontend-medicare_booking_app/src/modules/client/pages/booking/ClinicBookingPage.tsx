@@ -18,13 +18,13 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
-import SpecialtiesCard from "../components/BookingSpecialties/specialties.card";
+import SpecialtiesCard from "../../components/BookingSpecialties/specialties.card";
 import type { IClinic } from "@/types";
 import {
   getAllClinicsBooking,
   getAllSpecialtiesBooking,
-} from "../services/client.api";
-import BookingClinic from "../components/BookingClinic/BookingClinic";
+} from "../../services/client.api";
+import BookingClinic from "../../components/BookingClinic/BookingClinic";
 
 const { Title, Text } = Typography;
 
@@ -122,10 +122,10 @@ const ClinicBookingPage = () => {
               <Button
                 type="link"
                 size="small"
-                onClick={() => navigate("/booking")}
+                onClick={() => navigate("/booking-options")}
                 className="!p-0 !h-auto !text-gray-600 hover:!text-blue-600"
               >
-                Đặt lịch
+                Hình thức đặt lịch
               </Button>
             </Breadcrumb.Item>
             <Breadcrumb.Item className="text-blue-600 font-medium">
@@ -150,7 +150,7 @@ const ClinicBookingPage = () => {
             <Button
               type="primary"
               size="large"
-              onClick={() => navigate("/booking")}
+              onClick={() => navigate("/booking-options")}
               className="bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
               Quay lại

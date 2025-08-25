@@ -19,7 +19,6 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import type { IDoctorProfile } from "@/types";
-import DoctorAppointment from "./doctor.appointment";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -39,16 +38,10 @@ type DoctorCardProps = {
 const DoctorCard = (props: DoctorCardProps) => {
   const { dataDoctors } = props;
   const navigate = useNavigate();
-  const [openAppointment, setOpenAppointment] = useState(false);
-
-  const handleBookAppointment = (doctorId: string) => {
-    // Navigate to appointment booking page
-    navigate(`/booking/appointment/${doctorId}`);
-  };
 
   const handleViewDoctorDetail = (doctorId: string) => {
     // Navigate to doctor detail page
-    navigate(`/booking/doctor/${doctorId}`);
+    navigate(`/booking-options/doctor/${doctorId}`);
   };
 
   return (
@@ -180,7 +173,11 @@ const DoctorCard = (props: DoctorCardProps) => {
                         <Button
                           type="primary"
                           size="middle"
-                          onClick={() => setOpenAppointment(true)}
+                          onClick={() =>
+                            navigate(
+                              `/booking-options/doctor/${doctor.id}/appointment`
+                            )
+                          }
                           className="bg-blue-600 hover:bg-blue-700 border-blue-600"
                           icon={<CalendarOutlined />}
                         >
@@ -195,11 +192,6 @@ const DoctorCard = (props: DoctorCardProps) => {
           ))}
         </Row>
       )}
-
-      <DoctorAppointment
-        openAppointment={openAppointment}
-        setOpenAppointment={setOpenAppointment}
-      />
     </>
   );
 };

@@ -18,7 +18,7 @@ const BookingClinic = (props: BookingClinicProps) => {
 
   const handleViewDoctors = (clinic: IClinic) => {
     navigate(
-      `/booking/doctor?clinicId=${
+      `/booking-options/doctor?clinicId=${
         clinic.id
       }&clinicName=${encodeURIComponent(clinic.clinicName)}`
     );

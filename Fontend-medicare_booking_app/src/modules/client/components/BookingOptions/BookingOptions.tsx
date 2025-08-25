@@ -68,7 +68,7 @@ const OPTIONS = [
     image: "/src/assets/ForYouSection/Doctor-section.jpg",
     icon: <Stethoscope />,
     color: "blue" as ColorKey,
-    path: "/booking/doctor",
+    path: "/booking-options/doctor",
     hint: "Cá nhân hoá theo bác sĩ",
   },
   {
@@ -79,7 +79,7 @@ const OPTIONS = [
     image: "/src/assets/ForYouSection/Specialty-section.jpg",
     icon: <MedicineBoxOutlined />,
     color: "green" as ColorKey,
-    path: "/booking/specialty",
+    path: "/booking-options/specialty",
     hint: "Tập trung theo triệu chứng",
   },
   {
@@ -89,7 +89,7 @@ const OPTIONS = [
     image: "/src/assets/ForYouSection/Clinic-section.jpg",
     icon: <HomeOutlined />,
     color: "purple" as ColorKey,
-    path: "/booking/clinic",
+    path: "/booking-options/clinic",
     hint: "Ưu tiên vị trí gần bạn",
   },
 ];

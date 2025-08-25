@@ -18,7 +18,7 @@ const SpecialtiesCard = (props: SpecialtiesCardProps) => {
 
   const handleViewDoctors = (specialty: ISpecialty) => {
     navigate(
-      `/booking/doctor?specialtyId=${
+      `/booking-options/doctor?specialtyId=${
         specialty.id
       }&specialtyName=${encodeURIComponent(specialty.specialtyName)}`
     );

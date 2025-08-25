@@ -30,7 +30,7 @@ import type { IDoctorProfile } from "@/types";
 import {
   getAllApprovedDoctorsBooking,
   getDoctorDetailBookingById,
-} from "../services/client.api";
+} from "../../services/client.api";
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -130,24 +130,24 @@ const DoctorDetailPage = () => {
               <Button
                 type="link"
                 size="small"
-                onClick={() => navigate("/booking")}
+                onClick={() => navigate("/booking-options")}
                 className="!p-0 !h-auto !text-gray-600 hover:!text-blue-600"
               >
-                Đặt lịch
+                Hình thức đặt lịch
               </Button>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
               <Button
                 type="link"
                 size="small"
-                onClick={() => navigate("/booking/doctor")}
+                onClick={() => navigate("/booking-options/doctor")}
                 className="!p-0 !h-auto !text-gray-600 hover:!text-blue-600"
               >
                 Tìm bác sĩ
               </Button>
             </Breadcrumb.Item>
             <Breadcrumb.Item className="text-blue-600 font-medium">
-            {doctor.title} {doctor.fullName}
+              {doctor.title} {doctor.fullName}
             </Breadcrumb.Item>
           </Breadcrumb>
         </div>

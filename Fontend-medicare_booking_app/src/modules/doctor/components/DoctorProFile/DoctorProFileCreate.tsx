@@ -29,7 +29,7 @@ import type { UploadChangeParam } from "antd/es/upload";
 import type { UploadRequestOption as RcCustomRequestOptions } from "rc-upload/lib/interface";
 import {
   createDoctorProfile,
-  getAllClinicsDoctorProFile,
+  getAllClinics,
   getAllSpecialtiesDoctorProFile,
   uploadFileAPI,
 } from "../../services/doctor.api";
@@ -91,7 +91,7 @@ const DoctorProFileCreate = (props: IProps) => {
 
   const fetchClinics = async () => {
     try {
-      const res = await getAllClinicsDoctorProFile();
+      const res = await getAllClinics();
       if (res.data) {
         setClinics(res?.data.result as IClinic[]);
       }

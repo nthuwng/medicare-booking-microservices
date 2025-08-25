@@ -98,7 +98,9 @@ export const createClinic = (
   district: string,
   street: string,
   phone: string,
-  description: string
+  description: string,
+  iconPath: string,
+  iconPublicId: string
 ) => {
   const urlBackend = `/api/doctor/clinics`;
   return axios.post<IBackendRes<ISpecialty>>(urlBackend, {
@@ -108,5 +110,7 @@ export const createClinic = (
     street,
     phone,
     description,
+    icon_path: iconPath,
+    icon_public_id: iconPublicId,
   });
 };

@@ -129,7 +129,7 @@ const Banner = () => {
               Kết nối với các bác sĩ chuyên môn cao, nhận tư vấn y tế chất lượng
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pointer-events-auto">
-              <Link to="/booking">
+              <Link to="/booking-options">
                 <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl min-w-[200px]">
                   Đặt lịch ngay
                 </button>
