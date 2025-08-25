@@ -6,4 +6,5 @@ export interface CreateClinicProfileData {
   phone: string;
   description: string;
   icon_path: string;
+  icon_public_id: string;
 }

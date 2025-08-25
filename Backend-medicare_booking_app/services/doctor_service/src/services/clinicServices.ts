@@ -4,10 +4,10 @@ import { prisma } from "src/config/client";
 const VALID_CITIES = ["Hanoi", "HoChiMinh"] as const;
 
 const handleCreateClinicProfile = async (body: CreateClinicProfileData) => {
-  const { clinic_name, city, district, street, phone, description, icon_path } =
+  const { clinic_name, city, district, street, phone, description, icon_path, icon_public_id } =
     body;
 
-  if (!clinic_name || !city || !district || !street || !phone || !description) {
+  if (!clinic_name || !city || !district || !street || !phone || !description || !icon_path || !icon_public_id) {
     throw new Error("Vui lòng nhập đầy đủ thông tin phòng khám");
   }
 
@@ -35,6 +35,7 @@ const handleCreateClinicProfile = async (body: CreateClinicProfileData) => {
       phone,
       description,
       iconPath: icon_path,
+      iconPublicId: icon_public_id,
     },
   });
   return clinic;

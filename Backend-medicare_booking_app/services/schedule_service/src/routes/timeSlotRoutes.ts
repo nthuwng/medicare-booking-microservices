@@ -6,6 +6,7 @@ import {
 import {
   authenticateToken,
   authorizeAdmin,
+  authorizeDoctor,
 } from "src/middleware/auth.middleware";
 
 const router = express.Router();
@@ -15,6 +16,6 @@ const timeSlotRoutes = (app: Express) => {
 
   router.get("/", getAllTimeSlotsController);
 
-  app.use("/time-slots", authenticateToken, authorizeAdmin, router);
+  app.use("/time-slots", authenticateToken, authorizeDoctor, router);
 };
 export default timeSlotRoutes;
