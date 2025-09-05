@@ -50,6 +50,7 @@ export interface IDoctorProfile {
   createdAt: string;
   clinic: IClinicDoctor;
   specialty: ISpecialtyDoctor;
+  scheduleByDoctorId: IScheduleByDoctorId[];
   userInfo: IManageUser;
 }
 
@@ -71,11 +72,74 @@ export interface ISpecialtyDoctor {
   description: string;
 }
 
+export interface IScheduleByDoctorId {
+  id: string;
+  doctorId: string;
+  clinicId: number;
+  date: string;
+  isAvailable: string;
+  timeSlots: ITimeSlotDoctor[];
+}
+
+export interface ITimeSlotDoctor {
+  scheduleId: string;
+  timeSlotId: number;
+  maxBooking: number;
+  currentBooking: number;
+  status: string;
+  timeSlot: ITimeSlotDetailDoctor;
+}
+
+export interface ITimeSlotDetailDoctor {
+  id: number;
+  startTime: string;
+  endTime: string;
+}
+
 export interface IManageUser {
   id: string;
   email: string;
   userType: string;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ICreateAppointmentInput {
+  scheduleId: string;
+  timeSlotId: number;
+  reason?: string;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  patientGender: string;
+  patientDateOfBirth: string;
+  patientCity: string;
+  patientDistrict: string;
+  patientAddress: string;
+  // Thông tin người đặt lịch (khi đặt cho người thân)
+  bookerName?: string;
+  bookerPhone?: string;
+  bookerEmail?: string;
+}
+
+export interface IBooking {
+  id: string;
+  scheduleId: string;
+  timeSlotId: number;
+  reason?: string;
+  patientName: string;
+  patientPhone: string;
+  patientEmail: string;
+  patientGender: string;
+  patientDateOfBirth: string;
+  patientCity: string;
+  patientDistrict: string;
+  patientAddress: string;
+  bookerName?: string;
+  bookerPhone?: string;
+  bookerEmail?: string;
+  status: string;
   createdAt: string;
   updatedAt: string;
 }

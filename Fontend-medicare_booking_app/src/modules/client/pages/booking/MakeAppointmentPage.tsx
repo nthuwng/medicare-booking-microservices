@@ -1,7 +1,10 @@
 import type { IDoctorProfile } from "@/types";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDoctorDetailBookingById } from "../../services/client.api";
+import {
+  getDoctorDetailBookingById,
+  createBooking,
+} from "../../services/client.api";
 import {
   Card,
   Typography,
@@ -21,8 +24,6 @@ import {
   Breadcrumb,
   Spin,
   Result,
-  DatePicker,
-  Alert,
 } from "antd";
 import {
   UserOutlined,
@@ -36,7 +37,6 @@ import {
   RightOutlined,
   StarFilled,
   SafetyCertificateOutlined,
-  LoadingOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
@@ -45,8 +45,10 @@ const { TextArea } = Input;
 
 type TimeSlot = {
   id: number;
-  start_time: string;
-  end_time: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  scheduleId: string;
 };
 
 type BookingFormData = {
@@ -79,8 +81,12 @@ const MakeAppointmentPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [bookingFor, setBookingFor] = useState<string>("self");
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string[]>([]);
+  const [currentSelectedDate, setCurrentSelectedDate] = useState<string>("");
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedTimeSlotId, setSelectedTimeSlotId] = useState<number | null>(
+    null
+  );
 
   const fetchDoctorDetail = async () => {
     if (!doctorId) return;
@@ -88,8 +94,41 @@ const MakeAppointmentPage = () => {
     setLoading(true);
     try {
       const response = await getDoctorDetailBookingById(doctorId);
+
       if (response.data) {
         setDoctor(response.data);
+        const dates = response.data.scheduleByDoctorId.map(
+          (item: any) => item.date
+        );
+        setSelectedDate(dates);
+
+        // Tự động load khung giờ cho ngày đầu tiên
+        if (dates.length > 0) {
+          const firstDate = dates[0];
+          setCurrentSelectedDate(firstDate);
+
+          const selectedSchedule = response.data.scheduleByDoctorId.find(
+            (schedule: any) => schedule.date === firstDate
+          );
+
+          if (selectedSchedule) {
+            const timeSlots = selectedSchedule.timeSlots.map(
+              (timeSlot: any) => ({
+                id: timeSlot.timeSlotId,
+                startTime: timeSlot.timeSlot.startTime,
+                endTime: timeSlot.timeSlot.endTime,
+                status: timeSlot.status,
+                scheduleId: selectedSchedule.id,
+              })
+            );
+            setAvailableTimeSlots(timeSlots);
+
+            // Set form value cho ngày đầu tiên
+            form.setFieldsValue({
+              appointmentDate: firstDate,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching doctor detail:", error);
@@ -100,8 +139,9 @@ const MakeAppointmentPage = () => {
   };
 
   useEffect(() => {
+    // console.log("availableTimeSlots =>>>>>>>>>>", availableTimeSlots);
     fetchDoctorDetail();
-  }, [doctorId]);
+  }, [doctorId, form]);
 
   const provinces = [
     { label: "Hà Nội", value: "hanoi" },
@@ -129,35 +169,6 @@ const MakeAppointmentPage = () => {
     { label: "Khác", value: "other" },
   ];
 
-  // Mock time slots data - thay thế bằng API call thực tế
-  const mockTimeSlots: TimeSlot[] = [
-    { id: 1, start_time: "08:00:00", end_time: "09:00:00" },
-    { id: 2, start_time: "09:00:00", end_time: "10:00:00" },
-    { id: 3, start_time: "10:00:00", end_time: "11:00:00" },
-    { id: 4, start_time: "11:00:00", end_time: "12:00:00" },
-    { id: 5, start_time: "13:00:00", end_time: "14:00:00" },
-    { id: 6, start_time: "14:00:00", end_time: "15:00:00" },
-    { id: 7, start_time: "15:00:00", end_time: "16:00:00" },
-    { id: 8, start_time: "16:00:00", end_time: "17:00:00" },
-  ];
-
-  const handleDateChange = (_: any, dateString: string | string[]) => {
-    const selectedDateStr = Array.isArray(dateString)
-      ? dateString[0]
-      : dateString;
-    setSelectedDate(selectedDateStr);
-    // Reset time slot khi đổi ngày
-    form.setFieldsValue({ timeSlotId: undefined });
-
-    if (selectedDateStr) {
-      // Simulate API call để lấy time slots cho ngày được chọn
-      // Trong thực tế, bạn sẽ gọi API ở đây
-      setAvailableTimeSlots(mockTimeSlots);
-    } else {
-      setAvailableTimeSlots([]);
-    }
-  };
-
   const formatTimeSlot = (startTime: string, endTime: string) => {
     const formatTime = (time: string) => time.substring(0, 5); // Remove seconds
     return `${formatTime(startTime)} - ${formatTime(endTime)}`;
@@ -166,13 +177,54 @@ const MakeAppointmentPage = () => {
   const onFinish = async (values: BookingFormData) => {
     setSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Booking data:", values);
-      message.success("Đặt lịch thành công!");
-      setCurrentStep(2);
-    } catch (error) {
-      message.error("Có lỗi xảy ra khi đặt lịch!");
+      // Find the selected schedule
+      const selectedTimeSlot = availableTimeSlots.find(
+        (slot) => slot.id === values.timeSlotId
+      );
+
+      if (!selectedTimeSlot) {
+        message.error("Vui lòng chọn khung giờ khám!");
+        setSubmitting(false);
+        return;
+      }
+
+      // Prepare data for API
+      const bookingData = {
+        scheduleId: selectedTimeSlot.scheduleId,
+        timeSlotId: values.timeSlotId,
+        reason: values.reason || "",
+        patientName: values.patientName,
+        patientPhone: values.phone,
+        patientEmail: values.email,
+        patientGender: values.gender === "male" ? "Male" : "Female",
+        patientDateOfBirth: values.dateOfBirth,
+        patientCity: values.province,
+        patientDistrict: values.district,
+        patientAddress: values.address,
+        // Thông tin người đặt lịch (nếu đặt cho người thân)
+        ...(bookingFor === "other" && {
+          bookerName: values.bookerName,
+          bookerPhone: values.bookerPhone,
+          bookerEmail: values.bookerEmail,
+        }),
+      };
+
+      console.log("Booking data:", bookingData);
+
+      // Call API to create booking
+      const response = await createBooking(bookingData);
+
+      if (response.data) {
+        message.success("Đặt lịch thành công!");
+        setCurrentStep(2);
+      } else {
+        message.error("Có lỗi xảy ra khi đặt lịch!");
+      }
+    } catch (error: any) {
+      console.error("Error creating booking:", error);
+      const errorMessage =
+        error.response?.data?.message || "Có lỗi xảy ra khi đặt lịch!";
+      message.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -215,6 +267,42 @@ const MakeAppointmentPage = () => {
       />
     );
   }
+
+  const handleDateSelect = (selectedDateValue: string) => {
+    // Clear selected time slot when date changes
+    setSelectedTimeSlotId(null);
+    // Update current selected date
+    setCurrentSelectedDate(selectedDateValue);
+
+    form.setFieldsValue({
+      timeSlotId: undefined,
+      appointmentDate: selectedDateValue,
+    });
+
+    if (selectedDateValue && doctor) {
+      // Tìm schedule tương ứng với ngày được chọn
+      const selectedSchedule = doctor.scheduleByDoctorId.find(
+        (schedule: any) => schedule.date === selectedDateValue
+      );
+
+      if (selectedSchedule) {
+        // Cập nhật time slots cho ngày được chọn
+        const timeSlots = selectedSchedule.timeSlots.map((timeSlot: any) => ({
+          id: timeSlot.timeSlotId,
+          startTime: timeSlot.timeSlot.startTime,
+          endTime: timeSlot.timeSlot.endTime,
+          status: timeSlot.status,
+          scheduleId: selectedSchedule.id,
+        }));
+        console.log("timeSlots test =>>>>>>>>>>", timeSlots);
+        setAvailableTimeSlots(timeSlots);
+      } else {
+        setAvailableTimeSlots([]);
+      }
+    } else {
+      setAvailableTimeSlots([]);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
@@ -504,27 +592,333 @@ const MakeAppointmentPage = () => {
                   onFinish={onFinish}
                   requiredMark={false}
                 >
-                  <Title
-                    level={4}
-                    style={{ marginBottom: "24px", color: "#1890ff" }}
-                  >
-                    Thông tin đặt lịch
-                  </Title>
-
-                  {/* Booking For */}
+                  {/* Hidden field for timeSlotId validation */}
                   <Form.Item
-                    label={<Text strong>Đặt cho ai?</Text>}
-                    name="bookingFor"
-                    initialValue="self"
-                    rules={[{ required: true }]}
+                    name="timeSlotId"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng chọn khung giờ khám!",
+                      },
+                    ]}
+                    style={{ display: "none" }}
                   >
-                    <Radio.Group
-                      onChange={(e) => setBookingFor(e.target.value)}
-                    >
-                      <Radio value="self">Đặt cho mình</Radio>
-                      <Radio value="other">Đặt cho người thân</Radio>
-                    </Radio.Group>
+                    <input type="hidden" />
                   </Form.Item>
+                  <div>
+                    <Title
+                      level={4}
+                      style={{ marginBottom: "24px", color: "#1890ff" }}
+                    >
+                      📅 Thông tin đặt lịch
+                    </Title>
+
+                    {/* Date Selection Card */}
+                    <Card
+                      className="mb-6"
+                      style={{
+                        borderRadius: "16px",
+                        border: "2px solid #e6f7ff",
+                        backgroundColor: "#fafcff",
+                        boxShadow: "0 4px 12px rgba(24, 144, 255, 0.1)",
+                      }}
+                      bodyStyle={{ padding: "24px" }}
+                    >
+                      <div style={{ marginBottom: "20px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <CalendarOutlined
+                            style={{
+                              fontSize: "20px",
+                              color: "#1890ff",
+                              marginRight: "8px",
+                            }}
+                          />
+                          <Title
+                            level={5}
+                            style={{ margin: 0, color: "#1890ff" }}
+                          >
+                            Chọn ngày khám
+                          </Title>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: "14px" }}>
+                          Vui lòng chọn ngày bạn muốn đặt lịch khám bệnh
+                        </Text>
+                      </div>
+
+                      <Select
+                        value={currentSelectedDate || undefined}
+                        onChange={handleDateSelect}
+                        className="w-full"
+                        size="large"
+                        placeholder="-- Chọn ngày khám --"
+                        style={{
+                          borderRadius: "12px",
+                        }}
+                        options={[...selectedDate].map((date) => ({
+                          value: date,
+                          label: (
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "4px 0",
+                              }}
+                            >
+                              <CalendarOutlined
+                                style={{ marginRight: "8px", color: "#1890ff" }}
+                              />
+                              <span style={{ fontWeight: "500" }}>{date}</span>
+                            </div>
+                          ),
+                        }))}
+                      />
+                    </Card>
+
+                    {/* Time Slots Card */}
+                    <Card
+                      style={{
+                        borderRadius: "16px",
+                        border: "2px solid #f0f9ff",
+                        backgroundColor: "#fafcff",
+                        boxShadow: "0 4px 12px rgba(24, 144, 255, 0.08)",
+                      }}
+                      bodyStyle={{ padding: "24px" }}
+                    >
+                      <div style={{ marginBottom: "20px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <ClockCircleOutlined
+                            style={{
+                              fontSize: "20px",
+                              color: "#52c41a",
+                              marginRight: "8px",
+                            }}
+                          />
+                          <Title
+                            level={5}
+                            style={{ margin: 0, color: "#52c41a" }}
+                          >
+                            Khung giờ khám
+                          </Title>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: "14px" }}>
+                          {availableTimeSlots.length > 0
+                            ? `Có ${availableTimeSlots.length} khung giờ khả dụng`
+                            : "Vui lòng chọn ngày để xem khung giờ khả dụng"}
+                        </Text>
+                      </div>
+
+                      {availableTimeSlots.length > 0 ? (
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns:
+                              "repeat(auto-fit, minmax(200px, 1fr))",
+                            gap: "12px",
+                          }}
+                        >
+                          {availableTimeSlots.map((slot) => {
+                            const isSelected = selectedTimeSlotId === slot.id;
+                            return (
+                              <Button
+                                key={slot.id}
+                                size="large"
+                                type={isSelected ? "primary" : "default"}
+                                style={{
+                                  height: "60px",
+                                  borderRadius: "12px",
+                                  border: isSelected
+                                    ? "2px solid #1890ff"
+                                    : "2px solid #d9f7be",
+                                  backgroundColor: isSelected
+                                    ? "#1890ff"
+                                    : "#f6ffed",
+                                  color: isSelected ? "#ffffff" : "#52c41a",
+                                  fontWeight: "600",
+                                  fontSize: "15px",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  transition: "all 0.3s ease",
+                                  cursor: "pointer",
+                                  boxShadow: isSelected
+                                    ? "0 6px 16px rgba(24, 144, 255, 0.3)"
+                                    : "none",
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isSelected) {
+                                    e.currentTarget.style.borderColor =
+                                      "#52c41a";
+                                    e.currentTarget.style.backgroundColor =
+                                      "#e6f7ff";
+                                    e.currentTarget.style.transform =
+                                      "translateY(-2px)";
+                                    e.currentTarget.style.boxShadow =
+                                      "0 6px 16px rgba(82, 196, 26, 0.2)";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isSelected) {
+                                    e.currentTarget.style.borderColor =
+                                      "#d9f7be";
+                                    e.currentTarget.style.backgroundColor =
+                                      "#f6ffed";
+                                    e.currentTarget.style.transform =
+                                      "translateY(0)";
+                                    e.currentTarget.style.boxShadow = "none";
+                                  }
+                                }}
+                                onClick={() => {
+                                  setSelectedTimeSlotId(slot.id);
+                                  form.setFieldsValue({
+                                    timeSlotId: slot.id,
+                                  });
+                                }}
+                              >
+                                <ClockCircleOutlined
+                                  style={{
+                                    fontSize: "16px",
+                                    marginBottom: "4px",
+                                    color: isSelected ? "#ffffff" : "#52c41a",
+                                  }}
+                                />
+                                <span>
+                                  {slot.startTime} - {slot.endTime}
+                                </span>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            textAlign: "center",
+                            padding: "40px 20px",
+                            backgroundColor: "#fafafa",
+                            borderRadius: "12px",
+                            border: "2px dashed #d9d9d9",
+                          }}
+                        >
+                          <ClockCircleOutlined
+                            style={{
+                              fontSize: "48px",
+                              color: "#bfbfbf",
+                              marginBottom: "16px",
+                            }}
+                          />
+                          <div>
+                            <Text
+                              strong
+                              style={{ color: "#8c8c8c", fontSize: "16px" }}
+                            >
+                              Chưa có khung giờ khả dụng
+                            </Text>
+                            <br />
+                            <Text type="secondary" style={{ fontSize: "14px" }}>
+                              Vui lòng chọn ngày khác hoặc liên hệ trực tiếp với
+                              phòng khám
+                            </Text>
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  </div>
+
+                  {/* Booking For Section */}
+                  <Card
+                    style={{
+                      borderRadius: "16px",
+                      border: "2px solid #fff2e8",
+                      backgroundColor: "#fffbf5",
+                      boxShadow: "0 4px 12px rgba(250, 140, 22, 0.1)",
+                      marginBottom: "24px",
+                    }}
+                    bodyStyle={{ padding: "24px" }}
+                  >
+                    <div style={{ marginBottom: "16px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <UserOutlined
+                          style={{
+                            fontSize: "20px",
+                            color: "#fa8c16",
+                            marginRight: "8px",
+                          }}
+                        />
+                        <Title
+                          level={5}
+                          style={{ margin: 0, color: "#fa8c16" }}
+                        >
+                          Đặt lịch cho ai?
+                        </Title>
+                      </div>
+                      <Text type="secondary" style={{ fontSize: "14px" }}>
+                        Chọn bạn đang đặt lịch cho ai
+                      </Text>
+                    </div>
+
+                    <Form.Item
+                      name="bookingFor"
+                      initialValue="self"
+                      rules={[{ required: true }]}
+                      style={{ marginBottom: 0 }}
+                    >
+                      <Radio.Group
+                        onChange={(e) => setBookingFor(e.target.value)}
+                        style={{ width: "100%" }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "16px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Radio
+                            value="self"
+                            style={{
+                              padding: "12px 16px",
+                              borderRadius: "8px",
+                              border: "1px solid #d9d9d9",
+                              backgroundColor: "#ffffff",
+                              fontWeight: "500",
+                            }}
+                          >
+                            👤 Đặt cho mình
+                          </Radio>
+                          <Radio
+                            value="other"
+                            style={{
+                              padding: "12px 16px",
+                              borderRadius: "8px",
+                              border: "1px solid #d9d9d9",
+                              backgroundColor: "#ffffff",
+                              fontWeight: "500",
+                            }}
+                          >
+                            👨‍👩‍👧‍👦 Đặt cho người thân
+                          </Radio>
+                        </div>
+                      </Radio.Group>
+                    </Form.Item>
+                  </Card>
 
                   {/* Thông tin người đặt lịch - chỉ hiển thị khi đặt cho người thân */}
                   {bookingFor === "other" && (
@@ -639,274 +1033,206 @@ const MakeAppointmentPage = () => {
                     </div>
                   )}
 
-                  {/* Đường phân cách */}
-                  <div style={{ marginBottom: "24px" }}>
-                    <Title
-                      level={5}
-                      style={{ color: "#1890ff", marginBottom: "16px" }}
-                    >
-                      {bookingFor === "self"
-                        ? "👤 Thông tin của bạn"
-                        : "🏥 Thông tin bệnh nhân"}
-                    </Title>
-                  </div>
-
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Họ tên bệnh nhân</Text>}
-                        name="patientName"
-                        rules={[
-                          { required: true, message: "Vui lòng nhập họ tên!" },
-                        ]}
-                      >
-                        <Input
-                          size="large"
-                          placeholder="Nhập họ tên bệnh nhân"
-                          prefix={<UserOutlined style={{ color: "#bfbfbf" }} />}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Giới tính</Text>}
-                        name="gender"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng chọn giới tính!",
-                          },
-                        ]}
-                      >
-                        <Radio.Group>
-                          <Radio value="male">Nam</Radio>
-                          <Radio value="female">Nữ</Radio>
-                        </Radio.Group>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Số điện thoại liên hệ</Text>}
-                        name="phone"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng nhập số điện thoại!",
-                          },
-                          {
-                            pattern: /^[0-9]{10,11}$/,
-                            message: "Số điện thoại không hợp lệ!",
-                          },
-                        ]}
-                      >
-                        <Input
-                          size="large"
-                          placeholder="Nhập số điện thoại"
-                          prefix={
-                            <PhoneOutlined style={{ color: "#bfbfbf" }} />
-                          }
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Địa chỉ email</Text>}
-                        name="email"
-                        rules={[
-                          { required: true, message: "Vui lòng nhập email!" },
-                          { type: "email", message: "Email không hợp lệ!" },
-                        ]}
-                      >
-                        <Input
-                          size="large"
-                          placeholder="Nhập địa chỉ email"
-                          prefix={<MailOutlined style={{ color: "#bfbfbf" }} />}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item
-                    label={<Text strong>Năm sinh</Text>}
-                    name="dateOfBirth"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập năm sinh!" },
-                    ]}
-                  >
-                    <Input
-                      size="large"
-                      placeholder="Nhập năm sinh (ví dụ: 1990)"
-                      prefix={<CalendarOutlined style={{ color: "#bfbfbf" }} />}
-                    />
-                  </Form.Item>
-
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Tỉnh/Thành phố</Text>}
-                        name="province"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng chọn tỉnh/thành!",
-                          },
-                        ]}
-                      >
-                        <Select
-                          size="large"
-                          placeholder="-- Chọn Tỉnh/Thành --"
-                        >
-                          {provinces.map((province) => (
-                            <Option key={province.value} value={province.value}>
-                              {province.label}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label={<Text strong>Quận/Huyện</Text>}
-                        name="district"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Vui lòng chọn quận/huyện!",
-                          },
-                        ]}
-                      >
-                        <Select
-                          size="large"
-                          placeholder="-- Chọn Quận/Huyện --"
-                        >
-                          {districts.map((district) => (
-                            <Option key={district.value} value={district.value}>
-                              {district.label}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item
-                    label={<Text strong>Địa chỉ</Text>}
-                    name="address"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập địa chỉ!" },
-                    ]}
-                  >
-                    <Input
-                      size="large"
-                      placeholder="Nhập số nhà, tên đường..."
-                      prefix={
-                        <EnvironmentOutlined style={{ color: "#bfbfbf" }} />
-                      }
-                    />
-                  </Form.Item>
-
-                  <Form.Item
-                    label={<Text strong>Lý do khám</Text>}
-                    name="reason"
-                  >
-                    <TextArea
-                      rows={4}
-                      placeholder="Mô tả triệu chứng, lý do khám bệnh..."
-                      maxLength={400}
-                      showCount
-                    />
-                  </Form.Item>
-
-                  {/* Chọn ngày và giờ khám */}
-                  <div
+                  {/* Patient Information Section */}
+                  <Card
                     style={{
-                      backgroundColor: "#fef3e8",
-                      padding: "20px",
-                      borderRadius: "8px",
-                      border: "1px solid #fed7aa",
+                      borderRadius: "16px",
+                      border: "2px solid #e6f7ff",
+                      backgroundColor: "#fafcff",
+                      boxShadow: "0 4px 12px rgba(24, 144, 255, 0.1)",
                       marginBottom: "24px",
                     }}
+                    bodyStyle={{ padding: "24px" }}
                   >
-                    <Title
-                      level={5}
-                      style={{ color: "#ea580c", marginBottom: "16px" }}
-                    >
-                      📅 Chọn thời gian khám
-                    </Title>
+                    <div style={{ marginBottom: "24px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {bookingFor === "self" ? (
+                          <UserOutlined
+                            style={{
+                              fontSize: "20px",
+                              color: "#1890ff",
+                              marginRight: "8px",
+                            }}
+                          />
+                        ) : (
+                          <UserOutlined
+                            style={{
+                              fontSize: "20px",
+                              color: "#1890ff",
+                              marginRight: "8px",
+                            }}
+                          />
+                        )}
+                        <Title
+                          level={5}
+                          style={{ margin: 0, color: "#1890ff" }}
+                        >
+                          {bookingFor === "self"
+                            ? "Thông tin của bạn"
+                            : "Thông tin bệnh nhân"}
+                        </Title>
+                      </div>
+                      <Text type="secondary" style={{ fontSize: "14px" }}>
+                        Vui lòng nhập đầy đủ thông tin để chúng tôi có thể liên
+                        hệ và xác nhận lịch khám
+                      </Text>
+                    </div>
 
                     <Row gutter={[16, 0]}>
                       <Col xs={24} md={12}>
                         <Form.Item
-                          label={<Text strong>Ngày khám</Text>}
-                          name="appointmentDate"
+                          label={<Text strong>Họ tên bệnh nhân</Text>}
+                          name="patientName"
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng chọn ngày khám!",
+                              message: "Vui lòng nhập họ tên!",
                             },
                           ]}
                         >
-                          <DatePicker
+                          <Input
                             size="large"
-                            style={{ width: "100%" }}
-                            format="YYYY-MM-DD"
-                            placeholder="Chọn ngày khám"
-                            onChange={handleDateChange}
-                            disabledDate={(current) => {
-                              // Không cho chọn ngày trong quá khứ
-                              return (
-                                current &&
-                                current.valueOf() <
-                                  Date.now() - 24 * 60 * 60 * 1000
-                              );
-                            }}
+                            placeholder="Nhập họ tên bệnh nhân"
+                            prefix={
+                              <UserOutlined style={{ color: "#bfbfbf" }} />
+                            }
                           />
                         </Form.Item>
                       </Col>
-
                       <Col xs={24} md={12}>
                         <Form.Item
-                          label={<Text strong>Giờ khám</Text>}
-                          name="timeSlotId"
+                          label={<Text strong>Giới tính</Text>}
+                          name="gender"
                           rules={[
                             {
                               required: true,
-                              message: "Vui lòng chọn giờ khám!",
+                              message: "Vui lòng chọn giới tính!",
+                            },
+                          ]}
+                        >
+                          <Radio.Group>
+                            <Radio value="male">Nam</Radio>
+                            <Radio value="female">Nữ</Radio>
+                          </Radio.Group>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          label={<Text strong>Số điện thoại liên hệ</Text>}
+                          name="phone"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Vui lòng nhập số điện thoại!",
+                            },
+                            {
+                              pattern: /^[0-9]{10,11}$/,
+                              message: "Số điện thoại không hợp lệ!",
+                            },
+                          ]}
+                        >
+                          <Input
+                            size="large"
+                            placeholder="Nhập số điện thoại"
+                            prefix={
+                              <PhoneOutlined style={{ color: "#bfbfbf" }} />
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          label={<Text strong>Địa chỉ email</Text>}
+                          name="email"
+                          rules={[
+                            { required: true, message: "Vui lòng nhập email!" },
+                            { type: "email", message: "Email không hợp lệ!" },
+                          ]}
+                        >
+                          <Input
+                            size="large"
+                            placeholder="Nhập địa chỉ email"
+                            prefix={
+                              <MailOutlined style={{ color: "#bfbfbf" }} />
+                            }
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+
+                    <Form.Item
+                      label={<Text strong>Năm sinh</Text>}
+                      name="dateOfBirth"
+                      rules={[
+                        { required: true, message: "Vui lòng nhập năm sinh!" },
+                      ]}
+                    >
+                      <Input
+                        size="large"
+                        placeholder="Nhập năm sinh (ví dụ: 1990)"
+                        prefix={
+                          <CalendarOutlined style={{ color: "#bfbfbf" }} />
+                        }
+                      />
+                    </Form.Item>
+
+                    <Row gutter={[16, 0]}>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          label={<Text strong>Tỉnh/Thành phố</Text>}
+                          name="province"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Vui lòng chọn tỉnh/thành!",
                             },
                           ]}
                         >
                           <Select
                             size="large"
-                            placeholder={
-                              selectedDate
-                                ? "Chọn giờ khám"
-                                : "Vui lòng chọn ngày trước"
-                            }
-                            disabled={
-                              !selectedDate || availableTimeSlots.length === 0
-                            }
-                            notFoundContent={
-                              !selectedDate
-                                ? "Vui lòng chọn ngày trước"
-                                : availableTimeSlots.length === 0
-                                ? "Không có lịch trống trong ngày này"
-                                : "Không có dữ liệu"
-                            }
+                            placeholder="-- Chọn Tỉnh/Thành --"
                           >
-                            {availableTimeSlots.map((slot) => (
-                              <Option key={slot.id} value={slot.id}>
-                                <Space>
-                                  <ClockCircleOutlined
-                                    style={{ color: "#ea580c" }}
-                                  />
-                                  {formatTimeSlot(
-                                    slot.start_time,
-                                    slot.end_time
-                                  )}
-                                </Space>
+                            {provinces.map((province) => (
+                              <Option
+                                key={province.value}
+                                value={province.value}
+                              >
+                                {province.label}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col xs={24} md={12}>
+                        <Form.Item
+                          label={<Text strong>Quận/Huyện</Text>}
+                          name="district"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Vui lòng chọn quận/huyện!",
+                            },
+                          ]}
+                        >
+                          <Select
+                            size="large"
+                            placeholder="-- Chọn Quận/Huyện --"
+                          >
+                            {districts.map((district) => (
+                              <Option
+                                key={district.value}
+                                value={district.value}
+                              >
+                                {district.label}
                               </Option>
                             ))}
                           </Select>
@@ -914,31 +1240,34 @@ const MakeAppointmentPage = () => {
                       </Col>
                     </Row>
 
-                    {availableTimeSlots.length > 0 && (
-                      <Alert
-                        message="Thông tin quan trọng"
-                        description={
-                          <div>
-                            <p>
-                              • Vui lòng có mặt tại phòng khám trước giờ hẹn 15
-                              phút
-                            </p>
-                            <p>
-                              • Mang theo CMND/CCCD và các giấy tờ y tế liên
-                              quan
-                            </p>
-                            <p>
-                              • Liên hệ {doctor?.clinic?.phone || "hotline"} nếu
-                              cần thay đổi lịch hẹn
-                            </p>
-                          </div>
+                    <Form.Item
+                      label={<Text strong>Địa chỉ</Text>}
+                      name="address"
+                      rules={[
+                        { required: true, message: "Vui lòng nhập địa chỉ!" },
+                      ]}
+                    >
+                      <Input
+                        size="large"
+                        placeholder="Nhập số nhà, tên đường..."
+                        prefix={
+                          <EnvironmentOutlined style={{ color: "#bfbfbf" }} />
                         }
-                        type="info"
-                        showIcon
-                        style={{ marginTop: "16px" }}
                       />
-                    )}
-                  </div>
+                    </Form.Item>
+
+                    <Form.Item
+                      label={<Text strong>Lý do khám</Text>}
+                      name="reason"
+                    >
+                      <TextArea
+                        rows={4}
+                        placeholder="Mô tả triệu chứng, lý do khám bệnh..."
+                        maxLength={400}
+                        showCount
+                      />
+                    </Form.Item>
+                  </Card>
 
                   <div style={{ textAlign: "center", marginTop: "32px" }}>
                     <Button
@@ -952,6 +1281,10 @@ const MakeAppointmentPage = () => {
                         borderRadius: "8px",
                         fontSize: "16px",
                         fontWeight: "500",
+                        background:
+                          "linear-gradient(135deg, #1890ff 0%, #40a9ff 100%)",
+                        border: "none",
+                        boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
                       }}
                     >
                       Tiếp tục
@@ -1091,8 +1424,8 @@ const MakeAppointmentPage = () => {
                                       );
                                     return selectedSlot
                                       ? formatTimeSlot(
-                                          selectedSlot.start_time,
-                                          selectedSlot.end_time
+                                          selectedSlot.startTime,
+                                          selectedSlot.endTime
                                         )
                                       : "Chưa chọn";
                                   })()}
