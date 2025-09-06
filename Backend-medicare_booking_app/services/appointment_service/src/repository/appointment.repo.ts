@@ -1,4 +1,9 @@
-import { AppointmentStatus, Gender, PaymentStatus } from "@prisma/client";
+import {
+  AppointmentStatus,
+  Gender,
+  PaymentStatus,
+  BookingType,
+} from "@prisma/client";
 import dayjs from "dayjs";
 import { prisma } from "src/config/client";
 
@@ -11,9 +16,11 @@ const createAppointmentPatient = async (
   patientCity: string,
   patientDistrict: string,
   patientAddress: string,
-  bookerName: string,
-  bookerPhone: string,
-  reason: string
+  bookingType: string,
+  bookerName?: string,
+  bookerPhone?: string,
+  bookerEmail?: string,
+  reason?: string
 ) => {
   const patient = await prisma.appointmentPatient.create({
     data: {
@@ -28,9 +35,11 @@ const createAppointmentPatient = async (
       patientCity,
       patientDistrict,
       patientAddress,
-      bookerName,
-      bookerPhone,
-      reason,
+      bookingType: bookingType as BookingType,
+      bookerName: bookerName || null,
+      bookerPhone: bookerPhone || null,
+      bookerEmail: bookerEmail || null,
+      reason: reason || null,
     },
   });
   return patient;

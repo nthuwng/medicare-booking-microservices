@@ -27,15 +27,6 @@ const appointmentRoutes = (app: Express) => {
     getAppointmentsByUserController
   );
 
-  // Public/shared routes (need auth but any role)
-  router.get("/appointments/:id", getAppointmentByIdController);
-
-  // Admin only routes - update appointment status
-  router.patch(
-    "/appointments/:id/status",
-    authorizeAdmin,
-    updateAppointmentStatusController
-  );
 
   app.use("/", authenticateToken, router);
 };

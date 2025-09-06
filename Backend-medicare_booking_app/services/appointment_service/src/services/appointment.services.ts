@@ -18,6 +18,7 @@ import {
   createAppointment,
   createAppointmentPatient,
 } from "src/repository/appointment.repo";
+import { BookingType } from "@prisma/client";
 
 // Config timezone cho dayjs
 dayjs.extend(utc);
@@ -41,11 +42,11 @@ const createAppointmentService = async (
     patientAddress,
     bookerName,
     bookerPhone,
+    bookerEmail,
   } = body;
 
   // Get schedule information (includes doctor info and timeSlots)
   const scheduleResponse = await checkScheduleViaRabbitMQ(scheduleId);
-  console.log("scheduleResponse =>>>>>>> hihi", scheduleResponse);
   if (!scheduleResponse || !scheduleResponse.data) {
     throw new Error("Lịch khám không tồn tại");
   }
@@ -128,6 +129,9 @@ const createAppointmentService = async (
     throw new Error("Bạn đã có lịch hẹn này rồi");
   }
 
+  // Determine booking type based on whether booker info is provided
+  const bookingType = bookerName && bookerPhone ? "Relative" : "Self";
+
   // Create patient record first
   const patient = await createAppointmentPatient(
     patientName,
@@ -138,9 +142,11 @@ const createAppointmentService = async (
     patientCity,
     patientDistrict,
     patientAddress,
-    bookerName || "",
-    bookerPhone || "",
-    reason || ""
+    bookingType,
+    bookerName,
+    bookerPhone,
+    bookerEmail,
+    reason
   );
 
   // Create appointment
@@ -187,6 +193,7 @@ const createAppointmentService = async (
       patientAddress: patient.patientAddress,
       bookerName: patient.bookerName || undefined,
       bookerPhone: patient.bookerPhone || undefined,
+      bookerEmail: patient.bookerEmail || undefined,
       reason: patient.reason || undefined,
     },
   };
@@ -239,9 +246,34 @@ const updateAppointmentStatusService = async (
   return appointment;
 };
 
+// Get payment information by appointment ID
+const putPaymentByAppointmentIdService = async (appointmentId: string) => {
+  const appointment = await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: {
+      paymentStatus: "Paid",
+    },
+  });
+
+  if (!appointment) {
+    throw new Error("Appointment not found");
+  }
+
+  return {
+    id: appointment.id,
+    totalFee: Number(appointment.totalFee),
+    paymentStatus: appointment.paymentStatus,
+    userId: appointment.userId,
+    doctorId: appointment.doctorId,
+    createdAt: appointment.createdAt,
+    updatedAt: appointment.updatedAt,
+  };
+};
+
 export {
   createAppointmentService,
   getAppointmentsByUserService,
   getAppointmentByIdService,
   updateAppointmentStatusService,
+  putPaymentByAppointmentIdService,
 };

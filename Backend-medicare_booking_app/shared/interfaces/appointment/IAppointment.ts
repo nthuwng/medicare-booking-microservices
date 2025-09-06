@@ -30,6 +30,7 @@ export interface CreateAppointmentInput {
   // Optional booker info (nếu đặt cho người khác)
   bookerName?: string;
   bookerPhone?: string;
+  bookerEmail?: string;
 }
 
 export interface AppointmentResponse {
@@ -61,6 +62,7 @@ export interface AppointmentResponse {
     patientAddress: string;
     bookerName?: string;
     bookerPhone?: string;
+    bookerEmail?: string;
     reason?: string;
   };
 }

@@ -207,18 +207,44 @@ services:
     command: npm run dev
 
   # Payment service
+
+  payment_db:
+    image: mysql:8.0
+    container_name: payment_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: payment_db
+    ports:
+      - "3313:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - payment_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
   payment-service:
-    build: ./services/payment_service
+    build:
+      context: ./services/payment_service
+      dockerfile: Dockerfile
     ports:
       - "8085:8085"
     environment:
       - PORT=8085
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:medicare_booking@payment_db:3306/payment_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     volumes:
       - ./services/payment_service:/app
       - /app/node_modules
+      - ./shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      payment_db:
+        condition: service_started
     networks:
       - healthcare_network
-    command: npm start
+    command: npm run dev
 
   auth_db:
     image: mysql:8.0
@@ -352,3 +378,4 @@ volumes:
   rabbitmq_data:
   schedule_mysql_data:
   notification_mysql_data:
+  payment_mysql_data:

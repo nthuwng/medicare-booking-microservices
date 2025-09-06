@@ -67,8 +67,10 @@ model AppointmentPatient {
   patientDistrict    String   @map("patient_district")
   patientAddress     String   @map("patient_address")
 
-  bookerName  String? @map("booker_name")
-  bookerPhone String? @map("booker_phone")
+  bookingType BookingType @default(Self) @map("booking_type")
+  bookerName  String?     @map("booker_name")
+  bookerPhone String?     @map("booker_phone")
+  bookerEmail String?     @map("booker_email")
 
   reason String? @map("reason")
 
