@@ -93,4 +93,33 @@ const getScheduleByScheduleId = async (scheduleId: string) => {
   return { data: { schedule, doctor } };
 };
 
-export { createSchedule, getScheduleByDoctorId, getScheduleByScheduleId };
+const updateTimeSlotByScheduleIdAndTimeSlotId = async (
+  scheduleId: string,
+  timeSlotId: number
+) => {
+  const checkSchedule = await prisma.scheduleTimeSlot.findFirst({
+    where: { scheduleId: scheduleId, timeSlotId: +timeSlotId },
+  });
+
+  if (!checkSchedule?.timeSlotId) {
+    throw new Error("Time slot not found");
+  }
+
+  if (checkSchedule.currentBooking >= checkSchedule.maxBooking) {
+    throw new Error("Time slot is full");
+  }
+
+  const schedule = await prisma.scheduleTimeSlot.update({
+    where: { scheduleId_timeSlotId: { scheduleId, timeSlotId: +timeSlotId } },
+    data: { currentBooking: { increment: 1 } },
+  });
+
+  return schedule;
+};
+
+export {
+  createSchedule,
+  getScheduleByDoctorId,
+  getScheduleByScheduleId,
+  updateTimeSlotByScheduleIdAndTimeSlotId,
+};

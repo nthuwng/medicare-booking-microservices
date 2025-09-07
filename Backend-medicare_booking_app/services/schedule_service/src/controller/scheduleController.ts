@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { getDoctorIdByUserIdViaRabbitMQ } from "src/queue/publishers/schedule.publisher";
+import { getScheduleByScheduleId } from "src/repository/schedule.repo";
 import {
   countTotalSchedulePage,
   handleGetAllSchedule,
@@ -164,10 +165,33 @@ const updateExpiredTimeSlotsController = async (
   }
 };
 
+const getScheduleByScheduleIdController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { scheduleId } = req.params;
+    const schedule = await getScheduleByScheduleId(scheduleId);
+
+    res.status(200).json({
+      success: true,
+      message: "Lấy lịch khám thành công.",
+      data: schedule,
+    });
+  } catch (error: any) {
+    console.error("Error getting schedule by scheduleId:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 export {
   createScheduleController,
   getAllScheduleController,
   getScheduleByDoctorIdController,
   getScheduleByIdController,
   updateExpiredTimeSlotsController,
+  getScheduleByScheduleIdController,
 };

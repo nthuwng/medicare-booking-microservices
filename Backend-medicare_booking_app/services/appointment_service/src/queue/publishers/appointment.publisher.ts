@@ -1,4 +1,5 @@
 import { rpcRequest } from "./rpcRequest";
+import { publishUpdateTimeSlot } from "./scheduleEventUpdate";
 
 const verifyTokenViaRabbitMQ = async (token: string) => {
   return rpcRequest("auth.verify_token", { token });
@@ -24,6 +25,13 @@ const checkScheduleViaRabbitMQ = async (scheduleId: string) => {
   return rpcRequest("schedule.check_schedule", { scheduleId });
 };
 
+const updateScheduleViaRabbitMQ = async (
+  scheduleId: string,
+  timeSlotId: string
+) => {
+  return await publishUpdateTimeSlot(scheduleId, timeSlotId);
+};
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
@@ -31,4 +39,5 @@ export {
   checkPatientByIdViaRabbitMQ,
   checkDoctorViaRabbitMQ,
   checkScheduleViaRabbitMQ,
+  updateScheduleViaRabbitMQ,
 };

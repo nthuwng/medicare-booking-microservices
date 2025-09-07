@@ -13,6 +13,7 @@ import { prisma } from "src/config/client";
 import {
   checkDoctorViaRabbitMQ,
   checkScheduleViaRabbitMQ,
+  updateScheduleViaRabbitMQ,
 } from "src/queue/publishers/appointment.publisher";
 import {
   createAppointment,
@@ -163,6 +164,8 @@ const createAppointmentService = async (
     totalFee,
     "Unpaid"
   );
+
+  await updateScheduleViaRabbitMQ(scheduleId, timeSlotId);
 
   return {
     appointment: {

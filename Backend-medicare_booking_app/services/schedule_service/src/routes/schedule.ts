@@ -5,6 +5,7 @@ import {
   getScheduleByDoctorIdController,
   getScheduleByIdController,
   updateExpiredTimeSlotsController,
+  getScheduleByScheduleIdController
 } from "src/controller/scheduleController";
 import {
   authenticateToken,
@@ -41,6 +42,12 @@ const scheduleRoutes = (app: Express) => {
     "/update-expired",
     authenticateToken,
     updateExpiredTimeSlotsController
+  );
+
+  router.get(
+    "/by-scheduleId/:scheduleId",
+    authenticateToken,
+    getScheduleByScheduleIdController
   );
 
   app.use("/schedules", router);
