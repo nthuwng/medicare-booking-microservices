@@ -23,8 +23,8 @@ import {
   getNotificationByUserId,
   markAsReadNotification,
 } from "../../services/doctor.api";
-import type { INotificationDataDoctor } from "../../types";
 import { useCurrentApp } from "@/components/contexts/app.context";
+import type { INotificationDataAdmin } from "@/types";
 
 const { Title, Text } = Typography;
 
@@ -40,7 +40,7 @@ const NotificationDoctor = (props: IProps) => {
   const [loading, setLoading] = useState(false);
   const [openModalNotification, setOpenModalNotification] = useState(false);
   const [dataNotificationModal, setDataNotificationModal] =
-    useState<INotificationDataDoctor | null>(null);
+    useState<INotificationDataAdmin | null>(null);
   const { user } = useCurrentApp();
 
   const fetchNotifications = async () => {
@@ -108,22 +108,30 @@ const NotificationDoctor = (props: IProps) => {
   const unreadCount = (
     Array.isArray(notifications) ? notifications : []
   ).filter((n) => n && !n.read).length;
-  
-  const handleNotificationClick = async (notification: INotificationDataDoctor) => {
+
+  const handleNotificationClick = async (
+    notification: INotificationDataAdmin
+  ) => {
     setModalNotificationLayout(false);
-  
+
     // mark as read (optimistic)
-    setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, read: true } : n));
-    try { await markAsReadNotification(notification.id); } catch {}
-  
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+    );
+    try {
+      await markAsReadNotification(notification.id);
+    } catch {}
+
     if (notification.type === "DOCTOR_APPROVED") {
       // bắn event để Profile refetch, không F5
-      window.dispatchEvent(new CustomEvent("doctor:profile-refresh", {
-        detail: { userId: user?.id }
-      }));
+      window.dispatchEvent(
+        new CustomEvent("doctor:profile-refresh", {
+          detail: { userId: user?.id },
+        })
+      );
       return; // không cần mở modal gì cả cho case này
     }
-  
+
     setDataNotificationModal(notification);
     setOpenModalNotification(true);
   };

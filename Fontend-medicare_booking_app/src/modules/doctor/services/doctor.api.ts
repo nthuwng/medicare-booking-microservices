@@ -1,5 +1,6 @@
 import axios from "services/axios.customize";
 import type {
+  IAppointment,
   IClinic,
   IDoctorProfile,
   INotificationDataAdmin,
@@ -94,4 +95,9 @@ export const getAllTimeSlots = () => {
 export const updateExpiredTimeSlots = () => {
   const urlBackend = `/api/schedule/schedules/update-expired`;
   return axios.patch<IBackendRes<any>>(urlBackend);
+};
+
+export const getAllAppointmentsByDoctorId = (query: string) => {
+  const urlBackend = `/api/appointment/appointments/doctor-appointments/${query}`;
+  return axios.get<IBackendRes<IModelPaginate<IAppointment>>>(urlBackend);
 };

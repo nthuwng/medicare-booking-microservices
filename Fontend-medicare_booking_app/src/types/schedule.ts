@@ -21,3 +21,4 @@ export interface ITimeSlotDetail {
   startTime: string;
   endTime: string;
 }
+

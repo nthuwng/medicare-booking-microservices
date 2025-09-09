@@ -4,6 +4,7 @@ import LayoutDoctor from "@/components/layout/DoctorLayout/layout.doctor";
 import DoctorDashboardPage from "@/modules/doctor/pages/DoctorDashboardPage";
 import DoctorProFileManagePage from "@/modules/doctor/pages/DoctorProFileManagePage";
 import DoctorSchedulePage from "@/modules/doctor/pages/DoctorSchedulePage";
+import DoctorAppointmentPage from "@/modules/doctor/pages/DoctorAppointmentPage";
 
 const DoctorRoutes = () => {
   return (
@@ -12,8 +13,7 @@ const DoctorRoutes = () => {
         <Route index element={<DoctorDashboardPage />} />
         <Route path="profile-settings" element={<DoctorProFileManagePage />} />
         <Route path="schedule" element={<DoctorSchedulePage />} />
-        {/*<Route path="specialities" element={<SpecialitiesManagementPage />} />
-        <Route path="clinic" element={<ClinicManagementPage />} /> */}
+        <Route path="appointments" element={<DoctorAppointmentPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

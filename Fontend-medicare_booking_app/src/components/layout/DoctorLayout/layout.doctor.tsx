@@ -12,7 +12,8 @@ import { Link } from "react-router-dom";
 import type { MenuProps } from "antd";
 import { RiAdminFill } from "react-icons/ri";
 import { MdAccountCircle } from "react-icons/md";
-import NotificationDoctor from "@/modules/doctor/components/NotificationDoctor.tsx/NotificationDoctor";
+import NotificationDoctor from "@/modules/doctor/components/NotificationDoctor/NotificationDoctor";
+import { IoCalendarOutline } from "react-icons/io5";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
@@ -37,6 +38,11 @@ const LayoutDoctor = () => {
       label: <Link to="/doctor/schedule">Schedule</Link>,
       key: "schedule",
       icon: <CalendarOutlined style={{ fontSize: "17px" }} />,
+    },
+    {
+      label: <Link to="/doctor/appointments">Appointments</Link>,
+      key: "appointments",
+      icon: <IoCalendarOutline style={{ fontSize: "17px" }} />,
     },
     {
       label: <Link to="/doctor/profile-settings">Profile Settings</Link>,

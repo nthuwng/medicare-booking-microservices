@@ -20,7 +20,6 @@ const LoginPage = () => {
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     const { email, password } = values;
     const res = await loginAPI(email, password);
-    console.log("res login", res);
     if (res?.data) {
       localStorage.setItem("access_token", res.data.access_token);  
       message.success("Đăng nhập tài khoản thành công!");

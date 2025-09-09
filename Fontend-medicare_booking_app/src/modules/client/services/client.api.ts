@@ -29,7 +29,7 @@ export const getDoctorDetailBookingById = (doctorId: string) => {
 };
 
 export const createBooking = (data: ICreateAppointmentInput) => {
-  const urlBackend = `/api/appointment/create-appointment`;
+  const urlBackend = `/api/appointment/appointments/create-appointment`;
   return axios.post<IBackendRes<IBooking>>(urlBackend, data);
 };
 
