@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import vnpay from "./routes/vnpay";
+import { connectRabbitMQ } from "./queue/connection";
 
 const app = express();
 const port = process.env.PORT || 8085;
@@ -14,8 +15,8 @@ vnpay(app);
 const startApplication = async () => {
   try {
     //Kết nối Message Broker (RabbitMQ)
-    // await connectRabbitMQ();
-    // console.log("✅ Connected to RabbitMQ");
+    await connectRabbitMQ();
+    console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers
     // await initializeAllRabbitMQConsumers();

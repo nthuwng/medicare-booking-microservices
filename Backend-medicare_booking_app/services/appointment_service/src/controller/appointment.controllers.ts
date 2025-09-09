@@ -4,8 +4,11 @@ import {
   getAppointmentsByUserService,
   getAppointmentByIdService,
   updateAppointmentStatusService,
+  handleAppointmentsByDoctorIdServices,
+  countTotalAppointmentPage,
 } from "src/services/appointment.services";
 import { AppointmentStatus } from "@shared/index";
+import { getDoctorIdByUserIdViaRabbitMQ } from "src/queue/publishers/appointment.publisher";
 
 const createAppointmentController = async (req: Request, res: Response) => {
   try {
@@ -81,9 +84,71 @@ const updateAppointmentStatusController = async (
   }
 };
 
+const getAllAppointmentsByDoctorIdController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { userId } = req.params;
+
+    const { page, pageSize } = req.query;
+    let currentPage = page ? +page : 1;
+    if (currentPage <= 0) {
+      currentPage = 1;
+    }
+    const totalPages = await countTotalAppointmentPage(
+      parseInt(pageSize as string)
+    );
+
+    const doctorId = await getDoctorIdByUserIdViaRabbitMQ(userId as string);
+    const { appointments, totalAppointments } =
+      await handleAppointmentsByDoctorIdServices(
+        doctorId,
+        currentPage,
+        parseInt(pageSize as string)
+      );
+
+    if (appointments.length === 0) {
+      res.status(200).json({
+        success: true,
+        message: "Không có bác sĩ nào được duyệt trong trang này",
+        data: {
+          meta: {
+            currentPage: currentPage,
+            pageSize: parseInt(pageSize as string),
+            pages: totalPages,
+            total: totalAppointments,
+          },
+          result: [],
+        },
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      length: appointments.length,
+      message: "Lấy danh sách tất cả bác sĩ thành công.",
+      data: {
+        meta: {
+          currentPage: currentPage,
+          pageSize: parseInt(pageSize as string),
+          pages: totalPages,
+          total: totalAppointments,
+        },
+        result: appointments,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error getting appointments:", error.message);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createAppointmentController,
   getAppointmentsByUserController,
   getAppointmentByIdController,
   updateAppointmentStatusController,
+  getAllAppointmentsByDoctorIdController,
 };

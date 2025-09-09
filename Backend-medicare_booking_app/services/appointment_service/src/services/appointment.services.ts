@@ -11,7 +11,6 @@ import timezone from "dayjs/plugin/timezone";
 
 import { prisma } from "src/config/client";
 import {
-  checkDoctorViaRabbitMQ,
   checkScheduleViaRabbitMQ,
   updateScheduleViaRabbitMQ,
 } from "src/queue/publishers/appointment.publisher";
@@ -19,7 +18,6 @@ import {
   createAppointment,
   createAppointmentPatient,
 } from "src/repository/appointment.repo";
-import { BookingType } from "@prisma/client";
 
 // Config timezone cho dayjs
 dayjs.extend(utc);
@@ -273,10 +271,61 @@ const putPaymentByAppointmentIdService = async (appointmentId: string) => {
   };
 };
 
+const countTotalAppointmentPage = async (pageSize: number) => {
+  const totalItems = await prisma.appointment.count();
+
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  return totalPages;
+};
+
+const handleAppointmentsByDoctorIdServices = async (
+  doctorId: string,
+  page: number,
+  pageSize: number
+) => {
+  const skip = (page - 1) * pageSize;
+  const appointments = await prisma.appointment.findMany({
+    include: {
+      patient: true,
+    },
+    skip: skip,
+    take: pageSize,
+  });
+
+  const appointmentsWithScheduleInfo = await Promise.all(
+    appointments.map(async (appointment) => {
+      try {
+        const schedule = await checkScheduleViaRabbitMQ(appointment.scheduleId);
+
+        const { schedule: scheduleArray, doctor } = schedule.data;
+
+        return {
+          ...appointment,
+          schedule: scheduleArray,
+          doctor,
+        };
+      } catch (error) {
+        console.error(
+          `Error fetching doctor/clinic info for schedule ${appointment.scheduleId}:`,
+          error
+        );
+      }
+    })
+  );
+
+  return {
+    appointments: appointmentsWithScheduleInfo,
+    totalAppointments: appointments.length,
+  };
+};
+
 export {
   createAppointmentService,
   getAppointmentsByUserService,
   getAppointmentByIdService,
   updateAppointmentStatusService,
   putPaymentByAppointmentIdService,
+  handleAppointmentsByDoctorIdServices,
+  countTotalAppointmentPage,
 };

@@ -76,4 +76,16 @@ const createAppointment = async (
   return appointment;
 };
 
-export { createAppointmentPatient, createAppointment };
+const updateAppointmentPaymentStatus = async (appointmentId: string) => {
+  const appointment = await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { paymentStatus: "Paid" },
+  });
+  return appointment;
+};
+
+export {
+  createAppointmentPatient,
+  createAppointment,
+  updateAppointmentPaymentStatus,
+};

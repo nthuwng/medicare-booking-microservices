@@ -17,8 +17,8 @@ const checkPatientByIdViaRabbitMQ = async (userId: string) => {
   return rpcRequest("auth.check_patient", { userId });
 };
 
-const checkDoctorViaRabbitMQ = async (doctorId: string) => {
-  return rpcRequest("doctor.check_doctor_", { doctorId });
+const checkDoctorViaRabbitMQ = async (userId: string) => {
+  return rpcRequest("auth.checkDoctor", { userId });
 };
 
 const checkScheduleViaRabbitMQ = async (scheduleId: string) => {
@@ -32,6 +32,10 @@ const updateScheduleViaRabbitMQ = async (
   return await publishUpdateTimeSlot(scheduleId, timeSlotId);
 };
 
+const getDoctorIdByUserIdViaRabbitMQ = async (userId: string) => {
+  return rpcRequest("doctor.get_doctor_id_by_user_id", { userId });
+};
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
@@ -40,4 +44,5 @@ export {
   checkDoctorViaRabbitMQ,
   checkScheduleViaRabbitMQ,
   updateScheduleViaRabbitMQ,
+  getDoctorIdByUserIdViaRabbitMQ,
 };

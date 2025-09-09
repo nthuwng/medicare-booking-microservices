@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "src/config/client";
+import { publishUpdatePaymentStatus } from "src/queue/publishers/appointmentEventUpdate";
+import { updatePaymentStatusViaRabbitMQ } from "src/queue/publishers/payment.publisher";
 const {
   VNPay,
   ignoreLogger,
@@ -120,6 +122,18 @@ const vnpIpn = async (req: Request, res: Response) => {
         },
       });
 
+      // Nếu thanh toán thành công, gửi message qua RabbitMQ để cập nhật Appointment Service
+      if (success) {
+        try {
+          await updatePaymentStatusViaRabbitMQ(payment.appointmentId);
+          console.log(
+            `✅ Đã gửi message cập nhật payment status cho appointment ${payment.appointmentId}`
+          );
+        } catch (mqError) {
+          console.error("❌ Lỗi khi gửi message qua RabbitMQ:", mqError);
+          // Không throw error vì payment đã thành công
+        }
+      }
     } catch (updateError) {
       res.json({ RspCode: "99", Message: "Database update failed" });
       return;
