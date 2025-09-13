@@ -12,6 +12,9 @@ import timezone from "dayjs/plugin/timezone";
 import { prisma } from "src/config/client";
 import {
   checkScheduleViaRabbitMQ,
+  getDoctorIdByUserIdViaRabbitMQ,
+  getDoctorUserIdByDoctorIdViaRabbitMQ,
+  publishAppointmentCreatedEvent,
   updateScheduleViaRabbitMQ,
 } from "src/queue/publishers/appointment.publisher";
 import {
@@ -164,6 +167,19 @@ const createAppointmentService = async (
   );
 
   await updateScheduleViaRabbitMQ(scheduleId, timeSlotId);
+
+  const doctorUserId = await getDoctorUserIdByDoctorIdViaRabbitMQ(appointment.doctorId);
+
+  await publishAppointmentCreatedEvent({
+    appointmentId: appointment.id,
+    doctorId: appointment.doctorId,
+    userId: doctorUserId,
+    patientName,
+    patientPhone,
+    appointmentDateTime: appointment.appointmentDateTime,
+    reason: reason || "Không có lý do cụ thể",
+    totalFee: appointment.totalFee,
+  });
 
   return {
     appointment: {

@@ -1,3 +1,4 @@
+import { publishAppointmentEventClientToDoctor } from "./appointmentEvent_ClientToDoctor";
 import { rpcRequest } from "./rpcRequest";
 import { publishUpdateTimeSlot } from "./scheduleEventUpdate";
 
@@ -36,6 +37,17 @@ const getDoctorIdByUserIdViaRabbitMQ = async (userId: string) => {
   return rpcRequest("doctor.get_doctor_id_by_user_id", { userId });
 };
 
+const getDoctorUserIdByDoctorIdViaRabbitMQ = async (doctorId: string) => {
+  return rpcRequest("doctor.get_doctor_user_id_by_doctor_id", { doctorId });
+};
+
+const publishAppointmentCreatedEvent = async (payload: any) => {
+  return await publishAppointmentEventClientToDoctor(
+    "appointment.created",
+    payload
+  );
+};
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
@@ -45,4 +57,6 @@ export {
   checkScheduleViaRabbitMQ,
   updateScheduleViaRabbitMQ,
   getDoctorIdByUserIdViaRabbitMQ,
+  publishAppointmentCreatedEvent,
+  getDoctorUserIdByDoctorIdViaRabbitMQ,
 };

@@ -18,7 +18,7 @@ export const initSocketIO = (server: any) => {
       socket.join("admins");
     });
 
-    socket.on("join-user-room", ({ userId }) => {
+    socket.on("join-doctor-room", ({ userId }) => {
       if (userId) socket.join(`user:${userId}`);
     });
 

@@ -100,7 +100,8 @@ const getScheduleByDoctorIdController = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const doctor = await getDoctorIdByUserIdViaRabbitMQ(userId as string);
-    const schedule = await getScheduleByDoctorId(doctor.id);
+    const schedule = await getScheduleByDoctorId(doctor);
+
     if (schedule.length === 0) {
       res.status(200).json({
         success: true,

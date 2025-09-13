@@ -16,6 +16,7 @@ import {
   createDoctor,
   findDoctorByUserId,
   findDoctorById,
+  getUserIdByDoctorId,
 } from "src/repository/doctor.repo";
 
 const createDoctorProfile = async (
@@ -433,6 +434,14 @@ const getDoctorByUserIdService = async (userId: string) => {
   };
 };
 
+const getUserIdByDoctorIdService = async (doctorId: string) => {
+  const doctor = await getUserIdByDoctorId(doctorId);
+  if (!doctor) {
+    throw new Error("Doctor không tồn tại");
+  }
+  return doctor.userId;
+};
+
 export {
   createDoctorProfile,
   getDoctorByIdService,
@@ -442,4 +451,5 @@ export {
   handleGetAllApprovedDoctors,
   checkDoctorInfor,
   getDoctorByUserIdService,
+  getUserIdByDoctorIdService,
 };

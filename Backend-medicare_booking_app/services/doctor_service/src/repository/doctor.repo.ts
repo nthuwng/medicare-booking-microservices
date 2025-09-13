@@ -79,9 +79,21 @@ const getDoctorProfileBasicInfo = async (id: string) => {
   });
   return doctor;
 };
+
+const getUserIdByDoctorId = async (id: string) => {
+  const doctor = await prisma.doctor.findUnique({
+    where: { id: id },
+    select: {
+      userId: true,
+    },
+  });
+  return doctor;
+};
+
 export {
   findDoctorByUserId,
   createDoctor,
   findDoctorById,
   getDoctorProfileBasicInfo,
+  getUserIdByDoctorId,
 };

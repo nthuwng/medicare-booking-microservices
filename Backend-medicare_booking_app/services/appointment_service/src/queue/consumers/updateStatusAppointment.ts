@@ -14,12 +14,7 @@ export const updateStatusAppointmentConsumer = async () => {
 
     try {
       const { appointmentId } = JSON.parse(msg.content.toString());
-      console.log("appointmentId =)))", appointmentId);
-      const updatePaymentStatus = await updateAppointmentPaymentStatus(
-        appointmentId
-      );
-
-      console.log("updatePaymentStatus =)))", updatePaymentStatus);
+      await updateAppointmentPaymentStatus(appointmentId);
 
       channel.ack(msg);
     } catch (err) {
