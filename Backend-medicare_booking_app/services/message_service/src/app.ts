@@ -2,10 +2,9 @@ import cors from "cors";
 import express from "express";
 import "dotenv/config";
 import http from "http";
-import testRoutes from "./routes/testRoutes";
-import { connectRabbitMQ } from "./queue/connection";
-import { initializeAllRabbitMQConsumers } from "./queue/consumers";
+import messageRoutes from "./routes/message.routes";
 import { initSocketIO } from "./socket";
+import { connectRabbitMQ } from "./queue/connection";
 
 const app = express();
 const server = http.createServer(app);
@@ -19,8 +18,10 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 //config Routes
-testRoutes(app);
+messageRoutes(app);
 
 // Start server
 const startApplication = async () => {
@@ -33,13 +34,11 @@ const startApplication = async () => {
     console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers
-    await initializeAllRabbitMQConsumers();
-    console.log("✅ All RabbitMQ consumers initialized successfully.");
+    // await initializeAllRabbitMQConsumers();
 
-    //Khởi động HTTP Server với Socket.IO
+    //Khởi động HTTP Server (hoặc gRPC server)
     server.listen(port, () => {
-      console.log(`✅ Websocket_service listening on port ${port}`);
-      console.log(`✅ Socket.IO server listening on port ${port}`);
+      console.log(`✅ User_service listening on port ${port}`);
     });
   } catch (error) {
     console.error("❌ Failed to start application:", error);

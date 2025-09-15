@@ -27,8 +27,8 @@ const SERVICES = {
     process.env.RATING_SERVICE_URL || "http://rating-service:8087",
   SCHEDULE_SERVICE:
     process.env.SCHEDULE_SERVICE_URL || "http://schedule-service:8088",
-  WEBSOCKET_SERVICE:
-    process.env.WEBSOCKET_SERVICE_URL || "http://websocket-service:9000",
+  MESSAGE_SERVICE:
+    process.env.MESSAGE_SERVICE_URL || "http://message-service:9000",
 };
 
 app.use(
@@ -120,10 +120,13 @@ app.use(
 );
 
 app.use(
-  "/api/websocket",
+  "/api/message",
   createProxyMiddleware({
-    target: SERVICES.WEBSOCKET_SERVICE,
+    target: SERVICES.MESSAGE_SERVICE,
     changeOrigin: true,
+    pathRewrite: {
+      "^/api/message": "",
+    },
   })
 );
 

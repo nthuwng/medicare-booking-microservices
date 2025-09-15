@@ -153,6 +153,21 @@ const deletePatientService = async (id: string) => {
   return patient;
 };
 
+const getPatientByUserId = async (userId: string) => {
+  const userInfo = await getUserByIdViaRabbitMQ(userId);
+  if (!userInfo) {
+    throw new Error("User not found");
+  }
+
+  const patient = await prisma.patient.findUnique({
+    where: { user_id: userId },
+  });
+  return {
+    ...patient,
+    userInfo,
+  };
+};
+
 export {
   createPatientProfile,
   checkTypeAndCreatePatientProfile,
@@ -161,4 +176,5 @@ export {
   getAllPatientService,
   countTotalPatientPage,
   deletePatientService,
+  getPatientByUserId,
 };

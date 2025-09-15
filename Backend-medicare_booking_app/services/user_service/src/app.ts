@@ -3,6 +3,7 @@ import "dotenv/config";
 import adminRoutes from "./routes/admin.routes";
 import { connectRabbitMQ } from "./queue/connection";
 import patientRoutes from "./routes/patient.routes";
+import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 
 const app = express();
 const port = process.env.PORT || 8081;
@@ -23,8 +24,8 @@ const startApplication = async () => {
     console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers
-    // await initializeAllRabbitMQConsumers();
-    // console.log("✅ All RabbitMQ consumers initialized successfully.");
+    await initializeAllRabbitMQConsumers();
+    console.log("✅ All RabbitMQ consumers initialized successfully.");
 
     //Khởi động HTTP Server (hoặc gRPC server)
     app.listen(port, () => {

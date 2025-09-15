@@ -1,11 +1,12 @@
+import { initGetPatientIdConsumer } from "./patient.getPatientId.consumer";
 
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
-    // await initNotificationRegisterDoctorConsumer();
-
+    await initGetPatientIdConsumer();
+    
     console.log(
-      "✅ All RabbitMQ consumers doctor_service initialized successfully."
+      "✅ All RabbitMQ consumers notification_service initialized successfully."
     );
   } catch (error) {
     console.error(

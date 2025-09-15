@@ -5,6 +5,7 @@ import {
   getAllPatientService,
   deletePatientService,
   countTotalPatientPage,
+  getPatientByUserId,
 } from "../services/patient.service";
 
 const createPatientController = async (req: Request, res: Response) => {
@@ -105,9 +106,24 @@ const deletePatientController = async (req: Request, res: Response) => {
   }
 };
 
+const getPatientByUserIdController = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const patient = await getPatientByUserId(userId);
+  if (!patient) {
+    res.status(404).json({ success: false, message: "Patient not found" });
+    return;
+  }
+  res.status(200).json({
+    success: true,
+    message: "Lấy thông tin patient theo userId thành công.",
+    data: patient,
+  });
+};
+
 export {
   createPatientController,
   getPatientByIdController,
   getAllPatientController,
   deletePatientController,
+  getPatientByUserIdController,
 };

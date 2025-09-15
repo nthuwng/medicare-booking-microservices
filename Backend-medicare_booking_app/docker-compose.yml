@@ -30,7 +30,7 @@ services:
       - PAYMENT_SERVICE_URL=http://payment-service:8085
       - AUTH_SERVICE_URL=http://auth-service:8086
       - RATING_SERVICE_URL=http://rating-service:8087
-      - WEBSOCKET_SERVICE_URL=http://websocket-service:9000
+      - MESSAGE_SERVICE_URL=http://message-service:9000
     depends_on:
       - user-service
       - appointment-service
@@ -39,7 +39,7 @@ services:
       - payment-service
       - auth-service
       - rating-service
-      - websocket-service
+      - message-service
     networks:
       - healthcare_network
 
@@ -343,23 +343,43 @@ services:
       - healthcare_network
     command: npm start
 
-  websocket-service:
-    build:
-      context: ./services/websocket_service
-      dockerfile: Dockerfile
+
+  message_db:
+    image: mysql:8.0
+    container_name: message_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: message_db
     ports:
-      - "9000:9000" # Cổng cho WebSocket
+      - "3315:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - message_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
+
+  message-service:
+    build:
+      context: ./services/message_service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
     environment:
       - PORT=9000
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:medicare_booking@message_db:3306/message_db
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-      - FRONTEND_URL=http://localhost:3000 # Thay thế bằng URL frontend của bạn
     volumes:
-      - ./services/websocket_service:/app
+      - ./services/message_service:/app
       - /app/node_modules
       - ./shared:/shared
     depends_on:
       rabbitmq:
-        condition: service_healthy # Đảm bảo RabbitMQ hoạt động trước khi WebSocket service khởi động
+        condition: service_healthy
+      message_db:
+        condition: service_started
     networks:
       - healthcare_network
     command: npm run dev
@@ -379,3 +399,4 @@ volumes:
   schedule_mysql_data:
   notification_mysql_data:
   payment_mysql_data:
+  message_mysql_data:
