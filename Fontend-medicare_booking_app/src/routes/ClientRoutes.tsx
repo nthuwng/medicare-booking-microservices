@@ -13,6 +13,7 @@ import DoctorDetailPage from "@/modules/client/pages/doctor/DoctorDetailPage";
 import MakeAppointmentPage from "@/modules/client/pages/booking/MakeAppointmentPage";
 import PaymentSelectionPage from "@/modules/client/pages/booking/PaymentSelectionPage";
 import PaymentReturnPage from "@/modules/client/pages/booking/PaymentReturnPage";
+import MessagePage from "@/modules/client/pages/MessagePage";
 
 const ClientRoutes = () => {
   return (
@@ -21,6 +22,8 @@ const ClientRoutes = () => {
         <Route index element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/message" element={<MessagePage />} />
+        <Route path="/message/:doctorId" element={<MessagePage />} />
 
         {/* Hình thức đặt lịch */}
         <Route path="/booking-options" element={<BookingPage />} />

@@ -49,6 +49,14 @@ const ClientHeader = () => {
           },
         ]
       : []),
+    ...(user?.userType === "PATIENT"
+      ? [
+          {
+            label: <Link to={"/message"}>Trang tin nhắn</Link>,
+            key: "message",
+          },
+        ]
+      : []),
     {
       label: (
         <label style={{ cursor: "pointer" }} onClick={() => alert("me")}>

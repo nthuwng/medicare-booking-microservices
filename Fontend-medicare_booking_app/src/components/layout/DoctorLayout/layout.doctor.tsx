@@ -5,6 +5,7 @@ import {
   CalendarOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Dropdown, Space } from "antd";
 import { Outlet } from "react-router-dom";
@@ -51,6 +52,11 @@ const LayoutDoctor = () => {
       label: <Link to="/doctor/appointments">Appointments</Link>,
       key: "appointments",
       icon: <IoCalendarOutline style={{ fontSize: "17px" }} />,
+    },
+    {
+      label: <Link to="/doctor/messages">Messages</Link>,
+      key: "messages",
+      icon: <MessageOutlined style={{ fontSize: "17px" }} />,
     },
     {
       label: <Link to="/doctor/profile-settings">Profile Settings</Link>,

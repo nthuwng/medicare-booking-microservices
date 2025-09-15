@@ -6,7 +6,14 @@ import type {
   ICreateAppointmentInput,
   IBooking,
   ICreateVNPayPaymentInput,
+  IPatient,
+  IPatientProfile,
 } from "@/types";
+import type {
+  IConversation,
+  IConversationResponse,
+  IMessage,
+} from "@/types/message";
 
 export const getAllApprovedDoctorsBooking = (query: string) => {
   const urlBackend = `/api/doctor/doctors/approved?${query}`;
@@ -28,6 +35,11 @@ export const getDoctorDetailBookingById = (doctorId: string) => {
   return axios.get<IBackendRes<IDoctorProfile>>(urlBackend);
 };
 
+export const getConversationByDoctorIdAPI = (doctorId: string) => {
+  const urlBackend = `/api/message/conversations/${doctorId}`;
+  return axios.get<IBackendRes<IConversation>>(urlBackend);
+};
+
 export const createBooking = (data: ICreateAppointmentInput) => {
   const urlBackend = `/api/appointment/appointments/create-appointment`;
   return axios.post<IBackendRes<IBooking>>(urlBackend, data);
@@ -45,3 +57,20 @@ export const verifyVNPayReturn = (queryParams: string) => {
   const urlBackend = `/api/payment/vnpay/return?${queryParams}`;
   return axios.get<IBackendRes<any>>(urlBackend);
 };
+
+export const getPatientByUserIdAPI = (userId: string) => {
+  const urlBackend = `/api/users/patients/by-user-id/${userId}`;
+  return axios.get<IBackendRes<IPatientProfile>>(urlBackend);
+};
+
+export const getMessagesByConversationIdAPI = (conversationId: string) => {
+  const urlBackend = `/api/message/by-conversation-id/${conversationId}`;
+  return axios.get<IBackendRes<IMessage[]>>(urlBackend);
+};
+
+// API lấy tất cả conversations của patient
+export const getAllConversationsAPI = (patientId: string) => {
+  const urlBackend = `/api/message/conversations/patient/${patientId}`;
+  return axios.get<IBackendRes<IConversationResponse>>(urlBackend);
+};
+

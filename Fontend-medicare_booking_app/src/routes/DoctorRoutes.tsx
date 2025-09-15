@@ -5,6 +5,7 @@ import DoctorDashboardPage from "@/modules/doctor/pages/DoctorDashboardPage";
 import DoctorProFileManagePage from "@/modules/doctor/pages/DoctorProFileManagePage";
 import DoctorSchedulePage from "@/modules/doctor/pages/DoctorSchedulePage";
 import DoctorAppointmentPage from "@/modules/doctor/pages/DoctorAppointmentPage";
+import DoctorMessagePage from "@/modules/doctor/pages/DoctorMessagePage";
 
 const DoctorRoutes = () => {
   return (
@@ -14,6 +15,7 @@ const DoctorRoutes = () => {
         <Route path="profile-settings" element={<DoctorProFileManagePage />} />
         <Route path="schedule" element={<DoctorSchedulePage />} />
         <Route path="appointments" element={<DoctorAppointmentPage />} />
+        <Route path="messages" element={<DoctorMessagePage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

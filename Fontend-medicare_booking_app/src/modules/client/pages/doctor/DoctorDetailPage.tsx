@@ -24,6 +24,7 @@ import {
   ShareAltOutlined,
   CalendarOutlined,
   UserOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import type { IDoctorProfile } from "@/types";
@@ -60,7 +61,6 @@ const DoctorDetailPage = () => {
     try {
       // Tạm thời sử dụng API hiện có để lấy thông tin bác sĩ
       const response = await getDoctorDetailBookingById(doctorId);
-      console.log("response.data", response.data);
       if (response.data) {
         setDoctor(response.data);
       }
@@ -221,6 +221,14 @@ const DoctorDetailPage = () => {
                       className="bg-blue-600 hover:bg-blue-700 border-blue-600"
                     >
                       Chia sẻ
+                    </Button>
+                    <Button
+                      type="primary"
+                      icon={<MessageOutlined />}
+                      className="bg-blue-600 hover:bg-blue-700 border-blue-600"
+                      onClick={() => navigate(`/message/${doctorId}`)}
+                    >
+                      Tin nhắn
                     </Button>
                   </div>
                 </div>
