@@ -1,4 +1,3 @@
-
 import { getPatientById } from "src/repository/patient.repo";
 import { getChannel } from "../connection";
 
@@ -12,7 +11,9 @@ export const initGetPatientIdConsumer = async () => {
 
     try {
       const { patientId } = JSON.parse(msg.content.toString());
+
       const patient = await getPatientById(patientId);
+
       // Gửi phản hồi đến queue được chỉ định trong `replyTo`
       channel.sendToQueue(
         msg.properties.replyTo,
@@ -24,8 +25,17 @@ export const initGetPatientIdConsumer = async () => {
 
       channel.ack(msg);
     } catch (err) {
-      console.error("Error processing user.getPatientById:", err);
-      channel.nack(msg, false, false); // bỏ qua message lỗi
+
+      // Gửi phản hồi null thay vì nack để tránh timeout
+      channel.sendToQueue(
+        msg.properties.replyTo,
+        Buffer.from(JSON.stringify(null)),
+        {
+          correlationId: msg.properties.correlationId,
+        }
+      );
+
+      channel.ack(msg);
     }
   });
 };

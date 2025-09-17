@@ -1,5 +1,9 @@
 import { ConversationType, MessageType, SenderType } from "@prisma/client";
 import { prisma } from "src/config/client";
+import {
+  getDoctorUserIdByDoctorIdViaRabbitMQ,
+  publishMsgCreatedEvent,
+} from "src/queue/publishers/message.publisher";
 
 const createConversationService = async (
   patientId: string,
@@ -11,9 +15,25 @@ const createConversationService = async (
       doctorId,
     },
   });
+
   if (existingConversation) {
-    console.log("Conversation đã tồn tại");
     return existingConversation;
+  }
+
+  const doctor = await getDoctorUserIdByDoctorIdViaRabbitMQ(doctorId);
+  if (!doctor) {
+    throw new Error("Doctor not found");
+  }
+
+  const doctorUserId = doctor;
+
+  try {
+    await publishMsgCreatedEvent(patientId, doctorUserId);
+  } catch (publishError) {
+    console.error(
+      `[Message Service] Failed to publish new message created for ${patientId} and ${doctorUserId}:`,
+      publishError
+    );
   }
 
   const conversation = await prisma.conversation.create({
@@ -34,15 +54,23 @@ const createMessageService = async (
   content: string,
   messageType: MessageType
 ) => {
-  const message = await prisma.message.create({
-    data: {
-      conversationId,
-      senderId,
-      senderType,
-      content,
-      messageType,
-    },
-  });
+  // Tạo message và cập nhật lastMessageAt của conversation
+  const [message] = await prisma.$transaction([
+    prisma.message.create({
+      data: {
+        conversationId,
+        senderId,
+        senderType,
+        content,
+        messageType,
+      },
+    }),
+    prisma.conversation.update({
+      where: { id: conversationId },
+      data: { lastMessageAt: new Date() },
+    }),
+  ]);
+
   return message;
 };
 

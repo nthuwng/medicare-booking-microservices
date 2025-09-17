@@ -1,28 +1,13 @@
 import { Request, Response } from "express";
 import {
-  getConversationByDoctorIdService,
   getMessagesByConversationIdService,
-  getAllConversationsService,
+  getAllConversationsByPatientService,
+  getAllConversationsByDoctorService,
 } from "src/services/messageServices";
-import { getPatientByIdViaRabbitMQ } from "src/queue/publishers/message.publisher";
-
-const getConversationByDoctorIdAPI = async (req: Request, res: Response) => {
-  const { doctorId } = req.params;
-  const conversation = await getConversationByDoctorIdService(doctorId);
-  if (!conversation) {
-    res.status(404).json({
-      success: false,
-      message: "Conversation not found",
-    });
-    return;
-  }
-
-  res.status(200).json({
-    success: true,
-    message: "Conversation fetched successfully",
-    data: conversation,
-  });
-};
+import {
+  getDoctorByIdViaRabbitMQ,
+  getPatientByIdViaRabbitMQ,
+} from "src/queue/publishers/message.publisher";
 
 const getMessagesByConversationIdAPI = async (req: Request, res: Response) => {
   const { conversationId } = req.params;
@@ -41,7 +26,7 @@ const getMessagesByConversationIdAPI = async (req: Request, res: Response) => {
   });
 };
 
-const getAllConversationsAPI = async (req: Request, res: Response) => {
+const getAllConversationsPatientAPI = async (req: Request, res: Response) => {
   const { patientId } = req.params;
   const isPatient = await getPatientByIdViaRabbitMQ(patientId);
   if (!isPatient) {
@@ -51,7 +36,7 @@ const getAllConversationsAPI = async (req: Request, res: Response) => {
     });
     return;
   }
-  const conversations = await getAllConversationsService(patientId);
+  const conversations = await getAllConversationsByPatientService(patientId);
   if (!conversations) {
     res.status(404).json({
       success: false,
@@ -69,8 +54,36 @@ const getAllConversationsAPI = async (req: Request, res: Response) => {
   });
 };
 
+const getAllConversationsDoctorAPI = async (req: Request, res: Response) => {
+  const { doctorId } = req.params;
+  const isDoctor = await getDoctorByIdViaRabbitMQ(doctorId);
+  if (!isDoctor) {
+    res.status(404).json({
+      success: false,
+      message: "Patient not found",
+    });
+    return;
+  }
+  const conversations = await getAllConversationsByDoctorService(doctorId);
+  if (!conversations) {
+    res.status(404).json({
+      success: false,
+      message: "Conversations not found",
+    });
+    return;
+  }
+  res.status(200).json({
+    success: true,
+    message: "Conversations fetched successfully",
+    data: {
+      doctor: isDoctor,
+      conversations: conversations,
+    },
+  });
+};
+
 export {
-  getConversationByDoctorIdAPI,
   getMessagesByConversationIdAPI,
-  getAllConversationsAPI,
+  getAllConversationsPatientAPI,
+  getAllConversationsDoctorAPI,
 };

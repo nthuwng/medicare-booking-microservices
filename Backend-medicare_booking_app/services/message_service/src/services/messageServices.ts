@@ -1,12 +1,5 @@
 import { prisma } from "src/config/client";
 
-const getConversationByDoctorIdService = async (doctorId: string) => {
-  const conversation = await prisma.conversation.findFirst({
-    where: { doctorId },
-  });
-  return conversation;
-};
-
 const getMessagesByConversationIdService = async (conversationId: string) => {
   const messages = await prisma.message.findMany({
     where: { conversationId: parseInt(conversationId) },
@@ -14,9 +7,35 @@ const getMessagesByConversationIdService = async (conversationId: string) => {
   return messages;
 };
 
-const getAllConversationsService = async (patientId: string) => {
+const getAllConversationsByPatientService = async (patientId: string) => {
   const conversations = await prisma.conversation.findMany({
-    where: { patientId },
+    where: {
+      patientId,
+      // Chỉ lấy conversations có ít nhất 1 tin nhắn
+      messages: {
+        some: {},
+      },
+    },
+    include: {
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1, // Lấy tin nhắn cuối cùng
+      },
+    },
+    orderBy: { lastMessageAt: "desc" }, // Conversation mới nhất lên đầu
+  });
+  return conversations;
+};
+
+const getAllConversationsByDoctorService = async (doctorId: string) => {
+  const conversations = await prisma.conversation.findMany({
+    where: {
+      doctorId,
+      // Chỉ lấy conversations có ít nhất 1 tin nhắn
+      messages: {
+        some: {},
+      },
+    },
     include: {
       messages: {
         orderBy: { createdAt: "desc" },
@@ -29,7 +48,7 @@ const getAllConversationsService = async (patientId: string) => {
 };
 
 export {
-  getConversationByDoctorIdService,
   getMessagesByConversationIdService,
-  getAllConversationsService,
+  getAllConversationsByPatientService,
+  getAllConversationsByDoctorService,
 };
