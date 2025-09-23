@@ -26,6 +26,8 @@ import {
 } from "../../services/doctor.api";
 import { useCurrentApp } from "@/components/contexts/app.context";
 import type { INotificationDataAdmin } from "@/types";
+import AppointmentStatusModal from "./AppointmentStatusModal";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
@@ -36,12 +38,16 @@ interface IProps {
 
 const NotificationDoctor = (props: IProps) => {
   const { modalNotificationLayout, setModalNotificationLayout } = props;
-
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [openModalNotification, setOpenModalNotification] = useState(false);
-  const [dataNotificationModal, setDataNotificationModal] =
-    useState<INotificationDataAdmin | null>(null);
+
+  const [openModalAppointmentStatus, setOpenModalAppointmentStatus] =
+    useState(false);
+  const [
+    dataNotificationAppointmentStatus,
+    setDataNotificationAppointmentStatus,
+  ] = useState<INotificationDataAdmin | null>(null);
   const { user } = useCurrentApp();
 
   const fetchNotifications = async () => {
@@ -153,6 +159,7 @@ const NotificationDoctor = (props: IProps) => {
           detail: { userId: user?.id },
         })
       );
+      navigate(`/doctor/profile-settings`);
       return; // không cần mở modal gì cả cho case này
     }
     if (notification.type === "MESSAGE_CREATED") {
@@ -162,11 +169,15 @@ const NotificationDoctor = (props: IProps) => {
           detail: { userId: user?.id },
         })
       );
+      navigate(`/doctor/messages`);
       return; // không cần mở modal gì cả cho case này
     }
 
-    setDataNotificationModal(notification);
-    setOpenModalNotification(true);
+    if (notification.type === "APPOINTMENT_CREATED") {
+      setOpenModalAppointmentStatus(true);
+      setDataNotificationAppointmentStatus(notification);
+      return;
+    }
   };
   // Handle mark as read
   const handleMarkAsRead = async (notificationId: string) => {
@@ -439,6 +450,12 @@ const NotificationDoctor = (props: IProps) => {
           />
         </Badge>
       </Dropdown>
+
+      <AppointmentStatusModal
+        openModalAppointmentStatus={openModalAppointmentStatus}
+        setOpenModalAppointmentStatus={setOpenModalAppointmentStatus}
+        dataNotificationAppointmentStatus={dataNotificationAppointmentStatus}
+      />
     </>
   );
 };

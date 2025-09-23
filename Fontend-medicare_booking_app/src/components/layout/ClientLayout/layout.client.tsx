@@ -6,12 +6,14 @@ import ScrollToTopButton from "@/modules/client/components/ScrollToTopButton/Scr
 const LayoutClient = () => {
   return (
     <>
-      <ClientHeader />
-      <main className="pt-16">
-        <Outlet />
-      </main>
-      <ScrollToTopButton />
-      <ClientFooter />
+      <div className="min-h-screen flex flex-col">
+        <ClientHeader />
+        <main className="pt-16">
+          <Outlet />
+        </main>
+        <ScrollToTopButton />
+        <ClientFooter />
+      </div>
     </>
   );
 };

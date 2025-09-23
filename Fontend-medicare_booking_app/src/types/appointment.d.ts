@@ -1,4 +1,4 @@
-import type { ISchedule } from "@/types";
+import type { IClinic, ISchedule, ISpecialty } from "@/types";
 
 export interface IAppointment {
   id: string;
@@ -51,4 +51,46 @@ export interface IDoctorAppointment {
   clinicId: number;
   specialtyId: number;
   isApproved: boolean;
+}
+
+export interface IAppointmentFullDetail {
+  id: string;
+  userId: string;
+  doctorId: string;
+  clinicId: number;
+  specialtyId: number;
+  scheduleId: string;
+  timeSlotId: number;
+  appointmentDateTime: string;
+  status: string;
+  patientId: string;
+  totalFee: string;
+  paymentStatus: string;
+  createdAt: string;
+  updatedAt: string;
+  patient: IPatient;
+  schedule: ISchedule;
+  doctor: IDoctorProfileFullDetail;
+}
+
+export interface IDoctorProfileFullDetail {
+
+  id: string;
+  userId: string;
+  fullName: string;
+  phone: string;
+  bio: string;
+  experienceYears: number;
+  gender: string;
+  avatarUrl: string;
+  avatarPublicId: string;
+  approvalStatus: string;
+  title: string;
+  specialtyId: number;
+  clinicId: number;
+  consultationFee: string;
+  bookingFee: string;
+  createdAt: string;
+  specialty: ISpecialty;
+  clinic: IClinic;
 }

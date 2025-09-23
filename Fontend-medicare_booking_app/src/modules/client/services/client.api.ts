@@ -6,15 +6,10 @@ import type {
   ICreateAppointmentInput,
   IBooking,
   ICreateVNPayPaymentInput,
-  IPatient,
   IPatientProfile,
 } from "@/types";
-import type { IAppointment } from "@/types/appointment";
-import type {
-  IConversation,
-  IConversationResponse,
-  IMessage,
-} from "@/types/message";
+import type { IAppointment, IAppointmentFullDetail } from "@/types/appointment";
+import type { IConversationResponse, IMessage } from "@/types/message";
 
 export const getAllApprovedDoctorsBooking = (query: string) => {
   const urlBackend = `/api/doctor/doctors/approved?${query}`;
@@ -74,4 +69,9 @@ export const getAllConversationsPatientAPI = (patientId: string) => {
 export const getMyAppointmentsAPI = () => {
   const urlBackend = `/api/appointment/appointments/my-appointments`;
   return axios.get<IBackendRes<IAppointment[]>>(urlBackend);
+};
+
+export const getMyAppointmentByIdAPI = (id: string) => {
+  const urlBackend = `/api/appointment/appointments/my-appointments/${id}`;
+  return axios.get<IBackendRes<IAppointmentFullDetail>>(urlBackend);
 };

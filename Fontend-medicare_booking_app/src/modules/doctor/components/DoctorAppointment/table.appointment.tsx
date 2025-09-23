@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Popconfirm,
   Button,
@@ -50,6 +50,14 @@ const TableAppointment = () => {
   });
 
   const { user } = useCurrentApp();
+  useEffect(() => {
+    const handler = () => {
+      actionRef.current?.reload();
+    };
+    window.addEventListener("doctor:appointment-refresh", handler);
+    return () =>
+      window.removeEventListener("doctor:appointment-refresh", handler);
+  }, [actionRef]);
 
   const refreshTable = () => {
     actionRef.current?.reload();

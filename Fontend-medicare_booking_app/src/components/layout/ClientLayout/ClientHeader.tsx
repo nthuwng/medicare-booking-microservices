@@ -52,23 +52,20 @@ const ClientHeader = () => {
     ...(user?.userType === "PATIENT"
       ? [
           {
+            label: <Link to={"/my-account"}>Quản lý tài khoản</Link>,
+            key: "my-account",
+          },
+          {
             label: <Link to={"/message"}>Trang tin nhắn</Link>,
             key: "message",
           },
           {
             label: <Link to={"/my-appointments"}>Lịch đã đặt</Link>,
-            key: "message",
+            key: "my-appointments",
           },
         ]
       : []),
-    {
-      label: (
-        <label style={{ cursor: "pointer" }} onClick={() => alert("me")}>
-          Quản lý tài khoản
-        </label>
-      ),
-      key: "account",
-    },
+
     {
       label: (
         <label style={{ cursor: "pointer" }} onClick={() => handleLogout()}>

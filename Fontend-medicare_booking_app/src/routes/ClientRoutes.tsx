@@ -14,7 +14,9 @@ import MakeAppointmentPage from "@/modules/client/pages/booking/MakeAppointmentP
 import PaymentSelectionPage from "@/modules/client/pages/booking/PaymentSelectionPage";
 import PaymentReturnPage from "@/modules/client/pages/booking/PaymentReturnPage";
 import MessagePage from "@/modules/client/pages/MessagePage";
-import MyAppointmentsPage from "@/modules/client/pages/booking/MyAppointmentsPage";
+import MyAppointmentsPage from "@/modules/client/pages/MyAppointmentsPage";
+import AppointmentDetailPage from "@/modules/client/pages/AppointmentDetailPage";
+import MyAccountPage from "@/modules/client/pages/MyAccountPage";
 
 const ClientRoutes = () => {
   return (
@@ -25,7 +27,7 @@ const ClientRoutes = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/message" element={<MessagePage />} />
         <Route path="/message/:doctorId" element={<MessagePage />} />
-
+        <Route path="/my-account" element={<MyAccountPage />} />
         {/* Lịch đã đặt */}
         <Route path="/my-appointments" element={<MyAppointmentsPage />} />
 
@@ -59,6 +61,9 @@ const ClientRoutes = () => {
 
         {/* Trang kết quả thanh toán VNPay */}
         <Route path="/payment-return" element={<PaymentReturnPage />} />
+
+        {/* Trang chi tiết lịch đã đặt */}
+        <Route path="/appointment-detail/:id" element={<AppointmentDetailPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

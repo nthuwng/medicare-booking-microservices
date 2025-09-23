@@ -137,3 +137,8 @@ export const createSchedule = (
     timeSlotId,
   });
 };
+
+export const updateAppointmentStatus = (appointmentId: string, status: string) => {
+  const urlBackend = `/api/appointment/appointments/update-appointment-status/${appointmentId}`;
+  return axios.put<IBackendRes<IAppointment>>(urlBackend, { status });
+};

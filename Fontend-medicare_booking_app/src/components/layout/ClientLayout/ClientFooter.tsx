@@ -13,7 +13,7 @@ import {
 const ClientFooter = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="mt-auto bg-gray-900 text-white">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -185,18 +185,6 @@ const ClientFooter = () => {
             </div>
 
             {/* Working Hours */}
-            <div className="pt-4 border-t border-gray-700">
-              <h5 className="text-sm font-semibold text-white mb-2">
-                Giờ làm việc
-              </h5>
-              <p className="text-sm text-gray-300">
-                Thứ 2 - Thứ 6: 7:00 - 18:00
-                <br />
-                Thứ 7: 7:00 - 12:00
-                <br />
-                Chủ nhật: Nghỉ
-              </p>
-            </div>
           </div>
         </div>
       </div>
