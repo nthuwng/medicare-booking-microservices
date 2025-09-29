@@ -27,7 +27,7 @@ const MyAccountPage = () => {
   const street = (user as any)?.street as string | undefined;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w7xl ">
       <Card className="shadow-sm mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">

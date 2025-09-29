@@ -19,6 +19,7 @@ import AppointmentDetailPage from "@/modules/client/pages/appointments/Appointme
 import MyAccountPage from "@/modules/client/pages/MyAccountPage";
 import PatientProtectedRoute from "@/components/auth/PatientProtectedRoute";
 import AboutPage from "@/modules/client/pages/AboutPage";
+import LayoutAccount from "@/modules/client/components/LayoutAccount/LayoutAccount";
 
 const ClientRoutes = () => {
   return (
@@ -27,11 +28,13 @@ const ClientRoutes = () => {
         <Route index element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/message" element={<MessagePage />} />
         <Route path="/message/:doctorId" element={<MessagePage />} />
-        <Route path="/my-account" element={<MyAccountPage />} />
-        {/* Lịch đã đặt */}
-        <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+
+        <Route element={<LayoutAccount />}>
+          <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+          <Route path="/message" element={<MessagePage />} />
+          <Route path="/my-account" element={<MyAccountPage />} />
+        </Route>
 
         {/* Hình thức đặt lịch */}
         <Route

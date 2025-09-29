@@ -80,7 +80,7 @@ const MyAppointmentsPage = () => {
   };
 
   return (
-    <div className=" max-w-6xl mx-auto px-4 py-6">
+    <div className=" max-w7xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">Lịch khám đã đặt</h1>
