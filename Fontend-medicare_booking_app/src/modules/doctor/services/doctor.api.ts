@@ -34,6 +34,16 @@ export const markAsReadNotification = (notificationId: string) => {
   return axios.put(urlBackend);
 };
 
+export const markAsReadAllNotification = (userId: string) => {
+  const urlBackend = `/api/notification/mark-as-read-all/${userId}`;
+  return axios.put(urlBackend);
+};
+
+export const deleteAllNotification = (userId: string) => {
+  const urlBackend = `/api/notification/delete-all/${userId}`;
+  return axios.delete(urlBackend);
+};
+
 export const getNotificationByUserId = (userId: string) => {
   const urlBackend = `/api/notification/get-notification-by-user-id/${userId}`;
   return axios.get<IBackendRes<INotificationDataAdmin[]>>(urlBackend);
@@ -88,9 +98,31 @@ export const createDoctorProfile = (
   });
 };
 
-export const getScheduleByDoctorId = (userId: string) => {
+export const getScheduleByDoctorId = (
+  userId: string,
+  filters?: {
+    date?: string;
+    from?: string;
+    to?: string;
+  }
+) => {
   const urlBackend = `/api/schedule/schedules/by-doctorId/${userId}`;
-  return axios.get<IBackendRes<ISchedule[]>>(urlBackend);
+  const params = new URLSearchParams();
+
+  if (filters?.date) {
+    params.append("date", filters.date);
+  }
+  if (filters?.from) {
+    params.append("from", filters.from);
+  }
+  if (filters?.to) {
+    params.append("to", filters.to);
+  }
+
+  const queryString = params.toString();
+  const fullUrl = queryString ? `${urlBackend}?${queryString}` : urlBackend;
+
+  return axios.get<IBackendRes<ISchedule[]>>(fullUrl);
 };
 
 export const getAllTimeSlots = () => {
@@ -138,7 +170,24 @@ export const createSchedule = (
   });
 };
 
-export const updateAppointmentStatus = (appointmentId: string, status: string) => {
+export const updateAppointmentStatus = (
+  appointmentId: string,
+  status: string
+) => {
   const urlBackend = `/api/appointment/appointments/update-appointment-status/${appointmentId}`;
   return axios.put<IBackendRes<IAppointment>>(urlBackend, { status });
+};
+
+export const deleteScheduleByScheduleIdAPI = (scheduleId: string) => {
+  const urlBackend = `/api/schedule/schedules/by-doctorId/${scheduleId}`;
+  return axios.delete<IBackendRes<any>>(urlBackend);
+};
+
+export const deleteTimeSlotFromScheduleAPI = (
+  scheduleId: string,
+
+  timeSlotId: number | string
+) => {
+  const urlBackend = `/api/schedule/schedules/by-timeSlotId/${scheduleId}/${timeSlotId}`;
+  return axios.delete<IBackendRes<any>>(urlBackend);
 };

@@ -2,57 +2,36 @@ import React, { useState, useEffect } from "react";
 import {
   Avatar,
   Typography,
-  Tag,
   Button,
   Rate,
   Card,
   Row,
   Col,
-  Select,
   Breadcrumb,
   Spin,
   message,
   Divider,
-  Space,
 } from "antd";
 import {
   HomeOutlined,
   RightOutlined,
   EnvironmentOutlined,
-  ClockCircleOutlined,
   StarFilled,
   ShareAltOutlined,
-  CalendarOutlined,
   UserOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import type { IDoctorProfile } from "@/types";
-import {
-  getAllApprovedDoctorsBooking,
-  getDoctorDetailBookingById,
-} from "../../services/client.api";
+import { getDoctorDetailBookingById } from "../../services/client.api";
 
-const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
+const { Title, Text } = Typography;
 
 const DoctorDetailPage = () => {
   const navigate = useNavigate();
   const { doctorId } = useParams<{ doctorId: string }>();
   const [loading, setLoading] = useState(true);
   const [doctor, setDoctor] = useState<IDoctorProfile | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>("today");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
-
-  // Mock time slots - trong thực tế sẽ lấy từ API
-  const timeSlots = [
-    "13:00 - 13:30",
-    "13:30 - 14:00",
-    "14:00 - 14:30",
-    "14:30 - 15:00",
-    "15:00 - 15:30",
-    "15:30 - 16:00",
-  ];
 
   const fetchDoctorDetail = async () => {
     if (!doctorId) return;
@@ -76,16 +55,6 @@ const DoctorDetailPage = () => {
   useEffect(() => {
     fetchDoctorDetail();
   }, [doctorId]);
-
-  const handleBookAppointment = () => {
-    if (!selectedTimeSlot) {
-      message.warning("Vui lòng chọn thời gian khám");
-      return;
-    }
-    navigate(
-      `/booking/appointment/${doctorId}?timeSlot=${selectedTimeSlot}&date=${selectedDate}`
-    );
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -283,56 +252,6 @@ const DoctorDetailPage = () => {
           {/* Right Column - Booking Section */}
           <Col xs={24} lg={8}>
             <div className="space-y-6">
-              {/* Date Selection */}
-              <Card className="border-0 shadow-sm">
-                <Select
-                  value={selectedDate}
-                  onChange={setSelectedDate}
-                  className="w-full mb-4"
-                  size="large"
-                >
-                  <Option value="today">Hôm nay - 19/8</Option>
-                  <Option value="tomorrow">Ngày mai - 20/8</Option>
-                  <Option value="day3">Thứ 6 - 21/8</Option>
-                </Select>
-
-                <Title level={4} className="!mb-3 !text-gray-800">
-                  LỊCH KHÁM
-                </Title>
-
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {timeSlots.map((slot) => (
-                    <Button
-                      key={slot}
-                      type={selectedTimeSlot === slot ? "primary" : "default"}
-                      className={`${
-                        selectedTimeSlot === slot
-                          ? "bg-blue-600 border-blue-600"
-                          : "border-gray-300 hover:border-blue-600"
-                      }`}
-                      onClick={() => setSelectedTimeSlot(slot)}
-                    >
-                      {slot}
-                    </Button>
-                  ))}
-                </div>
-
-                <Text className="text-sm text-gray-500 mb-4">
-                  Chọn và đặt (Phí đặt lịch 0đ)
-                </Text>
-
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handleBookAppointment}
-                  disabled={!selectedTimeSlot}
-                  className="w-full bg-blue-600 hover:bg-blue-700 border-blue-600"
-                  icon={<CalendarOutlined />}
-                >
-                  Đặt lịch khám
-                </Button>
-              </Card>
-
               {/* Clinic Address */}
               <Card className="border-0 shadow-sm">
                 <Title level={4} className="!mb-3 !text-gray-800">
@@ -357,7 +276,7 @@ const DoctorDetailPage = () => {
                     <div className="flex items-center justify-between mb-2">
                       <Text className="text-gray-600">GIÁ KHÁM:</Text>
                       <Text className="font-semibold text-blue-600 text-lg">
-                        {formatCurrency(Number(doctor.consultationFee))}
+                        {formatCurrency(Number(doctor.bookingFee))}
                       </Text>
                     </div>
                     <Button type="link" className="!p-0 !h-auto text-blue-600">

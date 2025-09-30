@@ -35,6 +35,7 @@ interface IProps {
 type FieldType = {
   doctorId: string;
   clinicId: string;
+  clinicName: string;
   date: Dayjs;
   timeSlotId: ITimeSlotDetailDoctor[];
 };
@@ -100,13 +101,26 @@ const DoctorScheduleCreate = (props: IProps) => {
   );
 
   useEffect(() => {
-    if (dataDoctor) {
+    if (dataDoctor && openModalCreate) {
       form.setFieldsValue({
         clinicId: dataDoctor.clinicId,
+        clinicName: dataDoctor.clinic.clinicName,
         doctorId: dataDoctor.id,
       });
     }
-  }, [dataDoctor]);
+  }, [dataDoctor, openModalCreate]);
+
+  // Reset form khi modal mở
+  useEffect(() => {
+    if (openModalCreate && dataDoctor) {
+      form.resetFields();
+      form.setFieldsValue({
+        clinicId: dataDoctor.clinicId,
+        clinicName: dataDoctor.clinic.clinicName,
+        doctorId: dataDoctor.id,
+      });
+    }
+  }, [openModalCreate, dataDoctor, form]);
 
   return (
     <>
@@ -147,13 +161,24 @@ const DoctorScheduleCreate = (props: IProps) => {
             <Col span={24}>
               <Form.Item<FieldType>
                 labelCol={{ span: 24 }}
-                label="Phòng khám"
+                label="Tên phòng khám"
+                name="clinicName"
+              >
+                <Input placeholder="Nhập phòng khám" disabled />
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item<FieldType>
+                labelCol={{ span: 24 }}
+                label="Id phòng khám"
                 name="clinicId"
                 rules={[
                   { required: true, message: "Vui lòng nhập phòng khám!" },
                 ]}
+                hidden
               >
-                <Input placeholder="Nhập phòng khám" />
+                <Input placeholder="Nhập phòng khám" disabled />
               </Form.Item>
             </Col>
 

@@ -1,40 +1,42 @@
 .client-user-dropdown {
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.04);
-  }
-  
-  .client-user-dropdown .ant-dropdown-menu-item:hover {
-    background: #e0f2fe !important;
-    border-radius: 15px !important;
-    color: #1677ff !important;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-    transform: scale(1.04);
-  }
-  
-  .client-user-dropdown .ant-dropdown-menu-item-selected {
-    background: #e0f2fe !important;
-    color: #1677ff !important;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.12);
-  }
-  
-  .client-user-dropdown .ant-dropdown-menu-item-selected:hover {
-    background: #e0f2fe !important;
-    color: #1677ff !important;
-    border-radius: 15px !important;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-    transform: scale(1.04);
-  }
-  
-  .client-user-dropdown .ant-dropdown-menu-item:last-child {
-    color: red !important;
-  }
-  
-  .client-user-dropdown .ant-dropdown-menu-item:last-child:hover {
-    color: #dc2626 !important;
-    border-radius: 15px !important;
-    background: #fcdada !important;
-    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-    transform: scale(1.04);
-  }
-  
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.04);
+}
+
+.client-user-dropdown .ant-dropdown-menu-item {
+  margin-bottom: 2px !important;
+}
+.client-user-dropdown .ant-dropdown-menu-item:hover {
+  background: #e0f2fe !important;
+  border-radius: 15px !important;
+  color: #1677ff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  transform: scale(1.04);
+}
+
+.client-user-dropdown .ant-dropdown-menu-item-selected {
+  background: #e0f2fe !important;
+  color: #1677ff !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.12);
+}
+
+.client-user-dropdown .ant-dropdown-menu-item-selected:hover {
+  background: #e0f2fe !important;
+  color: #1677ff !important;
+  border-radius: 15px !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  transform: scale(1.04);
+}
+
+.client-user-dropdown .ant-dropdown-menu-item:last-child {
+  color: red !important;
+}
+
+.client-user-dropdown .ant-dropdown-menu-item:last-child:hover {
+  color: #dc2626 !important;
+  border-radius: 15px !important;
+  background: #fcdada !important;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  transform: scale(1.04);
+}

@@ -10,8 +10,10 @@ import {
   ArrowRightOutlined,
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { useCurrentApp } from "@/components/contexts/app.context";
 
 const AboutPage = () => {
+  const { isAuthenticated } = useCurrentApp();
   return (
     <div
       style={{
@@ -192,14 +194,22 @@ const AboutPage = () => {
             </Col>
           </Row>
           <Divider />
-          <Space>
-            <Link to="/login">
-              <Button type="primary">Đăng nhập để đặt lịch</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Đăng ký tài khoản</Button>
-            </Link>
-          </Space>
+          {isAuthenticated === false ? (
+            <Space>
+              <Link to="/login">
+                <Button type="primary">Đăng nhập để đặt lịch</Button>
+              </Link>
+              <Link to="/register">
+                <Button>Đăng ký tài khoản</Button>
+              </Link>
+            </Space>
+          ) : (
+            <Space>
+              <Link to="/my-account">
+                <Button type="primary">Quản lý tài khoản</Button>
+              </Link>
+            </Space>
+          )}
         </Card>
       </div>
     </div>

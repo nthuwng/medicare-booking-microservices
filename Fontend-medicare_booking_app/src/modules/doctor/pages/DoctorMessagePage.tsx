@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { Avatar } from "antd";
 import { FaUser } from "react-icons/fa";
-import { UserOutlined } from "@ant-design/icons";
 import {
   getAllConversationsDoctorAPI,
   getDoctorProfileByUserId,
@@ -48,6 +47,10 @@ const DoctorMessagePage = () => {
     null
   );
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const currentConversationRef = useRef<string | null>(null);
+  useEffect(() => {
+    currentConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
 
   // Function để scroll xuống cuối (chỉ trong container tin nhắn)
   const scrollToBottom = () => {
@@ -276,14 +279,17 @@ const DoctorMessagePage = () => {
       // Xác định isOwn dựa trên senderId
       const isOwn = message.senderId === user?.id;
 
-      // Prevent duplicate messages
-      setMessages((prev) => {
-        const exists = prev.find((msg) => msg.id === message.id);
-        if (exists) {
-          return prev;
-        }
-        return [...prev, { ...message, isOwn }];
-      });
+      // Chỉ append vào khung chat nếu đúng hội thoại đang mở
+      const isCurrent =
+        message.conversationId?.toString() ===
+        currentConversationRef.current?.toString();
+      if (isCurrent) {
+        setMessages((prev) => {
+          const exists = prev.find((msg) => msg.id === message.id);
+          if (exists) return prev;
+          return [...prev, { ...message, isOwn }];
+        });
+      }
 
       // Nếu đang trong conversation này, auto join room
       if (message.conversationId && selectedConversation) {
@@ -327,6 +333,45 @@ const DoctorMessagePage = () => {
       }
     });
 
+    // 🔔 Cập nhật preview sidebar từ server (cả khi đang chat nơi khác)
+    socket.on("conversation-updated", (payload: any) => {
+      let needFetch = false;
+      setDisplayConversations((prev) => {
+        const targetId = payload.conversationId?.toString();
+        const exists = prev.find((c) => c.id.toString() === targetId);
+        const last =
+          payload.senderId === user?.id
+            ? `Bạn: ${payload.lastMessage}`
+            : payload.lastMessage;
+        if (!exists) {
+          needFetch = true;
+          return prev;
+        }
+        const updated = prev.map((c) =>
+          c.id.toString() === targetId
+            ? {
+                ...c,
+                lastMessage: last,
+                timestamp: new Date(payload.createdAt).toLocaleTimeString(
+                  "vi-VN",
+                  {
+                    timeZone: "Asia/Ho_Chi_Minh",
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                ),
+              }
+            : c
+        );
+        // Move to top
+        const picked = updated.find((c) => c.id.toString() === targetId)!;
+        const others = updated.filter((c) => c.id.toString() !== targetId);
+        return [picked, ...others];
+      });
+      if (needFetch) void fetchDoctorAndConversations();
+    });
+
     // Listen for errors
     socket.on("message-error", (error) => {
       console.error("Message error:", error);
@@ -334,6 +379,7 @@ const DoctorMessagePage = () => {
 
     return () => {
       socket.off("message-sent");
+      socket.off("conversation-updated");
       socket.off("message-error");
       socket.disconnect();
     };

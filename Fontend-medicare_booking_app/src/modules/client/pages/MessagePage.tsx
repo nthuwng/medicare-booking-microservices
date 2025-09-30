@@ -56,6 +56,37 @@ const MessagePage = () => {
     null
   );
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const currentConversationRef = useRef<string | null>(null);
+  const refreshTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    currentConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
+
+  const scheduleRefreshConversations = () => {
+    if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = window.setTimeout(async () => {
+      try {
+        const patientIdToUse =
+          dataPatient?.id ||
+          (await (async () => {
+            if (!user?.id) return null;
+            const resPatient = await getPatientByUserIdAPI(user.id);
+            setDataPatient(resPatient.data as IPatientProfile);
+            return resPatient.data?.id as string | null;
+          })());
+        if (patientIdToUse) {
+          const res = await getAllConversationsPatientAPI(patientIdToUse);
+          if (res.data?.conversations)
+            await loadDoctorInfoForConversations(res.data.conversations);
+        }
+      } catch (e) {
+        // ignore
+      } finally {
+        refreshTimerRef.current = null;
+      }
+    }, 250);
+  };
 
   // Function để scroll xuống cuối (chỉ trong container tin nhắn)
   const scrollToBottom = () => {
@@ -266,14 +297,17 @@ const MessagePage = () => {
       // Xác định isOwn dựa trên senderId
       const isOwn = message.senderId === user?.id;
 
-      // Prevent duplicate messages
-      setMessages((prev) => {
-        const exists = prev.find((msg) => msg.id === message.id);
-        if (exists) {
-          return prev;
-        }
-        return [...prev, { ...message, isOwn }];
-      });
+      // Chỉ append nếu là hội thoại đang mở
+      const isCurrent =
+        message.conversationId?.toString() ===
+        currentConversationRef.current?.toString();
+      if (isCurrent) {
+        setMessages((prev) => {
+          const exists = prev.find((msg) => msg.id === message.id);
+          if (exists) return prev;
+          return [...prev, { ...message, isOwn }];
+        });
+      }
 
       // Cập nhật danh sách conversation khi có tin nhắn mới
       if (message.conversationId) {
@@ -288,7 +322,7 @@ const MessagePage = () => {
               ? `Bạn: ${message.content}`
               : message.content;
 
-            return prev.map((conv) =>
+            const updated = prev.map((conv) =>
               conv.id.toString() === message.conversationId.toString()
                 ? {
                     ...conv,
@@ -297,10 +331,56 @@ const MessagePage = () => {
                   }
                 : conv
             );
+            // move to top
+            const picked = updated.find(
+              (c) => c.id.toString() === message.conversationId.toString()
+            )!;
+            const others = updated.filter(
+              (c) => c.id.toString() !== message.conversationId.toString()
+            );
+            return [picked, ...others];
           }
           return prev;
         });
       }
+    });
+
+    // Sidebar preview updates from server for this user
+    socket.on("conversation-updated", (payload: any) => {
+      let needFetch = false;
+      setDisplayConversations((prev) => {
+        const targetId = payload.conversationId?.toString();
+        const exists = prev.find((c) => c.id.toString() === targetId);
+        const last =
+          payload.senderId === user?.id
+            ? `Bạn: ${payload.lastMessage}`
+            : payload.lastMessage;
+        if (!exists) {
+          needFetch = true;
+          return prev;
+        }
+        const updated = prev.map((c) =>
+          c.id.toString() === targetId
+            ? {
+                ...c,
+                lastMessage: last,
+                timestamp: new Date(payload.createdAt).toLocaleTimeString(
+                  "vi-VN",
+                  {
+                    timeZone: "Asia/Ho_Chi_Minh",
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                ),
+              }
+            : c
+        );
+        const picked = updated.find((c) => c.id.toString() === targetId)!;
+        const others = updated.filter((c) => c.id.toString() !== targetId);
+        return [picked, ...others];
+      });
+      if (needFetch) scheduleRefreshConversations();
     });
 
     // Listen for errors
@@ -310,6 +390,7 @@ const MessagePage = () => {
 
     return () => {
       socket.off("message-sent");
+      socket.off("conversation-updated");
       socket.off("message-error");
       socket.disconnect();
     };

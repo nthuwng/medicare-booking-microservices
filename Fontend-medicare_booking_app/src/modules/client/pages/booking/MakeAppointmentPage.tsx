@@ -19,6 +19,7 @@ import {
   Breadcrumb,
   Spin,
   Result,
+  App,
 } from "antd";
 import {
   CalendarOutlined,
@@ -79,6 +80,7 @@ const MakeAppointmentPage = () => {
     null
   );
   const [formData, setFormData] = useState<BookingFormData | null>(null);
+  const { message, notification } = App.useApp();
 
   const fetchDoctorDetail = async () => {
     if (!doctorId) return;
@@ -160,7 +162,7 @@ const MakeAppointmentPage = () => {
       // Find the selected schedule
       const selectedTimeSlot = availableTimeSlots.find(
         (slot) => slot.id === values.timeSlotId
-      ); 
+      );
 
       if (!selectedTimeSlot) {
         message.error("Vui lòng chọn khung giờ khám!");
@@ -189,7 +191,6 @@ const MakeAppointmentPage = () => {
         }),
       };
 
-
       // Call API to create booking
       const response = await createBooking(bookingData);
 
@@ -203,7 +204,10 @@ const MakeAppointmentPage = () => {
           },
         });
       } else {
-        message.error("Có lỗi xảy ra khi đặt lịch!");
+        notification.error({
+          message: "Có lỗi xảy ra khi đặt lịch!",
+          description: response.message,
+        });
       }
     } catch (error: any) {
       const errorMessage =

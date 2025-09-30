@@ -110,7 +110,9 @@ const MyAppointmentsPage = () => {
             return (
               <Card key={a.id} className="shadow-sm">
                 <Flex justify="space-between" align="center" className="mb-3">
-                  <Tag color={status.color}>{status.label}</Tag>
+                  <Tag color={status.color} className="!text-sm">
+                    {status.label}
+                  </Tag>
                   <div className="text-gray-400 text-sm">
                     Mã lịch hẹn: {a.id.slice(0, 8)}
                   </div>

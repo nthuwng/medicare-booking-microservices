@@ -21,7 +21,9 @@ import {
   disconnectAdminSocket,
 } from "@/sockets/admin.socket";
 import {
+  deleteAllNotification,
   getNotificationByUserId,
+  markAsReadAllNotification,
   markAsReadNotification,
 } from "../../services/doctor.api";
 import { useCurrentApp } from "@/components/contexts/app.context";
@@ -194,15 +196,25 @@ const NotificationDoctor = (props: IProps) => {
   };
 
   // Handle mark all as read
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = async () => {
     setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
     // TODO: Call API to mark all as read on server
+    try {
+      await markAsReadAllNotification(user?.id || "");
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
   };
 
   // Handle clear all notifications
-  const handleClearAllNotifications = () => {
+  const handleClearAllNotifications = async () => {
     setNotifications([]);
     // TODO: Call API to clear all notifications on server
+    try {
+      await deleteAllNotification(user?.id || "");
+    } catch (error) {
+      console.error("Error clearing all notifications:", error);
+    }
   };
 
   const formatTime = (dateString: string) => {
