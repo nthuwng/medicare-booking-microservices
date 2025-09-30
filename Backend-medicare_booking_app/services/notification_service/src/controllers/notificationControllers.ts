@@ -4,6 +4,8 @@ import {
   handleGetNotification,
   handleMarkAsRead,
   handleGetNotificationByUserId,
+  handleMarkAsReadAll,
+  handleDeleteAll,
 } from "src/services/notificationServices";
 
 const createNotificationAPI = async (req: Request, res: Response) => {
@@ -89,9 +91,51 @@ const markAsReadAPI = async (req: Request, res: Response) => {
   }
 };
 
+const markAsReadAllAPI = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const notification = await handleMarkAsReadAll(userId);
+    if (!notification) {
+      res.status(404).json({
+        success: false,
+        message: "Thông báo không tồn tại.",
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Tất cả thông báo đã được đọc.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const deleteAllAPI = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const notification = await handleDeleteAll(userId);
+    if (!notification) {
+      res.status(404).json({
+        success: false,
+        message: "Thông báo không tồn tại.",
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: "Tất cả thông báo đã được xóa.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export {
   createNotificationAPI,
   getNotificationAPI,
   markAsReadAPI,
   getNotificationByUserIdAPI,
+  markAsReadAllAPI,
+  deleteAllAPI,
 };

@@ -23,12 +23,47 @@ const createSchedule = async (
   });
 };
 
-const getScheduleByDoctorId = async (doctorId: string, clinicId?: number) => {
+const getScheduleByDoctorId = async (
+  doctorId: string,
+  dateFilter?: string,
+  fromDate?: string,
+  toDate?: string
+) => {
+  // Xử lý filter theo ngày
+  let dateCondition: any = { gte: todayVN().toDate() };
+
+  if (dateFilter) {
+    // Filter theo ngày cụ thể
+    const filterDate = dayjs(dateFilter).tz("Asia/Ho_Chi_Minh").startOf("day");
+    const nextDay = filterDate.add(1, "day").startOf("day");
+
+    dateCondition = {
+      gte: filterDate.toDate(),
+      lt: nextDay.toDate(),
+    };
+  } else if (fromDate && toDate) {
+    // Filter theo khoảng ngày
+    const from = dayjs(fromDate).tz("Asia/Ho_Chi_Minh").startOf("day");
+    const to = dayjs(toDate).tz("Asia/Ho_Chi_Minh").endOf("day");
+
+    dateCondition = {
+      gte: from.toDate(),
+      lte: to.toDate(),
+    };
+  } else if (fromDate) {
+    // Chỉ có from date
+    const from = dayjs(fromDate).tz("Asia/Ho_Chi_Minh").startOf("day");
+    dateCondition = { gte: from.toDate() };
+  } else if (toDate) {
+    // Chỉ có to date
+    const to = dayjs(toDate).tz("Asia/Ho_Chi_Minh").endOf("day");
+    dateCondition = { lte: to.toDate() };
+  }
+
   const schedules = await prisma.schedule.findMany({
     where: {
       doctorId,
-      ...(clinicId ? { clinicId } : {}),
-      date: { gte: todayVN().toDate() },
+      date: dateCondition,
       timeSlots: { some: { status: "OPEN" } },
     },
     include: {

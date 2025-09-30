@@ -12,6 +12,11 @@ import {
 } from "src/queue/publishers/schedule.publisher";
 import { todayStr, nowTimeStr } from "src/utils/time";
 
+type TimeRange =
+  | { mode: "exact"; start: Date; end: Date }
+  | { mode: "range"; start: Date; end: Date }
+  | { mode: "fromToday"; start: Date };
+
 // Config timezone cho dayjs
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -223,9 +228,22 @@ const countTotalSchedulePage = async (pageSize: number) => {
   return totalPages;
 };
 
-const getScheduleByDoctorId = async (doctorId: string) => {
+const getScheduleByDoctorId = async (doctorId: string, range: TimeRange) => {
+  let dateCondition: any;
+
+  if (range.mode === "exact") {
+    // Tìm trong 1 ngày (>= start và < end+1ms)
+    dateCondition = { gte: range.start, lte: range.end };
+  } else if (range.mode === "range") {
+    dateCondition = { gte: range.start, lte: range.end };
+  } else {
+    // từ hôm nay
+    dateCondition = { gte: range.start };
+  }
+
   const schedule = await prisma.schedule.findMany({
-    where: { doctorId, date: { gte: new Date(`${todayStr()}T00:00:00.000Z`) } },
+    where: { doctorId, date: dateCondition },
+    orderBy: [{ date: "asc" }],
     include: {
       timeSlots: {
         include: {
@@ -235,6 +253,7 @@ const getScheduleByDoctorId = async (doctorId: string) => {
     },
   });
 
+  // Format lại giờ hiển thị
   const filtered = schedule.map((s) => ({
     ...s,
     timeSlots: s.timeSlots.map((ts) => ({
@@ -352,6 +371,113 @@ const updateExpiredTimeSlots = async () => {
   };
 };
 
+const deleteScheduleByScheduleId = async (scheduleId: string) => {
+  try {
+    // Kiểm tra xem schedule có tồn tại không
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+    });
+
+    if (!schedule) {
+      throw new Error("Lịch khám không tồn tại");
+    }
+
+    // Kiểm tra xem có booking nào đang chờ xác nhận hoặc đã xác nhận không
+    const timeSlots = await prisma.scheduleTimeSlot.findMany({
+      where: { scheduleId },
+    });
+
+    // Kiểm tra xem có time slot nào đã có booking không
+    const hasBookings = timeSlots.some((slot) => slot.currentBooking > 0);
+
+    if (hasBookings) {
+      throw new Error("Không thể xóa lịch khám đã có bệnh nhân đặt lịch");
+    }
+
+    // Sử dụng transaction để xóa an toàn
+    const result = await prisma.$transaction(async (tx) => {
+      // Xóa tất cả time slots trước
+      await tx.scheduleTimeSlot.deleteMany({
+        where: { scheduleId },
+      });
+
+      // Xóa schedule
+      await tx.schedule.delete({
+        where: { id: scheduleId },
+      });
+
+      return { success: true, message: "Xóa lịch khám thành công" };
+    });
+
+    return result;
+  } catch (error: any) {
+    console.error("Error deleting schedule:", error);
+    throw new Error(error.message || "Lỗi khi xóa lịch khám");
+  }
+};
+
+const deleteScheduleByTimeSlotId = async (
+  timeSlotId: string,
+  scheduleId: string
+) => {
+  try {
+    // Kiểm tra xem schedule có tồn tại không
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+    });
+
+    if (!schedule) {
+      throw new Error("Lịch khám không tồn tại");
+    }
+
+    // Kiểm tra xem time slot cụ thể có tồn tại trong schedule không
+    const scheduleTimeSlot = await prisma.scheduleTimeSlot.findFirst({
+      where: {
+        timeSlotId: +timeSlotId,
+        scheduleId: scheduleId,
+      },
+    });
+
+    if (!scheduleTimeSlot) {
+      throw new Error("Time slot không tồn tại trong lịch khám này");
+    }
+
+    // Kiểm tra xem time slot này có currentBooking > 0 không
+    if (scheduleTimeSlot.currentBooking > 0) {
+      throw new Error("Không thể xóa time slot đã có bệnh nhân đặt lịch");
+    }
+
+    // Xóa time slot cụ thể
+    await prisma.scheduleTimeSlot.delete({
+      where: {
+        scheduleId_timeSlotId: {
+          scheduleId: scheduleId,
+          timeSlotId: +timeSlotId,
+        },
+      },
+    });
+
+    // Nếu schedule không còn time slot nào -> xóa luôn schedule để tránh rác
+    const remainingSlots = await prisma.scheduleTimeSlot.count({
+      where: { scheduleId },
+    });
+
+    if (remainingSlots === 0) {
+      await prisma.schedule.delete({ where: { id: scheduleId } });
+      return {
+        success: true,
+        message:
+          "Xóa time slot thành công và đã xóa luôn lịch vì không còn khung giờ",
+      };
+    }
+
+    return { success: true, message: "Xóa time slot thành công" };
+  } catch (error: any) {
+    console.error("Error deleting time slot:", error);
+    throw new Error(error.message || "Lỗi khi xóa time slot");
+  }
+};
+
 export {
   scheduleService,
   countTotalSchedulePage,
@@ -359,4 +485,6 @@ export {
   handleGetAllSchedule,
   getScheduleById,
   updateExpiredTimeSlots,
+  deleteScheduleByScheduleId,
+  deleteScheduleByTimeSlotId,
 };

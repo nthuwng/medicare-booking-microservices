@@ -49,9 +49,26 @@ const handleGetNotificationByUserId = async (userId: string) => {
   return notifications;
 };
 
+const handleMarkAsReadAll = async (userId: string) => {
+  const notification = await prisma.notification.updateMany({
+    where: { userId },
+    data: { read: true },
+  });
+  return notification;
+};
+
+const handleDeleteAll = async (userId: string) => {
+  const notification = await prisma.notification.deleteMany({
+    where: { userId },
+  });
+  return notification;
+};
+
 export {
   handleCreateNotification,
   handleGetNotification,
   handleMarkAsRead,
   handleGetNotificationByUserId,
+  handleMarkAsReadAll,
+  handleDeleteAll,
 };

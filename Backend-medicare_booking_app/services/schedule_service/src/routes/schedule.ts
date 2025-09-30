@@ -5,7 +5,9 @@ import {
   getScheduleByDoctorIdController,
   getScheduleByIdController,
   updateExpiredTimeSlotsController,
-  getScheduleByScheduleIdController
+  getScheduleByScheduleIdController,
+  deleteScheduleByScheduleIdController,
+  deleteScheduleByTimeSlotIdController,
 } from "src/controller/scheduleController";
 import {
   authenticateToken,
@@ -24,11 +26,7 @@ const scheduleRoutes = (app: Express) => {
   );
   router.get("/", authenticateToken, authorizeAdmin, getAllScheduleController);
 
-  router.get(
-    "/:id",
-    authenticateToken,
-    getScheduleByIdController
-  );
+  router.get("/:id", authenticateToken, getScheduleByIdController);
 
   router.get(
     "/by-doctorId/:userId",
@@ -48,6 +46,20 @@ const scheduleRoutes = (app: Express) => {
     "/by-scheduleId/:scheduleId",
     authenticateToken,
     getScheduleByScheduleIdController
+  );
+
+  router.delete(
+    "/by-doctorId/:scheduleId",
+    authenticateToken,
+    authorizeDoctor,
+    deleteScheduleByScheduleIdController
+  );
+
+  router.delete(
+    "/by-timeSlotId/:scheduleId/:timeSlotId",
+    authenticateToken,
+    authorizeDoctor,
+    deleteScheduleByTimeSlotIdController
   );
 
   app.use("/schedules", router);

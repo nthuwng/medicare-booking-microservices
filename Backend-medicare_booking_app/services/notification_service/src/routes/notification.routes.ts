@@ -4,6 +4,8 @@ import {
   getNotificationAPI,
   getNotificationByUserIdAPI,
   markAsReadAPI,
+  markAsReadAllAPI,
+  deleteAllAPI,
 } from "src/controllers/notificationControllers";
 import { authenticateToken } from "src/middlewares/auth.middleware";
 
@@ -19,6 +21,8 @@ const notificationRoutes = (app: Express) => {
     getNotificationByUserIdAPI
   );
   router.put("/mark-as-read/:id", authenticateToken, markAsReadAPI);
+  router.put("/mark-as-read-all/:userId", authenticateToken, markAsReadAllAPI);
+  router.delete("/delete-all/:userId", authenticateToken, deleteAllAPI);
   app.use("/", router);
 };
 

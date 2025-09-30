@@ -8,8 +8,15 @@ import {
   getScheduleByDoctorId,
   getScheduleById,
   updateExpiredTimeSlots,
+  deleteScheduleByTimeSlotId,
+  deleteScheduleByScheduleId,
 } from "src/services/scheduleServices";
-import { length } from "zod";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import tz from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(tz);
+const APP_TZ = "Asia/Ho_Chi_Minh";
 
 const createScheduleController = async (req: Request, res: Response) => {
   try {
@@ -99,18 +106,72 @@ const getAllScheduleController = async (req: Request, res: Response) => {
 const getScheduleByDoctorIdController = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const doctor = await getDoctorIdByUserIdViaRabbitMQ(userId as string);
-    const schedule = await getScheduleByDoctorId(doctor);
+    const { date, from, to } = req.query as {
+      date?: string;
+      from?: string;
+      to?: string;
+    };
 
-    if (schedule.length === 0) {
+    // Validate định dạng YYYY-MM-DD (rất chặt để tránh sai TZ)
+    const isYMD = (s?: string) => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+    if (date && !isYMD(date)) {
+      res
+        .status(400)
+        .json({ success: false, message: "date phải dạng YYYY-MM-DD" });
+    }
+    if ((from && !isYMD(from)) || (to && !isYMD(to))) {
+      res
+        .status(400)
+        .json({ success: false, message: "from/to phải dạng YYYY-MM-DD" });
+    }
+    if (from && to && dayjs(from).isAfter(dayjs(to))) {
+      res
+        .status(400)
+        .json({ success: false, message: "from không được lớn hơn to" });
+    }
+
+    const doctorId = await getDoctorIdByUserIdViaRabbitMQ(userId as string);
+
+    // Xây điều kiện thời gian
+    let range:
+      | { mode: "exact"; start: Date; end: Date }
+      | { mode: "range"; start: Date; end: Date }
+      | { mode: "fromToday"; start: Date };
+
+    if (date) {
+      const start = dayjs.tz(`${date} 00:00:00`, APP_TZ).utc().toDate();
+      const end = dayjs.tz(`${date} 23:59:59.999`, APP_TZ).utc().toDate();
+      range = { mode: "exact", start, end };
+    } else if (from || to) {
+      const start = dayjs
+        .tz(`${from ?? to} 00:00:00`, APP_TZ)
+        .utc()
+        .toDate();
+      const end = dayjs
+        .tz(`${to ?? from} 23:59:59.999`, APP_TZ)
+        .utc()
+        .toDate();
+      range = { mode: "range", start, end };
+    } else {
+      const start = dayjs
+        .tz(dayjs().format("YYYY-MM-DD") + " 00:00:00", APP_TZ)
+        .utc()
+        .toDate();
+      range = { mode: "fromToday", start };
+    }
+
+    const schedule = await getScheduleByDoctorId(doctorId, range);
+
+    if (!schedule.length) {
       res.status(200).json({
         success: true,
         length: 0,
-        message: "Bác sĩ này chưa có lịch khám",
+        message: "Không tìm thấy lịch theo điều kiện.",
         data: [],
       });
-      return;
     }
+
     res.status(200).json({
       success: true,
       length: schedule.length,
@@ -119,6 +180,7 @@ const getScheduleByDoctorIdController = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error getting schedule by doctorId:", error.message);
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
   }
 };
 
@@ -188,6 +250,55 @@ const getScheduleByScheduleIdController = async (
   }
 };
 
+const deleteScheduleByScheduleIdController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { scheduleId } = req.params;
+    const result = await deleteScheduleByScheduleId(scheduleId);
+
+    res.status(200).json({
+      success: true,
+      message: result.message || "Xóa lịch khám thành công.",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("Error deleting schedule by scheduleId:", error.message);
+    res.status(400).json({
+      success: false,
+      message: error.message || "Lỗi khi xóa lịch khám",
+    });
+  }
+};
+
+const deleteScheduleByTimeSlotIdController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { timeSlotId, scheduleId } = req.params;
+    const result = await deleteScheduleByTimeSlotId(timeSlotId, scheduleId);
+    if (!result) {
+      res.status(400).json({
+        success: false,
+        message: "Không thể xóa lịch khám vì đã có đặt khám.",
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      message: result.message || "Xóa lịch khám thành công.",
+    });
+  } catch (error: any) {
+    console.error("Error deleting schedule by timeSlotId:", error.message);
+    res.status(400).json({
+      success: false,
+      message: error.message || "Lỗi khi xóa lịch khám",
+    });
+  }
+};
+
 export {
   createScheduleController,
   getAllScheduleController,
@@ -195,4 +306,6 @@ export {
   getScheduleByIdController,
   updateExpiredTimeSlotsController,
   getScheduleByScheduleIdController,
+  deleteScheduleByScheduleIdController,
+  deleteScheduleByTimeSlotIdController,
 };
