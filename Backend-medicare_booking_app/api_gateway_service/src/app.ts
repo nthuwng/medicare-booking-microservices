@@ -27,6 +27,8 @@ const SERVICES = {
     process.env.RATING_SERVICE_URL || "http://rating-service:8087",
   SCHEDULE_SERVICE:
     process.env.SCHEDULE_SERVICE_URL || "http://schedule-service:8088",
+  AI_SERVICE:
+    process.env.AI_SERVICE_URL || "http://ai-service:8089",
   MESSAGE_SERVICE:
     process.env.MESSAGE_SERVICE_URL || "http://message-service:9000",
 };
@@ -115,6 +117,17 @@ app.use(
     changeOrigin: true,
     pathRewrite: {
       "^/api/schedule": "",
+    },
+  })
+);
+
+app.use(
+  "/api/ai",
+  createProxyMiddleware({
+    target: SERVICES.AI_SERVICE,
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/ai": "",
     },
   })
 );

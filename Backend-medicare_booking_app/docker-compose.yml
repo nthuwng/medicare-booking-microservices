@@ -30,6 +30,8 @@ services:
       - PAYMENT_SERVICE_URL=http://payment-service:8085
       - AUTH_SERVICE_URL=http://auth-service:8086
       - RATING_SERVICE_URL=http://rating-service:8087
+      - SCHEDULE_SERVICE_URL=http://ai-service:8088
+      - AI_SERVICE_URL=http://ai-service:8089
       - MESSAGE_SERVICE_URL=http://message-service:9000
     depends_on:
       - user-service
@@ -39,6 +41,8 @@ services:
       - payment-service
       - auth-service
       - rating-service
+      - schedule-service
+      - ai-service
       - message-service
     networks:
       - healthcare_network
@@ -120,6 +124,29 @@ services:
         condition: service_healthy
       appointment_db:
         condition: service_started
+    networks:
+      - healthcare_network
+    command: npm run dev
+
+  ai-service:
+    build:
+      context: ./services/ai_service
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    environment:
+      - PORT=8089
+      - NODE_ENV=development
+      - GEMINI_API_KEY=AIzaSyCcgJjc4-DOMGt4RjRIkvDRYOJPSdGZW6U
+      - GEMINI_IMAGE_MODEL_NAME=gemini-2.5-flash
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    volumes:
+      - ./services/ai_service:/app
+      - /app/node_modules
+      - ./shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - healthcare_network
     command: npm run dev

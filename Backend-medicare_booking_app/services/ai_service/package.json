@@ -1,0 +1,46 @@
+{
+  "name": "user_service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --watch src --exec ts-node -r tsconfig-paths/register src/app.ts",
+    "dev": "nodemon --watch src --exec ts-node -r tsconfig-paths/register src/app.ts",
+    "prisma": "prisma migrate dev --name"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "ts",
+    "ignore": [
+      "node_modules"
+    ],
+    "exec": "ts-node ./src/app.ts",
+    "legacyWatch": true,
+    "polling": true
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ngrok/ngrok-api": "^0.17.0",
+    "@prisma/client": "6.3.0",
+    "amqplib": "0.10.8",
+    "dotenv": "16.4.7",
+    "express": "5.0.1",
+    "multer": "2.0.2"
+  },
+  "devDependencies": {
+    "@google/genai": "1.22.0",
+    "@types/amqplib": "0.10.7",
+    "@types/express": "5.0.0",
+    "@types/multer": "1.4.12",
+    "@types/node": "22.10.7",
+    "nodemon": "3.1.9",
+    "ts-node": "10.9.2",
+    "tsconfig-paths": "4.2.0",
+    "typescript": "5.7.3"
+  }
+}
