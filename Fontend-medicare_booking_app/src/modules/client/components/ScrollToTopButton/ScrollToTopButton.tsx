@@ -23,8 +23,8 @@ const ScrollToTopButton = () => {
   return (
     <button
       className={`
-        fixed !bottom-[90px] !right-[20px] 
-        w-[55px] h-[55px] 
+        fixed !bottom-[100px] !right-[20px] 
+        w-[64px] h-[64px] 
         bg-orange-500 hover:bg-orange-600 
         text-white 
         border-none 
@@ -44,7 +44,7 @@ const ScrollToTopButton = () => {
       onClick={scrollToTop}
       aria-label="Scroll to top"
     >
-      <FaHome className="w-6 h-6" />
+      <FaHome className="w-7 h-7" />
     </button>
   );
 };

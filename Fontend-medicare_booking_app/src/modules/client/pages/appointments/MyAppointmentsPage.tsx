@@ -183,7 +183,9 @@ const MyAppointmentsPage = () => {
                   </div>
                   <div>
                     <Button
-                      onClick={() => navigate(`/message/${a.doctorId}`)}
+                      onClick={() =>
+                        navigate("/message", { state: { doctorId: a.doctorId } })
+                      }
                       className="!mr-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
                     >
                       Nhắn tin
