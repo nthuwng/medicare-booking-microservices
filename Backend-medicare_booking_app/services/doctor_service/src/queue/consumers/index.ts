@@ -4,6 +4,7 @@ import { initCheckFullDetailDoctorConsumer } from "./checkFullDetailDoctor.consu
 import { initGetDoctorIdByUserIdConsumer } from "./getDoctorIdByUserId.consumer";
 import { initGetDoctorIdMessage } from "./getDoctorIdMessage";
 import { initGetDoctorUserIdByDoctorIdConsumer } from "./getUserIdByDoctorId";
+import { initCheckSpecialtyDoctorConsumer } from "./checkSpecialtyName.consumer";
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
@@ -13,6 +14,7 @@ export const initializeAllRabbitMQConsumers = async () => {
     await initGetDoctorUserIdByDoctorIdConsumer();
     await initCheckFullDetailDoctorConsumer();
     await initGetDoctorIdMessage();
+    await initCheckSpecialtyDoctorConsumer();
 
     console.log(
       "✅ All RabbitMQ consumers doctor_service initialized successfully."

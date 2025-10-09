@@ -109,6 +109,26 @@ const doctorIdMessage = async (userId: string) => {
   return doctor;
 };
 
+const handleSpecialtyDoctorCheckViaRepository = async (
+  specialtyName: string
+) => {
+  const specialty = await prisma.specialty.findFirst({
+    where: { specialtyName: specialtyName },
+  });
+  if (!specialty) {
+    throw new Error("Chuyên khoa không tồn tại");
+  }
+
+  const doctor = await prisma.doctor.findMany({
+    where: { specialty: { specialtyName: specialtyName } },
+    include: {
+      specialty: true,
+      clinic: true,
+    },
+  });
+
+  return doctor;
+};
 export {
   findDoctorByUserId,
   createDoctor,
@@ -117,4 +137,5 @@ export {
   getUserIdByDoctorId,
   getDoctorProfileFullDetail,
   doctorIdMessage,
+  handleSpecialtyDoctorCheckViaRepository,
 };

@@ -1,6 +1,7 @@
 // src/services/ai.intent.ts
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
+import { intentPrompt } from "src/prompts/intent.prompts";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODEL_AI = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
@@ -11,10 +12,12 @@ export const IntentSchema = z.object({
     "recommend_specialty_image",
     "recommend_specialty_text",
     "medical_qa",
+    "specialty_doctor_check",
     "other",
   ]),
   args: z.object({
     symptoms: z.string().nullable().optional(),
+    specialty: z.string().nullable().optional(),
   }),
 });
 
@@ -22,11 +25,13 @@ export type ParsedIntent = z.infer<typeof IntentSchema>;
 
 // Gom mọi biến thể (text / symptom / info.symptom / args.symptoms) về args.symptoms
 function normalizeParsed(raw: any, originalMessage: string): ParsedIntent {
+
   const intent:
     | "smalltalk"
     | "recommend_specialty_text"
     | "recommend_specialty_image"
     | "medical_qa"
+    | "specialty_doctor_check"
     | "other" = raw?.intent ?? "other";
 
   const symptomsCandidate =
@@ -47,15 +52,7 @@ function normalizeParsed(raw: any, originalMessage: string): ParsedIntent {
 }
 
 export async function parseIntent(message: string): Promise<ParsedIntent> {
-  const sys = `
-Bạn là Trợ lý AI MediCare, chỉ hỗ trợ các chủ đề: sức khỏe/y tế cơ bản, gợi ý chuyên khoa, tìm bác sĩ, đặt lịch khám, thông tin dịch vụ trong ứng dụng MediCare. Hãy phân loại intent và trả đúng JSON theo schema.
-- smalltalk: chào hỏi ("xin chào", "chào bạn", "hello"...)
-- recommend_specialty_text: người dùng mô tả triệu chứng để gợi ý chuyên khoa
-- medical_qa: câu hỏi y tế/sức khỏe tổng quát (thuốc, triệu chứng, phòng bệnh, dinh dưỡng...)
-- other: mọi thứ còn lại
-Yêu cầu: chỉ trả JSON DUY NHẤT theo schema sau (không thêm chữ nào khác).
-Schema: ${IntentSchema.toString()}
-`;
+  const sys = intentPrompt();
 
   const resp = await ai.models.generateContent({
     model: MODEL_AI,

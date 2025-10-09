@@ -5,7 +5,8 @@ import {
   updateDoctorStatusController,
   getAllDoctorsController,
   getAllApprovedDoctorsController,
-  getDoctorByUserIdController
+  getDoctorByUserIdController,
+  specialtyDoctorCheckController,
 } from "../controllers/doctorController";
 import {
   authenticateToken,
@@ -19,7 +20,12 @@ router.post("/", authenticateToken, createDoctorController);
 router.get("/", authenticateToken, getAllDoctorsController);
 router.get("/approved", authenticateToken, getAllApprovedDoctorsController);
 router.get("/:id", authenticateToken, getDoctorByIdController);
-router.get("/profile/:userId", authenticateToken, authorizeDoctor,getDoctorByUserIdController);
+router.get(
+  "/profile/:userId",
+  authenticateToken,
+  authorizeDoctor,
+  getDoctorByUserIdController
+);
 
 router.put(
   "/:id",
@@ -27,5 +33,7 @@ router.put(
   authorizeAdmin,
   updateDoctorStatusController
 );
+
+router.get("/ai/check_availability", specialtyDoctorCheckController);
 
 export default router;

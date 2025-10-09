@@ -3,6 +3,7 @@ import {
   promptMedicalQA,
   promptRecommendSpecialtyText,
 } from "src/prompts/prompts";
+import { checkSpecialtyDoctorViaRabbitMQ } from "src/queue/publishers/ai.publishers";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 const MODEL_AI = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
 
@@ -180,10 +181,28 @@ const handleMedicalQA = async (question: string): Promise<ToolResult> => {
   };
 };
 
+const handleSpecialtyDoctorCheck = async (specialtyName: string) => {
+  const resp = await checkSpecialtyDoctorViaRabbitMQ(specialtyName);
+
+  if (!resp || resp.length === 0) {
+    return {
+      success: false,
+      length: 0,
+      message: "Không có bác sĩ nào thuộc chuyên khoa này",
+      data: [],
+    };
+  }
+  return {
+    success: true,
+    length: resp.length,
+    message: "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+    data: resp,
+  };
+};
+
 export {
   handleRecommendSpecialtyText,
   handleRecommendSpecialtyFromImage,
   handleMedicalQA,
+  handleSpecialtyDoctorCheck,
 };
-
-// Generic medical Q&A using the model with safety rails

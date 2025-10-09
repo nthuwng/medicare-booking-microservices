@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import aiRoutes from "./routes/ai.routes";
+import { connectRabbitMQ } from "./queue/connection";
 
 const app = express();
 const port = process.env.PORT || 8089;
@@ -14,7 +15,7 @@ aiRoutes(app);
 const startApplication = async () => {
   try {
     //Kết nối Message Broker (RabbitMQ)
-    // await connectRabbitMQ();
+    await connectRabbitMQ();
     console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers

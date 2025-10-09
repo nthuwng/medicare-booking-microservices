@@ -6,6 +6,7 @@ import {
   handleGetAllDoctors,
   countTotalDoctorPage,
   handleGetAllApprovedDoctors,
+  handleSpecialtyDoctorCheck,
   getDoctorByUserIdService,
 } from "src/services/doctorServices";
 
@@ -184,6 +185,30 @@ const getDoctorByUserIdController = async (req: Request, res: Response) => {
   }
 };
 
+const specialtyDoctorCheckController = async (req: Request, res: Response) => {
+  try {
+    const { specialtyName } = req.body;
+    const doctor = await handleSpecialtyDoctorCheck(specialtyName);
+    if (!doctor || doctor.length === 0) {
+      res.status(200).json({
+        success: false,
+        length: 0,
+        message: "Không có bác sĩ nào thuộc chuyên khoa này",
+        data: [],
+      });
+      return;
+    }
+    res.status(200).json({
+      success: true,
+      length: doctor.length,
+      message: "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+      data: doctor,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createDoctorController,
   getDoctorByIdController,
@@ -191,4 +216,5 @@ export {
   getAllDoctorsController,
   getAllApprovedDoctorsController,
   getDoctorByUserIdController,
+  specialtyDoctorCheckController,
 };

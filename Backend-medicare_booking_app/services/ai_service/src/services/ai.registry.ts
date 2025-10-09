@@ -4,6 +4,7 @@ import { AiRuntimeCtx } from "src/types/ai.runtime";
 import {
   handleRecommendSpecialtyFromImage,
   handleRecommendSpecialtyText,
+  handleSpecialtyDoctorCheck,
 } from "./ai.tools";
 import { handleMedicalQA } from "./ai.tools";
 // ^ dùng đúng file export của bạn (ai.tools hoặc ai.service)
@@ -94,6 +95,29 @@ export const dispatchByIntent = async (
         intent: "medical_qa",
         content: result.content ?? "Xin lỗi, tôi chưa có câu trả lời phù hợp.",
         data: null,
+      };
+    }
+
+    case "specialty_doctor_check": {
+      const specialtyName = (parsed.args?.symptoms || "").trim();
+      const result = await handleSpecialtyDoctorCheck(specialtyName);
+
+      if (!result || result.length === 0) {
+        return {
+          intent: "specialty_doctor_check",
+          success: false,
+          length: result.length,
+          content:
+            "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+          data: result,
+        };
+      }
+      return {
+        intent: "specialty_doctor_check",
+        success: true,
+        length: result.length,
+        content: "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+        data: result,
       };
     }
 

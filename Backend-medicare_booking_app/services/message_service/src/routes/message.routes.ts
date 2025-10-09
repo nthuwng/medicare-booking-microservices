@@ -33,16 +33,6 @@ const messageRoutes = (app: Express) => {
     "/by-conversation-id/:conversationId",
     getMessagesByConversationIdAPI
   );
-
-  // API lấy tất cả conversations của patient
-  // router.get(
-  //   "/conversations/patient/:patientId",
-  //   getAllConversationsPatientAPI
-  // );
-
-  // API lấy tất cả conversations của doctor
-  // router.get("/conversations/doctor/:doctorId", getAllConversationsDoctorAPI);
-
   app.use("/", router);
 };
 

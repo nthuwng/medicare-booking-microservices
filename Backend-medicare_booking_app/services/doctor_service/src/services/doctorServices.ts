@@ -442,6 +442,25 @@ const getUserIdByDoctorIdService = async (doctorId: string) => {
   return doctor.userId;
 };
 
+const handleSpecialtyDoctorCheck = async (specialtyName: string) => {
+  const specialty = await prisma.specialty.findFirst({
+    where: { specialtyName: specialtyName },
+  });
+  if (!specialty) {
+    throw new Error("Chuyên khoa không tồn tại");
+  }
+
+  const doctor = await prisma.doctor.findMany({
+    where: { specialty: { specialtyName: specialtyName } },
+    include: {
+      specialty: true,
+      clinic: true,
+    }
+    
+  });
+  return doctor;
+};
+
 export {
   createDoctorProfile,
   getDoctorByIdService,
@@ -452,4 +471,5 @@ export {
   checkDoctorInfor,
   getDoctorByUserIdService,
   getUserIdByDoctorIdService,
+  handleSpecialtyDoctorCheck,
 };

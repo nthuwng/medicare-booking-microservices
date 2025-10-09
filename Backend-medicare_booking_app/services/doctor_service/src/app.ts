@@ -24,7 +24,7 @@ const startApplication = async () => {
 
     //Khởi động HTTP Server (hoặc gRPC server)
     app.listen(port, () => {
-      console.log(`✅ User_service listening on port ${port}`);
+      console.log(`✅ Doctor_service listening on port ${port}`);
     });
 
   } catch (error) {
