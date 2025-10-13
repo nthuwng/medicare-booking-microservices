@@ -36,25 +36,34 @@ const handleGetAllSpecialties = async (
 ) => {
   const skip = (page - 1) * pageSize;
 
+  const where: any = {};
+  if (specialtyName) where.specialtyName = { contains: specialtyName };
+
   const specialties = await prisma.specialty.findMany({
-    where: {
-      specialtyName: {
-        contains: specialtyName || "",
-      },
-    },
+    where,
     skip: skip,
     take: pageSize,
+    orderBy: { id: "asc" },
   });
 
   return specialties;
 };
 
-const countTotalSpecialtiesPage = async (pageSize: number) => {
-  const totalItems = await prisma.specialty.count();
-
+const countTotalSpecialtiesPage = async (
+  pageSize: number,
+  specialtyName?: string
+) => {
+  const where: any = {};
+  if (specialtyName) where.specialtyName = { contains: specialtyName };
+  const totalItems = await prisma.specialty.count({ where });
   const totalPages = Math.ceil(totalItems / pageSize);
-
   return totalPages;
+};
+
+const countSpecialties = async (specialtyName?: string) => {
+  const where: any = {};
+  if (specialtyName) where.specialtyName = { contains: specialtyName };
+  return prisma.specialty.count({ where });
 };
 
 const handleDeleteSpecialty = async (id: string) => {
@@ -102,4 +111,5 @@ export {
   countTotalSpecialtiesPage,
   handleDeleteSpecialty,
   handleUpdateSpecialty,
+  countSpecialties,
 };

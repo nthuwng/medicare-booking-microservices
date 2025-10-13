@@ -73,28 +73,39 @@ const handleGetAllClinics = async (
 ) => {
   const skip = (page - 1) * pageSize;
 
+  const where: any = {};
+  if (city) where.city = city as any;
+  if (clinicName) where.clinicName = { contains: clinicName };
+
   const clinics = await prisma.clinic.findMany({
-    where: {
-      city: {
-        equals: city as any,
-      },
-      clinicName: {
-        contains: clinicName || "",
-      },
-    },
+    where,
     skip: skip,
     take: pageSize,
+    orderBy: { id: "asc" },
   });
 
   return clinics;
 };
 
-const countTotalClinicsPage = async (pageSize: number) => {
-  const totalItems = await prisma.clinic.count();
+const countTotalClinicsPage = async (
+  pageSize: number,
+  city?: string,
+  clinicName?: string
+) => {
+  const where: any = {};
+  if (city) where.city = city as any;
+  if (clinicName) where.clinicName = { contains: clinicName };
 
+  const totalItems = await prisma.clinic.count({ where });
   const totalPages = Math.ceil(totalItems / pageSize);
-
   return totalPages;
+};
+
+const countClinics = async (city?: string, clinicName?: string) => {
+  const where: any = {};
+  if (city) where.city = city as any;
+  if (clinicName) where.clinicName = { contains: clinicName };
+  return prisma.clinic.count({ where });
 };
 
 const handleDeleteClinic = async (id: string) => {
@@ -111,7 +122,10 @@ const handleDeleteClinic = async (id: string) => {
   return true;
 };
 
-const handleUpdateClinic = async (id: string, body: CreateClinicProfileData) => {
+const handleUpdateClinic = async (
+  id: string,
+  body: CreateClinicProfileData
+) => {
   const clinicId = parseInt(id);
   const {
     clinic_name,
@@ -168,5 +182,6 @@ export {
   handleGetAllClinics,
   countTotalClinicsPage,
   handleDeleteClinic,
-  handleUpdateClinic
+  handleUpdateClinic,
+  countClinics,
 };

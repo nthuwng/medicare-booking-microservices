@@ -4,7 +4,8 @@ import {
   handleGetAllClinics,
   handleDeleteClinic,
   countTotalClinicsPage,
-  handleUpdateClinic
+  handleUpdateClinic,
+  countClinics,
 } from "src/services/clinicServices";
 
 const createClinicController = async (req: Request, res: Response) => {
@@ -36,8 +37,11 @@ const getClinicsController = async (req: Request, res: Response) => {
       currentPage = 1;
     }
     const totalPages = await countTotalClinicsPage(
-      parseInt(pageSize as string)
+      parseInt(pageSize as string),
+      city as string,
+      clinicName as string
     );
+    const totalItems = await countClinics(city as string, clinicName as string);
     const clinics = await handleGetAllClinics(
       currentPage,
       parseInt(pageSize as string),
@@ -54,7 +58,7 @@ const getClinicsController = async (req: Request, res: Response) => {
             currentPage: currentPage,
             pageSize: parseInt(pageSize as string),
             pages: totalPages,
-            total: clinics.length,
+            total: totalItems,
           },
           result: [],
         },
@@ -70,7 +74,7 @@ const getClinicsController = async (req: Request, res: Response) => {
           currentPage: currentPage,
           pageSize: parseInt(pageSize as string),
           pages: totalPages,
-          total: clinics.length,
+          total: totalItems,
         },
         result: clinics,
       },
@@ -126,4 +130,9 @@ const updateClinicController = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-export { createClinicController, getClinicsController, deleteClinicController ,updateClinicController};
+export {
+  createClinicController,
+  getClinicsController,
+  deleteClinicController,
+  updateClinicController,
+};

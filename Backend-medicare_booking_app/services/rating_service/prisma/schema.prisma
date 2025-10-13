@@ -1,0 +1,61 @@
+// This is your Prisma schema file for Doctor Management Service
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Rating {
+  id            String  @id @default(uuid())
+  doctorId      String  @db.VarChar(191) // Doctor.id (UUID string) từ doctor_service
+  userId        String  @db.VarChar(191) // bệnh nhân (auth_service)
+  appointmentId String? @unique // mỗi lịch hẹn 1 đánh giá (nếu dùng)
+
+  score       Int // 1..5
+  content     String? @db.Text // nội dung text
+  isAnonymous Boolean @default(false) // ẩn tên khi public
+
+  // nếu cần kiểm duyệt sau nâng cấp: thêm enum status; tạm thời không cần
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  replies RatingReply[]
+
+  @@index([doctorId, createdAt])
+  @@index([userId])
+}
+
+model DoctorRatingStat {
+  doctorId     String    @id @db.VarChar(191) // snapshot để tìm/sort nhanh
+  avgScore     Decimal   @default(0.00) @db.Decimal(3, 2)
+  totalReviews Int       @default(0)
+  lastReviewAt DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([avgScore])
+  @@index([totalReviews])
+}
+
+enum ReplierType {
+  DOCTOR
+}
+
+model RatingReply {
+  id          String      @id @default(uuid())
+  ratingId    String
+  replierType ReplierType @default(DOCTOR)
+  replierId   String      @db.VarChar(191) // = doctorId (bác sĩ sở hữu)
+  content     String      @db.Text
+  createdAt   DateTime    @default(now())
+
+  rating Rating @relation(fields: [ratingId], references: [id], onDelete: Cascade)
+
+  @@index([ratingId])
+  @@index([replierId])
+}

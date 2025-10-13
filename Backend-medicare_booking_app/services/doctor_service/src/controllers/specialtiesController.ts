@@ -5,6 +5,7 @@ import {
   handleGetAllSpecialties,
   handleDeleteSpecialty,
   handleUpdateSpecialty,
+  countSpecialties,
 } from "src/services/specialtiesServices";
 const createSpecialtiesController = async (req: Request, res: Response) => {
   try {
@@ -29,8 +30,10 @@ const getSpecialtiesController = async (req: Request, res: Response) => {
       currentPage = 1;
     }
     const totalPages = await countTotalSpecialtiesPage(
-      parseInt(pageSize as string)
+      parseInt(pageSize as string),
+      specialtyName as string
     );
+    const totalItems = await countSpecialties(specialtyName as string);
     const specialties = await handleGetAllSpecialties(
       currentPage,
       parseInt(pageSize as string),
@@ -46,7 +49,7 @@ const getSpecialtiesController = async (req: Request, res: Response) => {
             currentPage: currentPage,
             pageSize: parseInt(pageSize as string),
             pages: totalPages,
-            total: specialties.length,
+            total: totalItems,
           },
           result: [],
         },
@@ -62,7 +65,7 @@ const getSpecialtiesController = async (req: Request, res: Response) => {
           currentPage: currentPage,
           pageSize: parseInt(pageSize as string),
           pages: totalPages,
-          total: specialties.length,
+          total: totalItems,
         },
         result: specialties,
       },

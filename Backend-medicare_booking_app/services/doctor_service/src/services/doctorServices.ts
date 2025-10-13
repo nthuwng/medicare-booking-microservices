@@ -7,6 +7,7 @@ import {
 import { prisma } from "src/config/client";
 import {
   getAllDoctorsViaRabbitMQ,
+  getRatingByDoctorIdViaRabbitMQ,
   getScheduleByDoctorIdViaRabbitMQ,
   getUserByIdViaRabbitMQ,
   sendMessageRegisterDoctorViaRabbitMQ,
@@ -164,10 +165,13 @@ const getDoctorByIdService = async (id: string) => {
 
   const scheduleByDoctorId = await getScheduleByDoctorIdViaRabbitMQ(doctor.id);
 
+  const ratingByDoctorId = await getRatingByDoctorIdViaRabbitMQ(doctor.id);
+
   return {
     ...doctor,
     scheduleByDoctorId,
     userInfo,
+    ratingByDoctorId,
   };
 };
 

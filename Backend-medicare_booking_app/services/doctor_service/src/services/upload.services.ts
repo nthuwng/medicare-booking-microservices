@@ -19,3 +19,11 @@ export const uploadToCloudinary = async (
     throw error;
   }
 };
+
+export const uploadToCloudinaryByUrl = async (
+  url: string,
+  folder = "medicare"
+) => {
+  const result = await cloudinary.uploader.upload(url, { folder });
+  return result;
+};

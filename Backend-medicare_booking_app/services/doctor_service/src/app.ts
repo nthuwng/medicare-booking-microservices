@@ -3,6 +3,7 @@ import "dotenv/config";
 import { connectRabbitMQ } from "./queue/connection";
 import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 import routers from "./routes/index.routes";
+import initDatabase from "./config/seed";
 
 const app = express();
 const port = process.env.PORT || 8083;
@@ -23,6 +24,7 @@ const startApplication = async () => {
     await initializeAllRabbitMQConsumers();
 
     //Khởi động HTTP Server (hoặc gRPC server)
+    await initDatabase();
     app.listen(port, () => {
       console.log(`✅ Doctor_service listening on port ${port}`);
     });

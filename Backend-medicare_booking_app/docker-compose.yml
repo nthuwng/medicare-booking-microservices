@@ -339,19 +339,43 @@ services:
       - healthcare_network
     command: npm run dev
 
+  rating_db:
+    image: mysql:8.0
+    container_name: rating_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medicare_booking
+      MYSQL_DATABASE: rating_db
+    ports:
+      - "3314:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - rating_mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - healthcare_network
+
   rating-service:
-    build: ./services/rating_service
+    build:
+      context: ./services/rating_service
+      dockerfile: Dockerfile
     ports:
       - "8087:8087"
     env_file:
       - ./services/rating_service/.env
+    environment:
+      - DATABASE_URL=mysql://root:medicare_booking@rating_db:3306/rating_db # Fixed port
     volumes:
       - ./services/rating_service:/app:cached
       - rating_node_modules:/app/node_modules
       - ./shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      rating_db:
+        condition: service_started
     networks:
       - healthcare_network
-    command: npm start
+    command: npm run dev
 
   message_db:
     image: mysql:8.0
@@ -418,3 +442,4 @@ volumes:
   message_node_modules:
   ai_node_modules:
   rating_node_modules:
+  rating_mysql_data:

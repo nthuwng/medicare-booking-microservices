@@ -392,6 +392,7 @@ const handleLoginWithGoogleAPI = async (
       return { success: false, message: "Thiếu google token" };
     }
     const dataDecoded = jwt.decode(credential) as JwtPayloadGoogle;
+    console.log("dataDecoded", dataDecoded);
 
     if (!dataDecoded) {
       return { success: false, message: "Google token không hợp lệ" };

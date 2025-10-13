@@ -30,7 +30,7 @@ export const dispatchByIntent = async (
       return {
         intent: "smalltalk",
         content:
-          "MediCare xin chào! Tôi là Trợ lý AI của MediCare, hãy cho tôi biết câu hỏi của bạn ?",
+          "Xin chào! Mình là trợ lý AI của MediCare 😊 Mình có thể giúp bạn tư vấn sức khỏe, gợi ý chuyên khoa phù hợp, hoặc tìm bác sĩ. Bạn cần hỗ trợ gì hôm nay?",
       };
 
     case "recommend_specialty_image": {
@@ -69,9 +69,7 @@ export const dispatchByIntent = async (
 
       return {
         intent: "recommend_specialty_image",
-        content: `Chuyên khoa phù hợp: ${specialtyName}. Độ tin cậy ~ ${Math.round(
-          confidence * 100
-        )}%`,
+        content: `- Dựa trên ảnh bạn gửi, mình nghĩ bạn nên khám chuyên khoa ${specialtyName} nhé!`,
         data: rawObj
           ? { specialty_name: specialtyName, confidence, reasoning }
           : null,
@@ -83,7 +81,9 @@ export const dispatchByIntent = async (
       const result = await handleRecommendSpecialtyText(symptoms);
       return {
         intent: "recommend_specialty_text",
-        content: result.content ?? "Bạn mô tả rõ triệu chứng giúp mình nhé.",
+        content:
+          result.content ??
+          "Bạn có thể mô tả rõ hơn về triệu chứng đang gặp phải không? Mình sẽ giúp bạn tìm chuyên khoa phù hợp nhất! 😊",
         data: result.data,
       };
     }
@@ -93,7 +93,9 @@ export const dispatchByIntent = async (
       const result = await handleMedicalQA(question);
       return {
         intent: "medical_qa",
-        content: result.content ?? "Xin lỗi, tôi chưa có câu trả lời phù hợp.",
+        content:
+          result.content ??
+          "Xin lỗi, mình chưa có thông tin đầy đủ để trả lời câu hỏi này. Bạn có thể hỏi cụ thể hơn hoặc tham khảo ý kiến bác sĩ trực tiếp nhé! 😊",
         data: null,
       };
     }
@@ -108,7 +110,7 @@ export const dispatchByIntent = async (
           success: false,
           length: result.length,
           content:
-            "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+            "Hiện tại chưa có bác sĩ nào thuộc chuyên khoa này trong hệ thống. Bạn có thể thử tìm kiếm chuyên khoa khác hoặc liên hệ trực tiếp với phòng khám nhé! 😊",
           data: result,
         };
       }
@@ -116,7 +118,7 @@ export const dispatchByIntent = async (
         intent: "specialty_doctor_check",
         success: true,
         length: result.length,
-        content: "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+        content: `Tuyệt vời! Mình đã tìm thấy ${result.length} bác sĩ chuyên khoa phù hợp cho bạn. Dưới đây là danh sách các bác sĩ có kinh nghiệm và uy tín! 👨‍⚕️👩‍⚕️`,
         data: result,
       };
     }
@@ -125,7 +127,7 @@ export const dispatchByIntent = async (
       return {
         intent: "other",
         content:
-          "Xin lỗi, câu hỏi của bạn không thuộc lĩnh vực tôi có thể trả lời. Vui lòng hỏi câu hỏi khác. Xin cảm ơn",
+          "Xin lỗi, mình chỉ có thể hỗ trợ các câu hỏi về sức khỏe, gợi ý chuyên khoa, tìm bác sĩ và đặt lịch khám thôi. Bạn có thể hỏi mình về những vấn đề này nhé! 😊",
       };
     }
   }

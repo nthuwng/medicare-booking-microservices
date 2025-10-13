@@ -9,34 +9,6 @@ const MODEL_AI = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
 
 export type ToolResult = { content?: string; data?: any };
 
-const RULES: Array<{ kw: RegExp; name: string; why: string }> = [
-  {
-    kw: /ngứa|dị ứng|mẩn đỏ|phát ban/i,
-    name: "Da liễu",
-    why: "Triệu chứng da liễu (ngứa/mẩn đỏ/phát ban)",
-  },
-  {
-    kw: /đau bụng|tiêu chảy|buồn nôn|nôn/i,
-    name: "Tiêu hoá",
-    why: "Triệu chứng đường tiêu hoá",
-  },
-  {
-    kw: /ho|khó thở|đau ngực|hen/i,
-    name: "Hô hấp",
-    why: "Triệu chứng đường hô hấp",
-  },
-  {
-    kw: /đau đầu|chóng mặt|tê/i,
-    name: "Thần kinh",
-    why: "Triệu chứng thần kinh (đau đầu/tê/chóng mặt)",
-  },
-  {
-    kw: /đau khớp|sưng khớp|đau lưng/i,
-    name: "Cơ xương khớp",
-    why: "Triệu chứng cơ xương khớp",
-  },
-];
-
 // --- Helpers “ăn chắc” ---
 function extractJsonLoose(s: string): string | null {
   // bỏ code fence nếu có
@@ -69,19 +41,10 @@ const handleRecommendSpecialtyText = async (
   prompt: string
 ): Promise<ToolResult> => {
   if (!prompt?.trim())
-    return { content: "Bạn mô tả rõ triệu chứng giúp mình nhé." };
-
-  // 1) Rule nhanh
-  const r = RULES.find((rule) => rule.kw.test(prompt));
-  if (r) {
-    const conf = 0.8;
     return {
-      content: `Chuyên khoa phù hợp: ${r.name}. Độ tin cậy ~ ${Math.round(
-        conf * 100
-      )}%. Lý do: ${r.why}.`,
-      data: { specialty_name: r.name, confidence: conf, reasoning: r.why },
+      content:
+        "Bạn có thể mô tả rõ hơn về triệu chứng đang gặp phải không? Mình sẽ giúp bạn tìm chuyên khoa phù hợp nhất! 😊",
     };
-  }
 
   // 2) LLM (ép JSON thuần)
   const promptText = promptRecommendSpecialtyText(prompt);
@@ -109,7 +72,8 @@ const handleRecommendSpecialtyText = async (
     const loose = extractJsonLoose(jsonStr);
     if (!loose) {
       return {
-        content: "Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu.",
+        content:
+          "Xin lỗi, mình gặp chút khó khăn khi xử lý thông tin. Bạn có thể mô tả lại triệu chứng một cách rõ ràng hơn không? 😊",
         data: null,
       };
     }
@@ -117,7 +81,8 @@ const handleRecommendSpecialtyText = async (
       parsed = JSON.parse(loose);
     } catch {
       return {
-        content: "Xin lỗi, có lỗi xảy ra khi xử lý yêu cầu.",
+        content:
+          "Xin lỗi, mình gặp chút khó khăn khi xử lý thông tin. Bạn có thể mô tả lại triệu chứng một cách rõ ràng hơn không? 😊",
         data: null,
       };
     }
@@ -129,7 +94,7 @@ const handleRecommendSpecialtyText = async (
   const reasoning = parsed?.reasoning || "Cần thăm khám sàng lọc ban đầu.";
 
   return {
-    content: `Chuyên khoa phù hợp: ${name}. Độ tin cậy ~ ${confPct}%. Lý do: ${reasoning}`,
+    content: `Dựa trên triệu chứng bạn mô tả, mình nghĩ bạn nên khám chuyên khoa ${name} nhé!`,
     data: { specialty_name: name, confidence: conf, reasoning },
   };
 };
@@ -160,7 +125,10 @@ const handleRecommendSpecialtyFromImage = async (
 
 const handleMedicalQA = async (question: string): Promise<ToolResult> => {
   if (!question?.trim())
-    return { content: "Bạn hãy nhập câu hỏi y tế cần tư vấn." };
+    return {
+      content:
+        "Bạn có câu hỏi gì về sức khỏe cần mình tư vấn không? Mình sẵn sàng giúp đỡ bạn! 😊",
+    };
   const sys = promptMedicalQA();
   const prompt = `Câu hỏi: ${question}`;
   const resp = await ai.models.generateContent({
@@ -170,7 +138,7 @@ const handleMedicalQA = async (question: string): Promise<ToolResult> => {
   const text =
     (resp as any)?.response?.text?.() ??
     (resp as any)?.text ??
-    "Xin lỗi, tôi chưa có câu trả lời phù hợp.";
+    "Xin lỗi, mình chưa có thông tin đầy đủ để trả lời câu hỏi này. Bạn có thể hỏi cụ thể hơn hoặc tham khảo ý kiến bác sĩ trực tiếp nhé! 😊";
   return {
     content: String(text)
       .replace(/```/g, "")
@@ -188,14 +156,15 @@ const handleSpecialtyDoctorCheck = async (specialtyName: string) => {
     return {
       success: false,
       length: 0,
-      message: "Không có bác sĩ nào thuộc chuyên khoa này",
+      message:
+        "Hiện tại chưa có bác sĩ nào thuộc chuyên khoa này trong hệ thống. Bạn có thể thử tìm kiếm chuyên khoa khác hoặc liên hệ trực tiếp với phòng khám nhé! 😊",
       data: [],
     };
   }
   return {
     success: true,
     length: resp.length,
-    message: "Kiểm tra thông tin bác sĩ thuộc chuyên khoa này thành công.",
+    message: `Tuyệt vời! Mình đã tìm thấy ${resp.length} bác sĩ chuyên khoa phù hợp cho bạn. Dưới đây là danh sách các bác sĩ có kinh nghiệm và uy tín! 👨‍⚕️👩‍⚕️`,
     data: resp,
   };
 };
