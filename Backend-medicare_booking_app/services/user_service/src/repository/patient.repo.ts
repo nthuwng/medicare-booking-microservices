@@ -139,7 +139,15 @@ const getPatientIdByUserId = async (userId: string) => {
   return patient;
 };
 
+const getUserProfileByUserId = async (userId: string) => {
+  const userProfile = await prisma.patient.findUnique({
+    where: { user_id: userId },
+  });
+  return userProfile;
+};
+
 export {
+  getUserProfileByUserId,
   findPatientByUserId,
   createPatient,
   getUserIdByPatientId,
