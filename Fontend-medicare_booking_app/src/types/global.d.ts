@@ -49,6 +49,7 @@ declare global {
     id: string;
     email: string;
     userType: string;
+    authProvider: string;
     isActive: boolean;
     createdAt?: string;
     updatedAt?: string;

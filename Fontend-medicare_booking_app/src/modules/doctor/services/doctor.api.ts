@@ -14,42 +14,42 @@ import type {
 } from "@/types/schedule";
 import type { IConversationResponseDoctor, IMessage } from "@/types/message";
 
-export const getDoctorProfileByUserId = (userId: string) => {
+const getDoctorProfileByUserId = (userId: string) => {
   const urlBackend = `/api/doctor/doctors/profile/${userId}`;
   return axios.get<IBackendRes<IDoctorProfile>>(urlBackend);
 };
 
-export const getAllSpecialtiesDoctorProFile = () => {
+const getAllSpecialtiesDoctorProFile = () => {
   const urlBackend = `/api/doctor/specialties?page=1&pageSize=100`;
   return axios.get<IBackendRes<IModelPaginate<ISpecialty>>>(urlBackend);
 };
 
-export const getAllClinics = () => {
+const getAllClinics = () => {
   const urlBackend = `/api/doctor/clinics?page=1&pageSize=100`;
   return axios.get<IBackendRes<IModelPaginate<IClinic>>>(urlBackend);
 };
 
-export const markAsReadNotification = (notificationId: string) => {
+const markAsReadNotification = (notificationId: string) => {
   const urlBackend = `/api/notification/mark-as-read/${notificationId}`;
   return axios.put(urlBackend);
 };
 
-export const markAsReadAllNotification = (userId: string) => {
+const markAsReadAllNotification = (userId: string) => {
   const urlBackend = `/api/notification/mark-as-read-all/${userId}`;
   return axios.put(urlBackend);
 };
 
-export const deleteAllNotification = (userId: string) => {
+const deleteAllNotification = (userId: string) => {
   const urlBackend = `/api/notification/delete-all/${userId}`;
   return axios.delete(urlBackend);
 };
 
-export const getNotificationByUserId = (userId: string) => {
+const getNotificationByUserId = (userId: string) => {
   const urlBackend = `/api/notification/get-notification-by-user-id/${userId}`;
   return axios.get<IBackendRes<INotificationDataAdmin[]>>(urlBackend);
 };
 
-export const uploadFileAPI = (img: any) => {
+const uploadFileAPI = (img: any) => {
   const bodyFormData = new FormData();
   bodyFormData.append("image", img);
   return axios<
@@ -67,7 +67,7 @@ export const uploadFileAPI = (img: any) => {
   });
 };
 
-export const createDoctorProfile = (
+const createDoctorProfile = (
   fullName: string,
   phone: string,
   gender: string,
@@ -98,7 +98,7 @@ export const createDoctorProfile = (
   });
 };
 
-export const getScheduleByDoctorId = (
+const getScheduleByDoctorId = (
   userId: string,
   filters?: {
     date?: string;
@@ -125,37 +125,37 @@ export const getScheduleByDoctorId = (
   return axios.get<IBackendRes<ISchedule[]>>(fullUrl);
 };
 
-export const getAllTimeSlots = () => {
+const getAllTimeSlots = () => {
   const urlBackend = `/api/schedule/time-slots`;
   return axios.get<IBackendRes<ITimeSlotDetail[]>>(urlBackend);
 };
 
-export const updateExpiredTimeSlots = () => {
+const updateExpiredTimeSlots = () => {
   const urlBackend = `/api/schedule/schedules/update-expired`;
   return axios.patch<IBackendRes<any>>(urlBackend);
 };
 
-export const getAllAppointmentsByDoctorId = (query: string) => {
+const getAllAppointmentsByDoctorId = (query: string) => {
   const urlBackend = `/api/appointment/appointments/doctor-appointments/${query}`;
   return axios.get<IBackendRes<IModelPaginate<IAppointment>>>(urlBackend);
 };
 
-export const getAllConversationsDoctorAPI = (doctorId: string) => {
+const getAllConversationsDoctorAPI = (doctorId: string) => {
   const urlBackend = `/api/message/conversations/DOCTOR/${doctorId}`;
   return axios.get<IBackendRes<IConversationResponseDoctor>>(urlBackend);
 };
 
-export const getPatientDetailBookingById = (patientId: string) => {
+const getPatientDetailBookingById = (patientId: string) => {
   const urlBackend = `/api/users/patients/${patientId}`;
   return axios.get<IBackendRes<IPatientProfile>>(urlBackend);
 };
 
-export const getMessagesByConversationIdAPI = (conversationId: string) => {
+const getMessagesByConversationIdAPI = (conversationId: string) => {
   const urlBackend = `/api/message/by-conversation-id/${conversationId}`;
   return axios.get<IBackendRes<IMessage[]>>(urlBackend);
 };
 
-export const createSchedule = (
+const createSchedule = (
   doctorId: string,
   date: string,
   clinicId: number,
@@ -170,24 +170,44 @@ export const createSchedule = (
   });
 };
 
-export const updateAppointmentStatus = (
-  appointmentId: string,
-  status: string
-) => {
+const updateAppointmentStatus = (appointmentId: string, status: string) => {
   const urlBackend = `/api/appointment/appointments/update-appointment-status/${appointmentId}`;
   return axios.put<IBackendRes<IAppointment>>(urlBackend, { status });
 };
 
-export const deleteScheduleByScheduleIdAPI = (scheduleId: string) => {
+const deleteScheduleByScheduleIdAPI = (scheduleId: string) => {
   const urlBackend = `/api/schedule/schedules/by-doctorId/${scheduleId}`;
   return axios.delete<IBackendRes<any>>(urlBackend);
 };
 
-export const deleteTimeSlotFromScheduleAPI = (
+const deleteTimeSlotFromScheduleAPI = (
   scheduleId: string,
 
   timeSlotId: number | string
 ) => {
   const urlBackend = `/api/schedule/schedules/by-timeSlotId/${scheduleId}/${timeSlotId}`;
   return axios.delete<IBackendRes<any>>(urlBackend);
+};
+
+export {
+  getDoctorProfileByUserId,
+  getAllSpecialtiesDoctorProFile,
+  getAllClinics,
+  markAsReadNotification,
+  markAsReadAllNotification,
+  deleteAllNotification,
+  getNotificationByUserId,
+  uploadFileAPI,
+  createDoctorProfile,
+  getScheduleByDoctorId,
+  getAllTimeSlots,
+  updateExpiredTimeSlots,
+  getAllAppointmentsByDoctorId,
+  getAllConversationsDoctorAPI,
+  getPatientDetailBookingById,
+  getMessagesByConversationIdAPI,
+  createSchedule,
+  updateAppointmentStatus,
+  deleteScheduleByScheduleIdAPI,
+  deleteTimeSlotFromScheduleAPI,
 };

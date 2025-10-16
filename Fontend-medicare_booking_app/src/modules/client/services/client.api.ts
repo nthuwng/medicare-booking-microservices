@@ -12,34 +12,34 @@ import type {
 } from "@/types";
 import type { IAppointment, IAppointmentFullDetail } from "@/types/appointment";
 import type { IConversationResponse, IMessage } from "@/types/message";
-import type {IRating, IRatingResponse } from "@/types/rating";
+import type { IRating, IRatingResponse } from "@/types/rating";
 
-export const getAllApprovedDoctorsBooking = (query: string) => {
+const getAllApprovedDoctorsBooking = (query: string) => {
   const urlBackend = `/api/doctor/doctors/approved?${query}`;
   return axios.get<IBackendRes<IModelPaginate<IDoctorProfile>>>(urlBackend);
 };
 
-export const getAllSpecialtiesBooking = (query: string) => {
+const getAllSpecialtiesBooking = (query: string) => {
   const urlBackend = `/api/doctor/specialties?${query}`;
   return axios.get<IBackendRes<IModelPaginate<ISpecialty>>>(urlBackend);
 };
 
-export const getAllClinicsBooking = (query: string) => {
+const getAllClinicsBooking = (query: string) => {
   const urlBackend = `/api/doctor/clinics?${query}`;
   return axios.get<IBackendRes<IModelPaginate<IClinic>>>(urlBackend);
 };
 
-export const getDoctorDetailBookingById = (doctorId: string) => {
+const getDoctorDetailBookingById = (doctorId: string) => {
   const urlBackend = `/api/doctor/doctors/${doctorId}`;
   return axios.get<IBackendRes<IDoctorProfile>>(urlBackend);
 };
 
-export const createBooking = (data: ICreateAppointmentInput) => {
+const createBooking = (data: ICreateAppointmentInput) => {
   const urlBackend = `/api/appointment/appointments/create-appointment`;
   return axios.post<IBackendRes<IBooking>>(urlBackend, data);
 };
 
-export const createVNPayPayment = (data: ICreateVNPayPaymentInput) => {
+const createVNPayPayment = (data: ICreateVNPayPaymentInput) => {
   const urlBackend = `/api/payment/vnpay/create`;
   return axios.post<IBackendRes<{ paymentId: string; paymentUrl: string }>>(
     urlBackend,
@@ -47,39 +47,39 @@ export const createVNPayPayment = (data: ICreateVNPayPaymentInput) => {
   );
 };
 
-export const verifyVNPayReturn = (queryParams: string) => {
+const verifyVNPayReturn = (queryParams: string) => {
   const urlBackend = `/api/payment/vnpay/return?${queryParams}`;
   return axios.get<IBackendRes<any>>(urlBackend);
 };
 
-export const getPatientByUserIdAPI = (userId: string) => {
+const getPatientByUserIdAPI = (userId: string) => {
   const urlBackend = `/api/users/patients/by-user-id/${userId}`;
   return axios.get<IBackendRes<IPatientProfile>>(urlBackend);
 };
 
-export const getMessagesByConversationIdAPI = (conversationId: string) => {
+const getMessagesByConversationIdAPI = (conversationId: string) => {
   const urlBackend = `/api/message/by-conversation-id/${conversationId}`;
   return axios.get<IBackendRes<IMessage[]>>(urlBackend);
 };
 
 // API lấy tất cả conversations của patient
-export const getAllConversationsPatientAPI = (patientId: string) => {
+const getAllConversationsPatientAPI = (patientId: string) => {
   const urlBackend = `/api/message/conversations/PATIENT/${patientId}`;
   return axios.get<IBackendRes<IConversationResponse>>(urlBackend);
 };
 
 // Lấy danh sách lịch đã đặt của bệnh nhân hiện tại
-export const getMyAppointmentsAPI = () => {
+const getMyAppointmentsAPI = () => {
   const urlBackend = `/api/appointment/appointments/my-appointments`;
   return axios.get<IBackendRes<IAppointment[]>>(urlBackend);
 };
 
-export const getMyAppointmentByIdAPI = (id: string) => {
+const getMyAppointmentByIdAPI = (id: string) => {
   const urlBackend = `/api/appointment/appointments/my-appointments/${id}`;
   return axios.get<IBackendRes<IAppointmentFullDetail>>(urlBackend);
 };
 
-export const chatWithAIAPI = async (file: File, prompt: string) => {
+const chatWithAIAPI = async (file: File, prompt: string) => {
   const fd = new FormData();
 
   fd.append("image", file);
@@ -92,12 +92,86 @@ export const chatWithAIAPI = async (file: File, prompt: string) => {
   });
 };
 
-export const getRatingByDoctorIdAPI = (doctorId: string) => {
+const getRatingByDoctorIdAPI = (doctorId: string) => {
   const urlBackend = `/api/rating/by-doctorId/${doctorId}`;
   return axios.get<IBackendRes<IRatingResponse>>(urlBackend);
 };
 
-export const createRatingAPI = (doctorId: string, score: number, content: string) => {
+const createRatingAPI = (doctorId: string, score: number, content: string) => {
   const urlBackend = `/api/rating`;
-  return axios.post<IBackendRes<IRating>>(urlBackend, { doctorId, score, content });
+  return axios.post<IBackendRes<IRating>>(urlBackend, {
+    doctorId,
+    score,
+    content,
+  });
+};
+
+const putUpdatePasswordApi = (
+  oldPassword: string,
+  newPassword: string,
+  confirmPassword: string,
+  userId: string
+) => {
+  const urlBackend = `/api/auth/users/${userId}/password`;
+  return axios.put<IBackendRes<any>>(urlBackend, {
+    oldPassword,
+    newPassword,
+    confirmPassword,
+  });
+};
+
+const getPatientProfileAPI = (userId: string) => {
+  const urlBackend = `/api/users/patients/by-user-id/${userId}`;
+  return axios.get<IBackendRes<IPatientProfile>>(urlBackend);
+};
+
+const updatePatientProfileAPI = (
+  id: string,
+  fullName: string,
+  phone: string,
+  gender: string,
+  dateOfBirth: string,
+  address: string,
+  city: string,
+  district: string,
+  avatarUrl: string
+) => {
+  const urlBackend = `/api/users/patients/update-profile/${id}`;
+  return axios.put<IBackendRes<IPatientProfile>>(urlBackend, {
+    fullName,
+    phone,
+    gender,
+    dateOfBirth,
+    address,
+    city,
+    district,
+    avatarUrl,
+  });
+};
+
+const deletePatientAvatarAPI = (id: string) => {
+  const urlBackend = `/api/users/patients/delete-avatar/${id}`;
+  return axios.delete<IBackendRes<any>>(urlBackend);
+};
+
+export {
+  updatePatientProfileAPI,
+  getPatientProfileAPI,
+  getAllApprovedDoctorsBooking,
+  getAllSpecialtiesBooking,
+  getAllClinicsBooking,
+  getDoctorDetailBookingById,
+  createBooking,
+  createVNPayPayment,
+  verifyVNPayReturn,
+  getPatientByUserIdAPI,
+  getMessagesByConversationIdAPI,
+  getAllConversationsPatientAPI,
+  getMyAppointmentsAPI,
+  getMyAppointmentByIdAPI,
+  chatWithAIAPI,
+  getRatingByDoctorIdAPI,
+  createRatingAPI,
+  putUpdatePasswordApi,
+  deletePatientAvatarAPI,
 };
