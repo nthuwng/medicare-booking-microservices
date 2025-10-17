@@ -348,6 +348,19 @@ const DoctorMessagePage = () => {
 
         return next;
       });
+
+      // tăng badge chưa đọc khi không mở phòng chat đó và tin nhắn không phải của mình
+      const isFromMe = payload.lastMessage?.senderId === user?.id;
+      const isCurrent =
+        String(payload.conversationId) ===
+        String(currentConversationIdRef.current);
+      if (!isFromMe && !isCurrent) {
+        setUnreadByConv((prev) => ({
+          ...prev,
+          [Number(payload.conversationId)]:
+            (prev[Number(payload.conversationId)] || 0) + 1,
+        }));
+      }
     };
 
     onConversationUpdated(socket, handleConvUpdated);

@@ -276,10 +276,22 @@ const MessagePage = () => {
           return prev;
         }
       });
+
+      // tăng badge chưa đọc nếu tin nhắn đến từ người khác và không ở cuộc trò chuyện hiện tại
+      const isFromMe = payload.lastMessage?.senderId === user?.id;
+      const isCurrent =
+        String(payload.conversationId) === String(selectedConversationId);
+      if (!isFromMe && !isCurrent) {
+        setUnreadByConv((prev) => ({
+          ...prev,
+          [Number(payload.conversationId)]:
+            (prev[Number(payload.conversationId)] || 0) + 1,
+        }));
+      }
     };
     onConversationUpdated(socket, handleConvUpdated);
     return () => offConversationUpdated(socket, handleConvUpdated);
-  }, [socket, doctorId, dataDoctor]);
+  }, [socket, doctorId, dataDoctor, selectedConversationId, user?.id]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !socket || !user?.id) return;
