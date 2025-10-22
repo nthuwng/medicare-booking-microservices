@@ -2,12 +2,19 @@ import express from "express";
 import "dotenv/config";
 import aiRoutes from "./routes/ai.routes";
 import { connectRabbitMQ } from "./queue/connection";
-
+import cors from "cors";
 const app = express();
 const port = process.env.PORT || 8089;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost"],
+    credentials: true,
+  })
+);
 
 //config Routes
 aiRoutes(app);

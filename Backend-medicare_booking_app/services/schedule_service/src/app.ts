@@ -6,12 +6,19 @@ import timeSlotRoutes from "./routes/timeSlotRoutes";
 import { connectRabbitMQ } from "./queue/connection";
 import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 import { updateExpiredSlotsJob } from "./jobs/updateExpiredSlots.job";
-
+import cors from "cors";
 const app = express();
 const port = process.env.PORT || 8088;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost"],
+    credentials: true,
+  })
+);
 
 //config Routes
 scheduleRoutes(app);

@@ -4,7 +4,7 @@ import adminRoutes from "./routes/admin.routes";
 import { connectRabbitMQ } from "./queue/connection";
 import patientRoutes from "./routes/patient.routes";
 import { initializeAllRabbitMQConsumers } from "./queue/consumers";
-
+import cors from "cors";
 const app = express();
 const port = process.env.PORT || 8081;
 
@@ -12,6 +12,12 @@ const port = process.env.PORT || 8081;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost"],
+    credentials: true,
+  })
+);
 // Routes
 adminRoutes(app);
 patientRoutes(app);

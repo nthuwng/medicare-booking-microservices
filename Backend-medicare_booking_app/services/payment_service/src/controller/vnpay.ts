@@ -126,9 +126,7 @@ const vnpIpn = async (req: Request, res: Response) => {
       if (success) {
         try {
           await updatePaymentStatusViaRabbitMQ(payment.appointmentId);
-          console.log(
-            `✅ Đã gửi message cập nhật payment status cho appointment ${payment.appointmentId}`
-          );
+
         } catch (mqError) {
           console.error("❌ Lỗi khi gửi message qua RabbitMQ:", mqError);
           // Không throw error vì payment đã thành công

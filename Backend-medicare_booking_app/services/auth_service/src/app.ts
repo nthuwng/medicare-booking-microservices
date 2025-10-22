@@ -6,7 +6,7 @@ import { connectRabbitMQ } from "./queue/connection";
 import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 import { startCleanupRefreshTokensJob } from "./jobs/cleanupRefreshTokens.job";
 import initDatabase from "./config/seed";
-
+import cors from "cors";
 const app = express();
 const port = process.env.PORT || 8086;
 
@@ -14,6 +14,13 @@ const port = process.env.PORT || 8086;
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost"],
+    credentials: true,
+  })
+);
 
 // Register routes
 authRoutes(app);

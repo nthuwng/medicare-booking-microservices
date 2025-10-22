@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "docker-compose up --build",
+    "build:pro": "docker-compose -f docker-compose.pro.yml up --build",
     "down": "docker-compose down",
+    "down:pro": "docker-compose -f docker-compose.pro.yml down",
     "stop": "docker-compose stop",
     "dev": "docker-compose up",
     "dev:api_gateway": "docker-compose up --build api-gateway",
