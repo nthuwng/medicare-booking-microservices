@@ -1,0 +1,13 @@
+{
+  "name": "backend-medicare_booking_app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "docker compose --env-file docker-compose.env up --build",
+    "down": "docker compose down",
+    "stop": "docker compose stop",
+    "dev": "docker compose --env-file docker-compose.env up",
+    "dev:databases": "docker compose --env-file docker-compose.env up --build rabbitmq user_db auth_db doctor_db appointment_db schedule_db notification_db payment_db rating_db message_db"
+  }
+}

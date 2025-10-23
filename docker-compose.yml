@@ -1,9 +1,3 @@
-# <!--Start project with docker compose -->
-# build: docker compose up --build,
-# docker compose --env-file docker-compose.env up --build
-# down: docker compose down,
-# stop: docker compose stop,
-# dev: docker compose up,
 services:
   nginx:
     container_name: my-nginx
@@ -555,7 +549,8 @@ services:
 # Define networks
 networks:
   healthcare_network:
-    driver: bridge
+    external: true
+    name: medicare_booking_app_healthcare_network
 
 # Define volumes
 volumes:

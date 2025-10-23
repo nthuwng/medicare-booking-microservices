@@ -16,7 +16,6 @@ import {
   UserOutlined,
   CalendarOutlined,
   StarOutlined,
-  EditOutlined,
   TrophyOutlined,
   BookOutlined,
   SafetyCertificateOutlined,
@@ -405,20 +404,6 @@ const DoctorProFile = () => {
                     bodyStyle={{ padding: "24px" }}
                   >
                     <Row gutter={[16, 16]}>
-                      <Col xs={24} sm={12} md={6}>
-                        <Button
-                          type="primary"
-                          block
-                          icon={<EditOutlined />}
-                          className="h-12 text-base font-medium shadow-md hover:shadow-lg transition-shadow"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                          }}
-                        >
-                          Chỉnh sửa hồ sơ
-                        </Button>
-                      </Col>
                       <Col xs={24} sm={12} md={6}>
                         <Button
                           block
