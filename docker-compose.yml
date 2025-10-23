@@ -1,3 +1,9 @@
+# <!--Start project with docker compose -->
+# build: docker compose up --build,
+# docker compose --env-file docker-compose.env up --build
+# down: docker compose down,
+# stop: docker compose stop,
+# dev: docker compose up,
 services:
   nginx:
     container_name: my-nginx
@@ -7,10 +13,10 @@ services:
       context: .
       dockerfile: ./nginx/Dockerfile
       args:
-        VITE_BACKEND_URL: http://localhost:8080
-        VITE_SOCKET_URL: http://localhost:8084
-        VITE_MESSAGE_SOCKET_URL: http://localhost:9000
-        VITE_GOOGLE_CLIENT_ID: "99710604858-pdku385v2dodo7nlf9fj6nc3uf5e3k67.apps.googleusercontent.com"
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL}
+        VITE_MESSAGE_SOCKET_URL: ${VITE_MESSAGE_SOCKET_URL}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
     ports:
       - "80:80"
     volumes:
@@ -24,8 +30,8 @@ services:
       - "5672:5672" # AMQP protocol port
       - "15672:15672" # Management UI port
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -44,17 +50,17 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - PORT=8080
-      - USER_SERVICE_URL=http://user-service:8081
-      - APPOINTMENT_SERVICE_URL=http://appointment-service:8082
-      - DOCTOR_SERVICE_URL=http://doctor-service:8083
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8084
-      - PAYMENT_SERVICE_URL=http://payment-service:8085
-      - AUTH_SERVICE_URL=http://auth-service:8086
-      - RATING_SERVICE_URL=http://rating-service:8087
-      - SCHEDULE_SERVICE_URL=http://schedule-service:8088
-      - AI_SERVICE_URL=http://ai-service:8089
-      - MESSAGE_SERVICE_URL=http://message-service:9000
+      - PORT=${API_GATEWAY_PORT}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - APPOINTMENT_SERVICE_URL=${APPOINTMENT_SERVICE_URL}
+      - DOCTOR_SERVICE_URL=${DOCTOR_SERVICE_URL}
+      - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL}
+      - PAYMENT_SERVICE_URL=${PAYMENT_SERVICE_URL}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL}
+      - RATING_SERVICE_URL=${RATING_SERVICE_URL}
+      - SCHEDULE_SERVICE_URL=${SCHEDULE_SERVICE_URL}
+      - AI_SERVICE_URL=${AI_SERVICE_URL}
+      - MESSAGE_SERVICE_URL=${MESSAGE_SERVICE_URL}
     depends_on:
       - user-service
       - appointment-service
@@ -77,10 +83,10 @@ services:
     container_name: user_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: user_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
     ports:
-      - "3307:3306" # Fixed: MySQL default port is 3306
+      - "${USER_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
       - user_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -95,7 +101,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
   # User service
   user-service:
     build:
@@ -108,7 +113,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/user_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@user_db:3306/user_db # Fixed port
+      - DATABASE_URL=${USER_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/user_service:/app:cached
       - user_node_modules:/app/node_modules
@@ -122,19 +127,20 @@ services:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
-  appointment_db:
+  # Auth service database
+  auth_db:
     image: mysql:8.0
     mem_limit: 512m
     cpus: "0.80"
-    container_name: appointment_mysql
+    container_name: auth_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: appointment_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${AUTH_MYSQL_DATABASE}
     ports:
-      - "3310:3306" # Fixed: MySQL default port is 3306
+      - "${AUTH_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
-      - appointment_mysql_data:/var/lib/mysql
+      - auth_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
     networks:
       - healthcare_network
@@ -145,55 +151,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
-  # Appointment service
-  appointment-service:
+  # Auth service
+  auth-service:
     build:
-      context: ./Backend-medicare_booking_app/services/appointment_service
+      context: ./Backend-medicare_booking_app/services/auth_service
       dockerfile: Dockerfile
+    restart: unless-stopped
     mem_limit: 300m
     cpus: "0.80"
     ports:
-      - "8082:8082"
+      - "8086:8086"
     env_file:
-      - ./Backend-medicare_booking_app/services/appointment_service/.env
+      - ./Backend-medicare_booking_app/services/auth_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@appointment_db:3306/appointment_db # Fixed port
+      - DATABASE_URL=${AUTH_DATABASE_URL}
     volumes:
-      - ./Backend-medicare_booking_app/services/appointment_service:/app:cached
-      - appointment_node_modules:/app/node_modules
+      - ./Backend-medicare_booking_app/services/auth_service:/app:cached
+      - auth_node_modules:/app/node_modules
       - ./Backend-medicare_booking_app/shared:/shared
     depends_on:
       rabbitmq:
         condition: service_healthy
-      appointment_db:
+      auth_db:
         condition: service_healthy
     networks:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
-  ai-service:
-    build:
-      context: ./Backend-medicare_booking_app/services/ai_service
-      dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
-    ports:
-      - "8089:8089"
-    env_file:
-      - ./Backend-medicare_booking_app/services/ai_service/.env
-    volumes:
-      - ./Backend-medicare_booking_app/services/ai_service:/app:cached
-      - ai_node_modules:/app/node_modules
-      - ./Backend-medicare_booking_app/shared:/shared
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - healthcare_network
-    command: npm run dev
-
-  # User service database
+  # Doctor service database
   doctor_db:
     image: mysql:8.0
     mem_limit: 512m
@@ -201,10 +186,10 @@ services:
     container_name: doctor_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: doctor_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DOCTOR_MYSQL_DATABASE}
     ports:
-      - "3309:3306" # Fixed: MySQL default port is 3306
+      - "${DOCTOR_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
       - doctor_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -229,7 +214,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/doctor_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@doctor_db:3306/doctor_db # Fixed port
+      - DATABASE_URL=${DOCTOR_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/doctor_service:/app:cached
       - doctor_node_modules:/app/node_modules
@@ -243,6 +228,108 @@ services:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
+  # Appointment service database
+  appointment_db:
+    image: mysql:8.0
+    mem_limit: 512m
+    cpus: "0.80"
+    container_name: appointment_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${APPOINTMENT_MYSQL_DATABASE}
+    ports:
+      - "${APPOINTMENT_DB_PORT}:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - appointment_mysql_data:/var/lib/mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
+    networks:
+      - healthcare_network
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  # Appointment service
+  appointment-service:
+    build:
+      context: ./Backend-medicare_booking_app/services/appointment_service
+      dockerfile: Dockerfile
+    mem_limit: 300m
+    cpus: "0.80"
+    ports:
+      - "8082:8082"
+    env_file:
+      - ./Backend-medicare_booking_app/services/appointment_service/.env
+    environment:
+      - DATABASE_URL=${APPOINTMENT_DATABASE_URL}
+    volumes:
+      - ./Backend-medicare_booking_app/services/appointment_service:/app:cached
+      - appointment_node_modules:/app/node_modules
+      - ./Backend-medicare_booking_app/shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      appointment_db:
+        condition: service_healthy
+    networks:
+      - healthcare_network
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+
+  # Schedule service database
+  schedule_db:
+    image: mysql:8.0
+    mem_limit: 512m
+    cpus: "0.80"
+    container_name: schedule_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SCHEDULE_MYSQL_DATABASE}
+    ports:
+      - "${SCHEDULE_DB_PORT}:3306" # Fixed: MySQL default port is 3306
+    volumes:
+      - schedule_mysql_data:/var/lib/mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
+    networks:
+      - healthcare_network
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  # Schedule service
+  schedule-service:
+    build:
+      context: ./Backend-medicare_booking_app/services/schedule_service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    mem_limit: 300m
+    cpus: "0.80"
+    ports:
+      - "8088:8088"
+    env_file:
+      - ./Backend-medicare_booking_app/services/schedule_service/.env
+    environment:
+      - DATABASE_URL=${SCHEDULE_DATABASE_URL}
+    volumes:
+      - ./Backend-medicare_booking_app/services/schedule_service:/app:cached
+      - schedule_node_modules:/app/node_modules
+      - ./Backend-medicare_booking_app/shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      schedule_db:
+        condition: service_healthy
+    networks:
+      - healthcare_network
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+
+  # Notification service database
   notification_db:
     image: mysql:8.0
     mem_limit: 512m
@@ -250,10 +337,10 @@ services:
     container_name: notification_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: notification_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
     ports:
-      - "3312:3306"
+      - "${NOTIFICATION_DB_PORT}:3306"
     volumes:
       - notification_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -278,7 +365,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/notification_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@notification_db:3306/notification_db # Fixed port
+      - DATABASE_URL=${NOTIFICATION_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/notification_service:/app:cached
       - notification_node_modules:/app/node_modules
@@ -292,8 +379,7 @@ services:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
-  # Payment service
-
+  # Payment service database
   payment_db:
     image: mysql:8.0
     mem_limit: 512m
@@ -301,10 +387,10 @@ services:
     container_name: payment_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: payment_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
     ports:
-      - "3313:3306" # Fixed: MySQL default port is 3306
+      - "${PAYMENT_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
       - payment_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -317,6 +403,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  # Payment service
   payment-service:
     build:
       context: ./Backend-medicare_booking_app/services/payment_service
@@ -328,7 +415,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/payment_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@payment_db:3306/payment_db # Fixed port
+      - DATABASE_URL=${PAYMENT_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/payment_service:/app:cached
       - payment_node_modules:/app/node_modules
@@ -342,104 +429,7 @@ services:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
-  auth_db:
-    image: mysql:8.0
-    mem_limit: 512m
-    cpus: "0.80"
-    container_name: auth_mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: auth_db
-    ports:
-      - "3308:3306" # Fixed: MySQL default port is 3306
-    volumes:
-      - auth_mysql_data:/var/lib/mysql
-    command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
-    networks:
-      - healthcare_network
-    healthcheck:
-      test:
-        - "CMD-SHELL"
-        - "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"
-      interval: 10s
-      timeout: 5s
-      retries: 10
-  auth-service:
-    build:
-      context: ./Backend-medicare_booking_app/services/auth_service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    mem_limit: 300m
-    cpus: "0.80"
-    ports:
-      - "8086:8086"
-    env_file:
-      - ./Backend-medicare_booking_app/services/auth_service/.env
-    environment:
-      - DATABASE_URL=mysql://root:medicare_booking@auth_db:3306/auth_db # Fixed port
-    volumes:
-      - ./Backend-medicare_booking_app/services/auth_service:/app:cached
-      - auth_node_modules:/app/node_modules
-      - ./Backend-medicare_booking_app/shared:/shared
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      auth_db:
-        condition: service_healthy
-    networks:
-      - healthcare_network
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
-
-  schedule_db:
-    image: mysql:8.0
-    mem_limit: 512m
-    cpus: "0.80"
-    container_name: schedule_mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: schedule_db
-    ports:
-      - "3311:3306" # Fixed: MySQL default port is 3306
-    volumes:
-      - schedule_mysql_data:/var/lib/mysql
-    command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
-    networks:
-      - healthcare_network
-    healthcheck:
-      test:
-        - "CMD-SHELL"
-        - "mysqladmin ping -h localhost -p$${MYSQL_ROOT_PASSWORD} --silent"
-      interval: 10s
-      timeout: 5s
-      retries: 10
-  schedule-service:
-    build:
-      context: ./Backend-medicare_booking_app/services/schedule_service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    mem_limit: 300m
-    cpus: "0.80"
-    ports:
-      - "8088:8088"
-    env_file:
-      - ./Backend-medicare_booking_app/services/schedule_service/.env
-    environment:
-      - DATABASE_URL=mysql://root:medicare_booking@schedule_db:3306/schedule_db # Fixed port
-    volumes:
-      - ./Backend-medicare_booking_app/services/schedule_service:/app:cached
-      - schedule_node_modules:/app/node_modules
-      - ./Backend-medicare_booking_app/shared:/shared
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      schedule_db:
-        condition: service_healthy
-    networks:
-      - healthcare_network
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
-
+  # Rating service database
   rating_db:
     image: mysql:8.0
     mem_limit: 512m
@@ -447,10 +437,10 @@ services:
     container_name: rating_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: rating_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${RATING_MYSQL_DATABASE}
     ports:
-      - "3314:3306" # Fixed: MySQL default port is 3306
+      - "${RATING_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
       - rating_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -463,6 +453,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  # Rating service
   rating-service:
     build:
       context: ./Backend-medicare_booking_app/services/rating_service
@@ -474,7 +465,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/rating_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@rating_db:3306/rating_db # Fixed port
+      - DATABASE_URL=${RATING_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/rating_service:/app:cached
       - rating_node_modules:/app/node_modules
@@ -488,6 +479,7 @@ services:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
 
+  # Message service database
   message_db:
     image: mysql:8.0
     mem_limit: 512m
@@ -495,10 +487,10 @@ services:
     container_name: message_mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: medicare_booking
-      MYSQL_DATABASE: message_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MESSAGE_MYSQL_DATABASE}
     ports:
-      - "3315:3306" # Fixed: MySQL default port is 3306
+      - "${MESSAGE_DB_PORT}:3306" # Fixed: MySQL default port is 3306
     volumes:
       - message_mysql_data:/var/lib/mysql
     command: mysqld --default-authentication-plugin=mysql_native_password --performance_schema=0 --innodb_buffer_pool_size=256M --max_connections=100
@@ -511,6 +503,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+  # Message service
   message-service:
     build:
       context: ./Backend-medicare_booking_app/services/message_service
@@ -523,7 +516,7 @@ services:
     env_file:
       - ./Backend-medicare_booking_app/services/message_service/.env
     environment:
-      - DATABASE_URL=mysql://root:medicare_booking@message_db:3306/message_db # Fixed port
+      - DATABASE_URL=${MESSAGE_DATABASE_URL}
     volumes:
       - ./Backend-medicare_booking_app/services/message_service:/app:cached
       - message_node_modules:/app/node_modules
@@ -536,6 +529,28 @@ services:
     networks:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
+
+  # AI service database
+  ai-service:
+    build:
+      context: ./Backend-medicare_booking_app/services/ai_service
+      dockerfile: Dockerfile
+    mem_limit: 300m
+    cpus: "0.80"
+    ports:
+      - "8089:8089"
+    env_file:
+      - ./Backend-medicare_booking_app/services/ai_service/.env
+    volumes:
+      - ./Backend-medicare_booking_app/services/ai_service:/app:cached
+      - ai_node_modules:/app/node_modules
+      - ./Backend-medicare_booking_app/shared:/shared
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - healthcare_network
+    command: npm run dev
 
 # Define networks
 networks:
