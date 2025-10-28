@@ -1,10 +1,10 @@
 import { initGetRatingByDoctorIdConsumer } from "./getRatingByDoctorId.consumer";
-
+import { initGetRatingStatsByDoctorIdConsumer } from "./getFullRating.consumer";
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
     await initGetRatingByDoctorIdConsumer();
-
+    await initGetRatingStatsByDoctorIdConsumer();
 
     console.log(
       "✅ All RabbitMQ consumers rating_service initialized successfully."

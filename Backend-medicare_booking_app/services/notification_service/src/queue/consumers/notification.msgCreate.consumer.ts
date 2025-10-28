@@ -21,8 +21,6 @@ export const initNotificationMsgCreateConsumer = async () => {
   await channel.assertQueue(queueName, { durable: true });
   await channel.bindQueue(queueName, exchangeName, "message.created");
 
-  console.log(`[Notification] Waiting on ${queueName}...`);
-
   channel.consume(queueName, async (msg) => {
     if (!msg) return;
     try {

@@ -9,6 +9,7 @@ import {
   handleSpecialtyDoctorCheck,
   getDoctorByUserIdService,
   countTotalDoctor,
+  updateDoctorAvatarService,
 } from "src/services/doctorServices";
 
 const createDoctorController = async (req: Request, res: Response) => {
@@ -211,6 +212,34 @@ const specialtyDoctorCheckController = async (req: Request, res: Response) => {
   }
 };
 
+const updateDoctorAvatarController = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { avatar_url, avatar_public_id } = req.body;
+    const doctor = await updateDoctorAvatarService(
+      userId,
+      avatar_url,
+      avatar_public_id
+    );
+
+    if (!doctor) {
+      res.status(404).json({
+        success: false,
+        message: "Doctor không tồn tại",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật ảnh đại diện thành công.",
+      data: doctor,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createDoctorController,
   getDoctorByIdController,
@@ -219,4 +248,5 @@ export {
   getAllApprovedDoctorsController,
   getDoctorByUserIdController,
   specialtyDoctorCheckController,
+  updateDoctorAvatarController,
 };

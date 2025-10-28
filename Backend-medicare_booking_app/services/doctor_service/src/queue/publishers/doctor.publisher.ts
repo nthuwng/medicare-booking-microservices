@@ -65,6 +65,10 @@ const getRatingByDoctorIdViaRabbitMQ = async (doctorId: string) => {
   return rpcRequest("rating.get_rating_by_doctor_id", { doctorId });
 };
 
+const getRatingStatsByDoctorIdViaRabbitMQ = async (doctorId: string) => {
+  return rpcRequest("rating.get_rating_stats_by_doctor_id", { doctorId });
+};
+
 export {
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
@@ -74,5 +78,6 @@ export {
   sendMessageRegisterDoctorViaRabbitMQ,
   sendMessageUpdateDoctorStatusViaRabbitMQ,
   getScheduleByDoctorIdViaRabbitMQ,
-  getRatingByDoctorIdViaRabbitMQ
+  getRatingByDoctorIdViaRabbitMQ,
+  getRatingStatsByDoctorIdViaRabbitMQ,
 };

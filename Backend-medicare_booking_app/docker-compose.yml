@@ -1,8 +1,6 @@
 services:
   api-gateway:
     build: ./api_gateway_service
-    mem_limit: 400m
-    cpus: "1.00"
     ports:
       - "8080:8080"
     environment:
@@ -36,8 +34,6 @@ services:
     build:
       context: ./services/user_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8081:8081"
     env_file:
@@ -57,8 +53,6 @@ services:
     build:
       context: ./services/appointment_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8082:8082"
     env_file:
@@ -77,8 +71,6 @@ services:
     build:
       context: ./services/ai_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8089:8089"
     env_file:
@@ -96,8 +88,6 @@ services:
     build:
       context: ./services/doctor_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8083:8083"
     env_file:
@@ -138,8 +128,6 @@ services:
     build:
       context: ./services/payment_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8085:8085"
     env_file:
@@ -159,8 +147,6 @@ services:
       context: ./services/auth_service
       dockerfile: Dockerfile
     restart: unless-stopped
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8086:8086"
     env_file:
@@ -180,8 +166,6 @@ services:
       context: ./services/schedule_service
       dockerfile: Dockerfile
     restart: unless-stopped
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8088:8088"
     env_file:
@@ -200,8 +184,6 @@ services:
     build:
       context: ./services/rating_service
       dockerfile: Dockerfile
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "8087:8087"
     env_file:
@@ -221,8 +203,6 @@ services:
       context: ./services/message_service
       dockerfile: Dockerfile
     restart: unless-stopped
-    mem_limit: 300m
-    cpus: "0.80"
     ports:
       - "9000:9000"
     env_file:

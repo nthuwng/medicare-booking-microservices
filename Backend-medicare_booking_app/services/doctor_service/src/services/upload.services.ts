@@ -12,7 +12,7 @@ export const uploadToCloudinary = async (
 
     return {
       url: result.secure_url,
-      public_id: result.public_id,
+      public_id: result.public_id,                
     };
   } catch (error) {
     fs.unlinkSync(filePath);

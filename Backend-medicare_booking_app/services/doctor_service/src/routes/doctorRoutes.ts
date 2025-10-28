@@ -7,6 +7,7 @@ import {
   getAllApprovedDoctorsController,
   getDoctorByUserIdController,
   specialtyDoctorCheckController,
+  updateDoctorAvatarController,
 } from "../controllers/doctorController";
 import {
   authenticateToken,
@@ -25,6 +26,11 @@ router.get(
   authenticateToken,
   authorizeDoctor,
   getDoctorByUserIdController
+);
+router.put(
+  "/update-avatar/:userId",
+  authenticateToken,
+  updateDoctorAvatarController
 );
 
 router.put(

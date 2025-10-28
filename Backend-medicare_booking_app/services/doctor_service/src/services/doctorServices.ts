@@ -1,13 +1,10 @@
 import { ApprovalStatus, Title } from "@prisma/client";
-import {
-  CreateDoctorProfileData,
-  UpdateDoctorStatusInput,
-  UserInfo,
-} from "@shared/index";
+import { CreateDoctorProfileData, UserInfo } from "@shared/index";
 import { prisma } from "src/config/client";
 import {
   getAllDoctorsViaRabbitMQ,
   getRatingByDoctorIdViaRabbitMQ,
+  getRatingStatsByDoctorIdViaRabbitMQ,
   getScheduleByDoctorIdViaRabbitMQ,
   getUserByIdViaRabbitMQ,
   sendMessageRegisterDoctorViaRabbitMQ,
@@ -407,18 +404,19 @@ const handleGetAllApprovedDoctors = async (
       warning: "Không thể lấy thông tin user từ auth service",
     };
   }
-  const doctorsWithUserInfo = doctors.map((doctor) => {
-    const userInfo = userAllUsers.find(
-      (user: UserInfo) => user.id === doctor.userId
-    );
-
-    if (!userInfo) {
-      console.warn(
-        `Không tìm thấy user info cho doctor ${doctor.id} với userId ${doctor.userId}`
+  const doctorsWithUserInfo = await Promise.all(
+    doctors.map(async (doctor) => {
+      const userInfo = userAllUsers.find(
+        (user: UserInfo) => user.id === doctor.userId
       );
-    }
-    return { ...doctor, userInfo };
-  });
+
+      const ratingStatsByDoctorId = await getRatingStatsByDoctorIdViaRabbitMQ(
+        doctor.id
+      );
+
+      return { ...doctor, userInfo, ratingStatsByDoctorId };
+    })
+  );
 
   return {
     doctors: doctorsWithUserInfo,
@@ -464,10 +462,28 @@ const handleSpecialtyDoctorCheck = async (specialtyName: string) => {
     include: {
       specialty: true,
       clinic: true,
-    }
-    
+    },
   });
   return doctor;
+};
+
+const updateDoctorAvatarService = async (
+  userId: string,
+  avatar_url: string,
+  avatar_public_id: string
+) => {
+  const doctor = await prisma.doctor.findUnique({
+    where: { userId: userId },
+  });
+  if (!doctor) {
+    throw new Error("Doctor không tồn tại");
+  }
+
+  const doctorUpdated = await prisma.doctor.update({
+    where: { userId: userId },
+    data: { avatarUrl: avatar_url, avatarPublicId: avatar_public_id },
+  });
+  return doctorUpdated;
 };
 
 export {
@@ -482,4 +498,5 @@ export {
   getDoctorByUserIdService,
   getUserIdByDoctorIdService,
   handleSpecialtyDoctorCheck,
+  updateDoctorAvatarService,
 };

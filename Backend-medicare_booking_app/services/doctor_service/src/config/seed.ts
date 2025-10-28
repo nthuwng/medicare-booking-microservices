@@ -20,7 +20,7 @@ type SeedSpecialty = {
 
 const CLINIC_SEEDS: SeedClinic[] = [
   {
-    clinicName: "Bệnh viện Da Liễu ",
+    clinicName: "Bệnh viện Da Liễu",
     city: "HoChiMinh",
     district: "Quận 3",
     street: "Số 2, đường Nguyễn Thông, Phường Xuân Hòa",

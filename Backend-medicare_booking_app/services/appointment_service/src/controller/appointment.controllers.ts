@@ -129,7 +129,7 @@ const getAllAppointmentsByDoctorIdController = async (
     res.status(200).json({
       success: true,
       length: appointments.length,
-      message: "Lấy danh sách tất cả bác sĩ thành công.",
+      message: "Lấy danh sách tất cả cuộc hẹn bác sĩ thành công.",
       data: {
         meta: {
           currentPage: currentPage,

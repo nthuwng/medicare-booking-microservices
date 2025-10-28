@@ -24,8 +24,6 @@ export const initDoctorRegisteredConsumer = async () => {
   await channel.assertQueue(queueName, { durable: true });
   await channel.bindQueue(queueName, exchangeName, "doctor.registered");
 
-  console.log(`[Notification] Waiting on ${queueName}...`);
-
   channel.consume(queueName, async (msg) => {
     if (!msg) return;
     try {

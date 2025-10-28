@@ -334,6 +334,9 @@ const handleAppointmentsByDoctorIdServices = async (
     },
     skip: skip,
     take: pageSize,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   const appointmentsWithScheduleInfo = await Promise.all(
