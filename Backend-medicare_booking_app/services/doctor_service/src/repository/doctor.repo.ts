@@ -154,6 +154,8 @@ const importDoctorProfiles = async (doctors: any[]) => {
           specialtyId: Number(doctor.specialtyId),
           clinicId: Number(doctor.clinicId),
           bookingFee: Number(doctor.bookingFee),
+          avatarUrl: doctor.avatarUrl || "",
+          avatarPublicId: doctor.avatarPublicId || "",
           approvalStatus: doctor.approvalStatus as ApprovalStatus,
         },
         include: {

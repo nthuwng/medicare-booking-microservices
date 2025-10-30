@@ -85,9 +85,47 @@ const handleGetRatingByDoctorId = async (doctorId: string) => {
   return { ratings, ratingStats };
 };
 
+const countTotalDoctorRatingStatPage = async (pageSize: number) => {
+  const totalItems = await prisma.doctorRatingStat.count();
 
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  return totalPages;
+};
+
+const handleGetAllTopRateDoctorRatingStat = async (
+  page: number,
+  pageSize: number
+) => {
+  const skip = (page - 1) * pageSize;
+  // Total items across all pages for correct pagination meta
+  const totalItems = await prisma.doctorRatingStat.count();
+  const topRateDoctors = await prisma.doctorRatingStat.findMany({
+    skip: skip,
+    take: pageSize,
+    orderBy: {
+      avgScore: "desc",
+    },
+  });
+
+  const topRateDoctorsWithProfile = await Promise.all(
+    topRateDoctors.map(async (doctor) => {
+      const doctorProfile = await checkFullDetailDoctorViaRabbitMQ(
+        doctor.doctorId
+      );
+      return { ...doctor, doctorProfile };
+    })
+  );
+
+  return {
+    doctors: topRateDoctorsWithProfile,
+    totalDoctors: totalItems,
+  };
+};
 export {
   handleCreateRating,
   handleGetRatingById,
   handleGetRatingByDoctorId,
+  countTotalDoctorRatingStatPage,
+  handleGetAllTopRateDoctorRatingStat,
 };

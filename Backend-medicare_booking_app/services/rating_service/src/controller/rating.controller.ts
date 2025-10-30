@@ -3,6 +3,8 @@ import {
   handleCreateRating,
   handleGetRatingById,
   handleGetRatingByDoctorId,
+  countTotalDoctorRatingStatPage,
+  handleGetAllTopRateDoctorRatingStat,
 } from "../services/rating.service";
 
 const getRatingByIdController = async (req: Request, res: Response) => {
@@ -39,10 +41,55 @@ const getRatingByDoctorIdController = async (req: Request, res: Response) => {
     message: "Rating fetched successfully",
     data: rating,
   });
-};  
+};
 
+const getTopRateDoctorsController = async (req: Request, res: Response) => {
+  const { page, pageSize } = req.query;
+  let currentPage = page ? +page : 1;
+  if (currentPage <= 0) {
+    currentPage = 1;
+  }
+  const totalPages = await countTotalDoctorRatingStatPage(
+    parseInt(pageSize as string)
+  );
+  const { doctors, totalDoctors } = await handleGetAllTopRateDoctorRatingStat(
+    currentPage,
+    parseInt(pageSize as string)
+  );
+  if (doctors.length === 0) {
+    res.status(200).json({
+      success: true,
+      message: "Không có thông tin đánh giá nào của bác sĩ nào trong trang này",
+      data: {
+        meta: {
+          current: currentPage,
+          pageSize: parseInt(pageSize as string),
+          pages: totalPages,
+          total: totalDoctors, // total across all pages
+        },
+        result: [],
+      },
+    });
+    return;
+  }
+  res.status(200).json({
+    success: true,
+    length: doctors.length,
+    message: "Lấy danh sách bác sĩ đánh giá cao thành công",
+    data: {
+      meta: {
+        current: currentPage,
+        pageSize: parseInt(pageSize as string),
+        pages: totalPages,
+        total: totalDoctors, // total across all pages
+      },
+      result: doctors,
+    },
+  });
+};
 export {
   getRatingByIdController,
   createRatingController,
   getRatingByDoctorIdController,
+  getTopRateDoctorsController,
 };
