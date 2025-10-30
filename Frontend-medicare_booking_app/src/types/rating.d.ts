@@ -26,3 +26,12 @@ export interface IRatingStats {
   lastReviewAt: string;
   updatedAt: string;
 }
+
+export interface ITopRateDoctors {
+  doctorId: string;
+  avgScore: string;
+  totalReviews: number;
+  lastReviewAt: string;
+  updatedAt: string;
+  doctorProfile: IDoctorProfile;
+}

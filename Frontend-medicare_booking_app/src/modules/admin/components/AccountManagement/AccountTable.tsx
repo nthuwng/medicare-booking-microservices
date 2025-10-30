@@ -27,7 +27,7 @@ const AccountTable = () => {
   const actionRef = useRef<ActionType>(null);
   const [meta, setMeta] = useState({
     current: 1,
-    pageSize: 5,
+    pageSize: 10,
     pages: 0,
     total: 0,
   });
@@ -142,7 +142,7 @@ const AccountTable = () => {
           let query = "";
           if (params) {
             const page = params.current || 1;
-            const pageSize = params.pageSize || 5;
+            const pageSize = params.pageSize || 10;
             query += `page=${page}&pageSize=${pageSize}`;
             if (params.email) {
               query += `&email=${params.email}`;

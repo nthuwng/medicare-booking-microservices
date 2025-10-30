@@ -332,17 +332,26 @@ const DoctorDetailPage = () => {
                       <List.Item.Meta
                         avatar={
                           <Avatar>
-                            {item.userProfile?.full_name
+                            {item.userProfile && item.userProfile.full_name
                               ? item.userProfile.full_name
                                   .charAt(0)
                                   .toUpperCase()
+                              : item.isAnonymous
+                              ? "A"
+                              : item.userId
+                              ? item.userId.charAt(0).toUpperCase()
                               : "U"}
                           </Avatar>
                         }
                         title={
                           <div className="flex items-center justify-between">
                             <span className="font-medium text-gray-800">
-                              {item.userProfile.full_name}
+                              {item.userProfile && item.userProfile.full_name
+                                ? item.userProfile.full_name
+                                : item.isAnonymous
+                                ? "Ẩn danh"
+                                : "Người dùng #" + item.userId?.slice(0, 5) ||
+                                  "Không rõ"}
                             </span>
                             <span className="text-gray-500 text-xs">
                               {formatDate(item.createdAt)}

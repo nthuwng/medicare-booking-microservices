@@ -1,6 +1,7 @@
 import Banner from "../components/Banner/Banner";
 import { Users, Clock, Award, Shield } from "lucide-react";
 import BookingOptions from "../components/BookingOptions/BookingOptions";
+import DoctorCarousel from "../components/Banner/DoctorCarousel";
 
 const HomePage = () => {
   const stats = [
@@ -53,6 +54,9 @@ const HomePage = () => {
     <div className="min-h-screen bg-white">
       {/*Banner */}
       <Banner />
+
+      {/*Top rate doctor */}
+      <DoctorCarousel />
 
       {/* Statistics Section */}
       <section
@@ -128,9 +132,7 @@ const HomePage = () => {
       </section>
 
       {/* For You Section */}
-      <section className="bg-gray-50 py-12 font-sans w-full" 
-      
-      >
+      <section className="bg-gray-50 py-12 font-sans w-full">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="mb-8 md:mb-12 text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-800">

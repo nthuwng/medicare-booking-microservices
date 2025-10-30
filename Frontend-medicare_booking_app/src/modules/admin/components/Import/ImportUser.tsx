@@ -29,6 +29,8 @@ interface IDataImport {
   bookingFee: string;
   title: string;
   gender: string;
+  avatarUrl: string;
+  avatarPublicId: string;
   approvalStatus: string;
 }
 
@@ -144,6 +146,8 @@ const ImportUser = (props: IProps) => {
         bookingFee: item.bookingFee,
         title: item.title,
         gender: item.gender,
+        avatarUrl: item.avatarUrl || "",
+        avatarPublicId: item.avatarPublicId || "",
         approvalStatus: item.approvalStatus,
       }));
 

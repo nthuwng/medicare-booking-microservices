@@ -20,6 +20,7 @@ import MyAccountPage from "@/modules/client/pages/MyAccountPage";
 import PatientProtectedRoute from "@/components/auth/PatientProtectedRoute";
 import AboutPage from "@/modules/client/pages/AboutPage";
 import LayoutAccount from "@/modules/client/components/LayoutAccount/LayoutAccount";
+import TopRateDoctors from "@/modules/client/pages/TopRateDoctors";
 
 const ClientRoutes = () => {
   return (
@@ -105,6 +106,8 @@ const ClientRoutes = () => {
         {/* Trang about */}
         <Route path="/about" element={<AboutPage />} />
 
+        {/* Bác sĩ được đánh giá cao */}
+        <Route path="/top-rate-doctors" element={<TopRateDoctors />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

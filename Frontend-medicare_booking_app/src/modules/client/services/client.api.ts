@@ -12,7 +12,7 @@ import type {
 } from "@/types";
 import type { IAppointment, IAppointmentFullDetail } from "@/types/appointment";
 import type { IConversationResponse, IMessage } from "@/types/message";
-import type { IRating, IRatingResponse } from "@/types/rating";
+import type { IRating, IRatingResponse, ITopRateDoctors } from "@/types/rating";
 
 const getAllApprovedDoctorsBooking = (query: string) => {
   const urlBackend = `/api/doctor/doctors/approved?${query}`;
@@ -175,7 +175,13 @@ const deletePatientAvatarAPI = (id: string) => {
   return axios.delete<IBackendRes<any>>(urlBackend);
 };
 
+const getTopRateDoctorsAPI = (page: number, pageSize: number) => {
+  const urlBackend = `/api/rating/top-rate/doctors?page=${page}&pageSize=${pageSize}`;
+  return axios.get<IBackendRes<IModelPaginate<ITopRateDoctors>>>(urlBackend);
+};
+
 export {
+  getTopRateDoctorsAPI,
   updatePatientProfileAPI,
   getPatientProfileAPI,
   getAllApprovedDoctorsBooking,
