@@ -348,16 +348,15 @@ const LayoutDoctor = () => {
                   </Space>
                 </Space>
               </div>
-
-              <Menu
-                defaultSelectedKeys={[activeMenu]}
-                mode="inline"
-                items={items}
-                onClick={(e) => setActiveMenu(e.key)}
-                className="admin-menu"
-              />
             </>
           )}
+          <Menu
+            defaultSelectedKeys={[activeMenu]}
+            mode="inline"
+            items={items}
+            onClick={(e) => setActiveMenu(e.key)}
+            className="admin-menu"
+          />
         </Sider>
         <Layout>
           <div className="admin-header">

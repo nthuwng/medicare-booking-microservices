@@ -1,144 +1,279 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import "./Banner.css";
 import { Link } from "react-router-dom";
+import { useCurrentApp } from "@/components/contexts/app.context";
 
-// Define the type for a single slide object
-interface SlideItem {
-  id: number;
-  img: string;
+type Slide = { id: number; img: string; alt?: string };
+
+const slides: Slide[] = [
+  { id: 1, img: "/Banner/doctor-banner-1.jpg", alt: "Bệnh viện 1" },
+  { id: 2, img: "/Banner/doctor-banner-2.jpg", alt: "Bệnh viện 2" },
+  { id: 3, img: "/Banner/doctor-banner-3.jpg", alt: "Bệnh viện 3" },
+];
+
+/** srcSet/sizes đơn giản cho ảnh local (giúp đỡ mờ trên màn hình DPI cao) */
+function buildSrcSet(url: string, baseW: number) {
+  return `${url} ${baseW}w, ${url} ${baseW * 2}w`;
+}
+function sizesOf(widthPx: number) {
+  return `(max-width: 768px) 100vw, ${widthPx}px`;
 }
 
-// Define the main App component
+const AUTO = 4500;
+const DURATION = 500; // ms
+
 const Banner = () => {
-  const slides: SlideItem[] = [
-    {
-      id: 1,
-      img: "/Banner/doctor-banner-1.jpg",
-    },
-    {
-      id: 2,
-      img: "/Banner/doctor-banner-2.jpg",
-    },
-    {
-      id: 3,
-      img: "/Banner/doctor-banner-3.jpg",
-    },
-  ];
+  const { theme } = useCurrentApp(); // lấy light/dark từ context
 
-  const AUTOCHANGE_TIME = 4000;
-  const [activeSlide, setActiveSlide] = useState(0);
+  const [active, setActive] = useState(0);
+  const [isHover, setIsHover] = useState(false);
 
-  // useEffect to handle the auto-change timer
+  // animation states
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [dir, setDir] = useState<"next" | "prev">("next");
+  const [nextIndex, setNextIndex] = useState<number | null>(null);
+  const [phase, setPhase] = useState<"idle" | "running">("idle");
+  const timerRef = useRef<number | null>(null);
+  const total = slides.length;
+
+  const bigW = 720;
+  const bigH = 420;
+  const thumbW = 180;
+  const thumbH = 120;
+
+  const current = useMemo(() => slides[active], [active]);
+
+  // autoplay (tạm dừng khi hover hoặc đang animate)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((currentSlide) => (currentSlide + 1) % slides.length);
-    }, AUTOCHANGE_TIME);
+    if (isHover || isAnimating) return;
+    timerRef.current = window.setInterval(() => startSlide("next"), AUTO);
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current);
+    };
+  }, [isHover, isAnimating]);
 
-    // Clean up timer on component unmount
-    return () => clearInterval(timer);
-  }, [slides.length]);
+  const startSlide = (direction: "next" | "prev", target?: number) => {
+    if (isAnimating) return;
+    const idx =
+      typeof target === "number"
+        ? target
+        : direction === "next"
+        ? (active + 1) % total
+        : (active - 1 + total) % total;
 
-  // Function to change slides manually
-  const changeSlides = (change: number) => {
-    setActiveSlide(
-      (currentSlide) => (currentSlide + change + slides.length) % slides.length
-    );
+    setDir(direction);
+    setNextIndex(idx);
+    setIsAnimating(true);
+    setPhase("idle");
+
+    // kick animation on next frame
+    requestAnimationFrame(() => setPhase("running"));
+
+    // end animation after duration
+    window.setTimeout(() => {
+      setActive(idx);
+      setIsAnimating(false);
+      setNextIndex(null);
+      setPhase("idle");
+    }, DURATION);
+  };
+
+  const next = () => startSlide("next");
+  const prev = () => startSlide("prev");
+
+  const go = (idx: number) => {
+    if (idx === active) return;
+    // xác định hướng dựa trên vị trí
+    const forward =
+      (idx > active && !(active === 0 && idx === total - 1)) ||
+      (active === total - 1 && idx === 0);
+    startSlide(forward ? "next" : "prev", idx);
   };
 
   return (
-    <>
-      <section className="relative h-[55vh]">
-        <div className="banner-container relative w-full h-[55vh] sm:h-[55vh] md:h-[55vh] lg:h-[55vh] xl:h-[60vh] overflow-hidden text-white font-inter">
-          {/* Slides Container */}
-          <div className="relative h-full w-full">
-            {slides.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`absolute top-0 left-0 w-full h-full transition-opacity duration-1000 ease-in-out slide-${index} ${
-                  activeSlide === index ? "opacity-100 z-10" : "opacity-0 z-0"
-                }`}
+    <section
+      className={`
+        w-full transition-colors duration-300
+        ${
+          theme === "dark"
+            ? "bg-[#0D1224]" // nền tối
+            : "bg-gradient-to-br from-[#f4fbff] via-white to-[#fff7fb]"
+        }
+      `}
+    >
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-10 md:py-14">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-10 items-center">
+          {/* LEFT: Ảnh lớn với hiệu ứng trượt */}
+          <div
+            className="relative"
+            onMouseEnter={() => setIsHover(true)}
+            onMouseLeave={() => setIsHover(false)}
+          >
+            <div
+              className={`
+                relative rounded-2xl overflow-hidden shadow-lg ring-1 h-[420px]
+                ${
+                  theme === "dark"
+                    ? "ring-white/10 bg-[#0e182b]"
+                    : "ring-black/5 bg-white"
+                }
+              `}
+            >
+              {/* layer: current */}
+              <img
+                key={`cur-${current.id}-${active}`}
+                src={current.img}
+                srcSet={buildSrcSet(current.img, bigW)}
+                sizes={sizesOf(bigW)}
+                alt={current.alt || "banner"}
+                className={[
+                  "absolute inset-0 w-full h-full object-cover",
+                  isAnimating && phase === "running"
+                    ? dir === "next"
+                      ? "translate-x-[-100%]"
+                      : "translate-x-[100%]"
+                    : "translate-x-0",
+                  "transition-transform duration-[500ms] ease-out",
+                ].join(" ")}
+                width={bigW}
+                height={bigH}
+                loading="eager"
+                decoding="async"
+              />
+
+              {/* layer: next (chỉ render khi animate) */}
+              {isAnimating && nextIndex !== null && (
+                <img
+                  key={`next-${slides[nextIndex].id}-${nextIndex}`}
+                  src={slides[nextIndex].img}
+                  srcSet={buildSrcSet(slides[nextIndex].img, bigW)}
+                  sizes={sizesOf(bigW)}
+                  alt={slides[nextIndex].alt || "banner-next"}
+                  className={[
+                    "absolute inset-0 w-full h-full object-cover",
+                    phase === "running"
+                      ? "translate-x-0"
+                      : dir === "next"
+                      ? "translate-x-[100%]"
+                      : "translate-x-[-100%]",
+                    "transition-transform duration-[500ms] ease-out",
+                  ].join(" ")}
+                  width={bigW}
+                  height={bigH}
+                  loading="eager"
+                  decoding="async"
+                />
+              )}
+            </div>
+
+            {/* Buttons navigation */}
+            <div className="text-black hover:text-white cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-gray-900 shadow-md backdrop-blur flex items-center justify-center transition disabled:opacity-60">
+              <button
+                aria-label="Prev"
+                onClick={prev}
+                disabled={isAnimating}
+                type="button"
               >
-                {/* Background Image with animated overlay */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <img
-                    src={slide.img}
-                    alt={slide.id.toString()}
-                    className={`object-cover w-full h-full transition-transform duration-[1000ms] ease-in-out hover:scale-[1.02] ${
-                      activeSlide === index ? "scale-105" : "scale-100"
-                    }`}
-                  />
-                </div>
-                {/* Dark overlay for better text readability */}
-                <div className="absolute inset-0 bg-black/40"></div>
-              </div>
-            ))}
+                <ChevronLeft className="cursor-pointer w-6 h-6 " />
+              </button>
+            </div>
+            <div className="text-black hover:text-white cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 hover:bg-gray-900 shadow-md backdrop-blur flex items-center justify-center transition disabled:opacity-60">
+              <button
+                aria-label="Next"
+                onClick={next}
+                disabled={isAnimating}
+                type="button"
+              >
+                <ChevronRight className="cursor-pointer w-6 h-6 " />
+              </button>
+            </div>
           </div>
 
-          {/* Navigation Controls */}
-          <div className="absolute inset-0 pointer-events-none z-30">
-            {/* Left Arrow */}
-            <div className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-4 md:left-8 lg:left-12 pointer-events-auto">
-              <button
-                onClick={() => changeSlides(-1)}
-                className="p-2 sm:p-3 bg-white/30 hover:bg-white/50 transition-all duration-300 rounded-full shadow-lg hover:shadow-xl active:scale-95 cursor-pointer z-50"
-                aria-label="Previous Slide"
-                type="button"
-              >
-                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-              </button>
-            </div>
+          {/* RIGHT: Text + thumbnails + CTA */}
+          <div>
+            <h2
+              className={`
+                text-3xl md:text-[40px] font-extrabold leading-tight transition
+                ${theme === "dark" ? "text-white" : "text-gray-900"}
+              `}
+            >
+              Đặt lịch khám bệnh
+              <span className="block">với MediCare</span>
+            </h2>
 
-            {/* Right Arrow */}
-            <div className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 md:right-8 lg:right-12 pointer-events-auto">
-              <button
-                onClick={() => changeSlides(1)}
-                className="p-2 sm:p-3 bg-white/30 hover:bg-white/50 transition-all duration-300 rounded-full shadow-lg hover:shadow-xl active:scale-95 cursor-pointer z-50"
-                aria-label="Next Slide"
-                type="button"
-              >
-                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-              </button>
-            </div>
+            <div
+              className={`h-1 w-24 rounded mt-3 mb-6 ${
+                theme === "dark" ? "bg-blue-400" : "bg-blue-500"
+              }`}
+            />
 
-            {/* Slide Indicators */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 pointer-events-auto z-50">
-              {slides.map((_, index) => (
+            <p
+              className={`
+                leading-relaxed mb-6 transition
+                ${theme === "dark" ? "text-gray-300" : "text-gray-700"}
+              `}
+            >
+              MediCare mang đến dịch vụ y tế hiện đại, an toàn và chất lượng.
+              Đặt lịch trực tuyến nhanh chóng, tư vấn từ xa tiện lợi, hồ sơ điện
+              tử bảo mật và thanh toán minh bạch – tất cả trong một nền tảng tin
+              cậy.
+            </p>
+
+            {/* Thumbnails */}
+            <div className="flex gap-4 mb-8">
+              {slides.map((s, i) => (
                 <button
-                  key={index}
-                  onClick={() => setActiveSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer z-50 ${
-                    activeSlide === index
-                      ? "bg-white scale-110"
-                      : "bg-white/50 hover:bg-white/70"
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
+                  key={s.id}
+                  onClick={() => go(i)}
+                  className={`
+                    rounded-xl overflow-hidden shadow-sm ring-1 transition focus:outline-none
+                    ${
+                      active === i
+                        ? "ring-blue-400 ring-2"
+                        : theme === "dark"
+                        ? "ring-white/10"
+                        : "ring-black/5"
+                    }
+                  `}
                   type="button"
-                />
+                  aria-label={`Ảnh ${i + 1}`}
+                  disabled={isAnimating}
+                >
+                  <img
+                    src={s.img}
+                    srcSet={buildSrcSet(s.img, thumbW)}
+                    sizes={`(max-width: 768px) 33vw, ${thumbW}px`}
+                    alt={s.alt || `thumb-${i + 1}`}
+                    className="block object-cover"
+                    width={thumbW}
+                    height={thumbH}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </button>
               ))}
             </div>
+
+            {/* CTA */}
+            <Link to="/booking-options">
+              <button
+                className={`
+                  cursor-pointer px-8 py-3 rounded-full font-semibold transition-all duration-300
+                  transform hover:scale-105 shadow-lg hover:shadow-xl min-w-[200px]
+                  ${
+                    theme === "dark"
+                      ? "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }
+                `}
+              >
+                Đặt lịch ngay
+              </button>
+            </Link>
           </div>
         </div>
-        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <div className="text-center text-white px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Đặt lịch khám bệnh
-              <span className="block text-blue-200 mt-2">tại nhà</span>
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed opacity-95">
-              Kết nối với các bác sĩ chuyên môn cao, nhận tư vấn y tế chất lượng
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pointer-events-auto">
-              <Link to="/booking-options">
-                <button className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl min-w-[200px]">
-                  Đặt lịch ngay
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

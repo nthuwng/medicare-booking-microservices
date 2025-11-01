@@ -1,189 +1,202 @@
-import Banner from "../components/Banner/Banner";
-import { Users, Clock, Award, Shield } from "lucide-react";
-import BookingOptions from "../components/BookingOptions/BookingOptions";
-import DoctorCarousel from "../components/Banner/DoctorCarousel";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Users, Clock, Award, Shield } from "lucide-react";
+import Banner from "../components/Banner/Banner";
+import DoctorCarousel from "../components/Banner/DoctorCarousel";
+import BookingOptions from "../components/BookingOptions/BookingOptions";
+import { useCurrentApp } from "@/components/contexts/app.context";
+import React from "react";
 
-const HomePage = () => {
+type Mode = "light" | "dark";
+
+// Cho phép các thuộc tính tên dạng --something
+type CSSVarName = `--${string}`;
+type CSSWithVars = React.CSSProperties & Record<CSSVarName, string>;
+
+const TOKENS: Record<Mode, CSSWithVars> = {
+  light: {
+    "--bg": "#f6faff",
+    "--surface": "#ffffff",
+    "--text": "#0f172a",
+    "--muted": "#64748b",
+    "--border": "#e2e8f0",
+    "--primary": "#2563eb",
+    "--primary-600": "#1d4ed8",
+    "--shadow": "0 10px 30px rgba(0,0,0,0.06)",
+  },
+  dark: {
+    "--bg": "#0D1224",
+    "--surface": "#0e172a",
+    "--text": "#e2e8f0",
+    "--muted": "#94a3b8",
+    "--border": "#1f2937",
+    "--primary": "#60a5fa",
+    "--primary-600": "#3b82f6",
+    "--shadow": "0 10px 30px rgba(0,0,0,0.35)",
+  },
+};
+
+export default function HomePage() {
   const navigate = useNavigate();
-  const stats = [
-    {
-      icon: <Users className="h-10 w-10 text-blue-600" />,
-      number: "50,000+",
-      label: "Bệnh nhân tin tưởng",
-    },
-    {
-      icon: <Clock className="h-10 w-10 text-green-600" />,
-      number: "24/7",
-      label: "Hỗ trợ khẩn cấp",
-    },
-    {
-      icon: <Award className="h-10 w-10 text-yellow-600" />,
-      number: "200+",
-      label: "Bác sĩ chuyên môn",
-    },
-    {
-      icon: <Shield className="h-10 w-10 text-purple-600" />,
-      number: "99.9%",
-      label: "Độ tin cậy",
-    },
-  ];
+  const { theme } = useCurrentApp();
 
-  const features = [
-    {
-      title: "Đặt lịch trực tuyến",
-      description: "Đặt lịch hẹn với bác sĩ nhanh chóng và tiện lợi",
-      icon: "📅",
-    },
-    {
-      title: "Tư vấn từ xa",
-      description: "Nhận tư vấn y tế từ các chuyên gia hàng đầu",
-      icon: "💻",
-    },
-    {
-      title: "Hồ sơ điện tử",
-      description: "Quản lý hồ sơ bệnh án một cách an toàn và bảo mật",
-      icon: "📋",
-    },
-    {
-      title: "Thanh toán trực tuyến",
-      description: "Thanh toán viện phí nhanh chóng và an toàn",
-      icon: "💳",
-    },
-  ];
+  const tokens = TOKENS[theme];
+
+  const stats = useMemo(
+    () => [
+      {
+        icon: <Users className="h-10 w-10 text-[var(--primary)]" />,
+        number: "50,000+",
+        label: "Bệnh nhân tin tưởng",
+      },
+      {
+        icon: <Clock className="h-10 w-10 text-emerald-500" />,
+        number: "24/7",
+        label: "Hỗ trợ khẩn cấp",
+      },
+      {
+        icon: <Award className="h-10 w-10 text-amber-500" />,
+        number: "200+",
+        label: "Bác sĩ chuyên môn",
+      },
+      {
+        icon: <Shield className="h-10 w-10 text-purple-500" />,
+        number: "99.9%",
+        label: "Độ tin cậy",
+      },
+    ],
+    []
+  );
+
+  const features = useMemo(
+    () => [
+      {
+        title: "Đặt lịch trực tuyến",
+        description: "Đặt lịch hẹn nhanh chóng, tiện lợi",
+        icon: "📅",
+      },
+      {
+        title: "Tư vấn từ xa",
+        description: "Bác sĩ tư vấn thông qua video call",
+        icon: "💻",
+      },
+      {
+        title: "Hồ sơ điện tử",
+        description: "Lưu trữ hồ sơ an toàn, bảo mật",
+        icon: "📋",
+      },
+      {
+        title: "Thanh toán trực tuyến",
+        description: "Nhanh chóng, minh bạch, tiện lợi",
+        icon: "💳",
+      },
+    ],
+    []
+  );
 
   return (
-    <div className="min-h-screen bg-white">
-      {/*Banner */}
+    <main
+      style={tokens}
+      className="min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-300"
+    >
       <Banner />
 
-      {/*Top rate doctor */}
+      {/* STATS */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-3">
+            MediCare – Nơi bạn tin tưởng
+          </h2>
+          <p className="text-[var(--muted)] max-w-2xl mx-auto mb-12">
+            Chúng tôi mang đến dịch vụ y tế hiện đại, an toàn và chất lượng
+          </p>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((item, i) => (
+              <div
+                key={i}
+                className="rounded-2xl p-8 border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)] hover:-translate-y-1 transition"
+              >
+                <div className="mx-auto w-14 h-14 rounded-xl flex items-center justify-center bg-[var(--bg)] mb-4">
+                  {item.icon}
+                </div>
+                <h3 className="text-3xl font-bold">{item.number}</h3>
+                <p className="text-[var(--muted)]">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHY CHOOSE */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+              Tại sao chọn MediCare?
+            </h2>
+            <p className="mt-2 max-w-2xl mx-auto link-muted">
+              Chúng tôi hướng đến trải nghiệm y tế tiện lợi – minh bạch – an
+              toàn
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((f, i) => (
+              <div
+                key={i}
+                className="bg-[var(--surface)] rounded-2xl p-8 shadow-[var(--shadow)] border border-[var(--border)] text-center hover:-translate-y-1 transition"
+              >
+                <div className="text-5xl mb-4">{f.icon}</div>
+                <h3 className="font-semibold text-lg">{f.title}</h3>
+                <p className="text-[var(--muted)] mt-1">{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <DoctorCarousel />
 
-      {/* For You Section */}
-      <section className="bg-gray-50 py-12 font-sans w-full">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="mb-8 md:mb-12 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800">
+      {/* FOR YOU */}
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
               Dành cho bạn
             </h2>
-            <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
-              Khám phá các dịch vụ chăm sóc sức khỏe nổi bật và phù hợp với nhu
-              cầu của bạn.
+            <p className="mt-2 max-w-2xl mx-auto link-muted">
+              Khám phá các dịch vụ nổi bật phù hợp với nhu cầu chăm sóc sức khỏe
+              của bạn
             </p>
           </div>
           <BookingOptions />
         </div>
       </section>
 
-      {/* Statistics Section */}
-      <section
-        className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"
-        style={{
-          backgroundImage: `
-          radial-gradient(circle at 30% 70%, rgba(173, 216, 230, 0.35), transparent 60%),
-          radial-gradient(circle at 70% 30%, rgba(255, 182, 193, 0.4), transparent 60%)`,
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              MediCare - Nơi tin tưởng của bạn
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Với nhiều năm kinh nghiệm trong lĩnh vực y tế, chúng tôi cam kết
-              mang đến dịch vụ chăm sóc sức khỏe tốt nhất
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="flex justify-center mb-6">
-                  <div className="p-4 bg-white rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-110">
-                    {stat.icon}
-                  </div>
-                </div>
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3">
-                  {stat.number}
-                </div>
-                <div className="text-gray-600 font-medium text-sm sm:text-base">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-10 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Tại sao chọn MediCare?
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Chúng tôi cung cấp những dịch vụ y tế hiện đại và tiện lợi nhất
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="text-center p-8 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 transform hover:-translate-y-2 shadow-lg hover:shadow-xl border border-gray-200 hover:border-blue-200"
-              >
-                <div className="text-5xl mb-6 transform hover:scale-110 transition-transform duration-300">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          ></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
-            Sẵn sàng bắt đầu hành trình chăm sóc sức khỏe?
+      {/* CTA */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--primary)]">
+            Sẵn sàng đặt lịch khám?
           </h2>
-          <p className="text-xl sm:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Đăng ký ngay hôm nay để nhận được những ưu đãi đặc biệt và dịch vụ
-            chăm sóc sức khỏe tốt nhất
+          <p className="mt-2 text-[var(--muted)] max-w-2xl mx-auto">
+            Đăng ký ngay để nhận ưu đãi và được hỗ trợ tốt nhất
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+
+          <div className="flex flex-col sm:flex-row gap-6 mt-10 justify-center">
             <button
               onClick={() => navigate("/booking-options")}
-              className="cursor-pointer bg-white text-blue-600 hover:bg-gray-100 px-10 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl min-w-[250px]"
+              className="cursor-pointer bg-[var(--primary)] text-white px-10 py-4 rounded-full font-bold hover:bg-[var(--primary-600)] shadow-[var(--shadow)] transition"
             >
               Đặt lịch miễn phí
             </button>
-            <button className="cursor-pointer border-2 border-white text-white hover:bg-white hover:text-blue-600 px-10 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 min-w-[250px]">
+            <button className="cursor-pointer border border-[var(--primary)] text-[var(--primary)] px-10 py-4 rounded-full font-bold hover:bg-[var(--primary)] hover:text-white transition">
               Liên hệ tư vấn
             </button>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
-};
-
-export default HomePage;
+}

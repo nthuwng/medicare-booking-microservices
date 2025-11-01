@@ -1,4 +1,13 @@
-import { Card, Col, Row, Typography, Space, Tag, Button, Divider } from "antd";
+import {
+  Card,
+  Col,
+  Row,
+  Typography,
+  Space,
+  Tag,
+  Button,
+  Divider,
+} from "antd";
 import {
   ScheduleOutlined,
   SafetyCertificateOutlined,
@@ -12,82 +21,98 @@ import { Link } from "react-router-dom";
 import { useCurrentApp } from "@/components/contexts/app.context";
 
 const AboutPage = () => {
-  const { isAuthenticated } = useCurrentApp();
+  const { isAuthenticated, theme } = useCurrentApp();
+
   return (
     <div
       style={{
-        background: "#f9fafb",
+        ...(theme === "dark"
+          ? { background: "#0D1224" }
+          : {
+              backgroundImage: `
+                linear-gradient(to right, rgba(229,231,235,0.75) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(229,231,235,0.75) 1px, transparent 1px),
+                radial-gradient(circle 600px at 0% 20%, rgba(139,92,246,0.25), transparent),
+                radial-gradient(circle 600px at 100% 0%, rgba(59,130,246,0.25), transparent)
+              `,
+              backgroundSize: "48px 48px, 48px 48px, 100% 100%, 100% 100%",
+            }),
       }}
+      className="transition-all min-h-screen"
     >
       {/* Hero */}
-      <div
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "56px 16px 24px",
-        }}
-      >
+      <div className="max-w-7xl mx-auto px-4 pt-16 pb-8">
         <Row gutter={[24, 24]} align="middle">
           <Col xs={24} md={14}>
             <Space direction="vertical" size={12} style={{ width: "100%" }}>
-              <Tag color="blue" style={{ alignSelf: "flex-start" }}>
-                Medicare Booking
+              <Tag
+                color="blue"
+                style={{
+                  alignSelf: "flex-start",
+                  ...(theme === "dark" && {
+                    background: "rgba(59,130,246,0.15)",
+                    borderColor: "rgba(59,130,246,0.25)",
+                    color: "#60a5fa",
+                  }),
+                }}
+              >
+                MediCare Booking
               </Tag>
-              <Typography.Title level={2} style={{ margin: 0 }}>
+
+              <Typography.Title
+                level={2}
+                className={`!font-extrabold transition ${
+                  theme === "dark" ? "!text-white" : "!text-gray-900"
+                }`}
+              >
                 Đặt lịch khám bệnh trực tuyến nhanh, tiện lợi, minh bạch
               </Typography.Title>
+
               <Typography.Paragraph
-                style={{ color: "#64748b", fontSize: 16, marginTop: 4 }}
+                className={`!mt-1 !text-[17px] transition ${
+                  theme === "dark" ? "!text-gray-300" : "!text-gray-600"
+                }`}
               >
-                Nền tảng giúp bệnh nhân tìm bác sĩ phù hợp, chọn cơ sở y tế gần
-                bạn, đặt lịch chỉ trong vài bước. Theo dõi lịch, nhận thông báo
-                và quản lý hồ sơ khám chữa bệnh tập trung.
+                Nền tảng giúp bệnh nhân tìm bác sĩ phù hợp, đặt lịch, nhận nhắc
+                lịch và quản lý hồ sơ khám chữa bệnh chỉ trong vài thao tác.
               </Typography.Paragraph>
-              <Space size={12} wrap>
-                <Link to="/booking-options">
-                  <Button
-                    type="primary"
-                    size="large"
-                    icon={<ArrowRightOutlined />}
-                  >
-                    Bắt đầu đặt lịch
-                  </Button>
-                </Link>
-              </Space>
+
+              <Link to="/booking-options">
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<ArrowRightOutlined />}
+                  className="!shadow"
+                >
+                  Bắt đầu đặt lịch
+                </Button>
+              </Link>
             </Space>
           </Col>
+
+          {/* Feature mini box */}
           <Col xs={24} md={10}>
             <Card
-              style={{
-                borderRadius: 16,
-                boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
-              }}
+              className={`transition ${
+                theme === "dark"
+                  ? "!bg-[#0f1b2d] !border-white/10 !text-white"
+                  : "shadow-md"
+              }`}
+              style={{ borderRadius: 16 }}
               bodyStyle={{ padding: 20 }}
             >
               <Row gutter={[12, 12]}>
                 <Col span={12}>
-                  <FeatureMini
-                    icon={<ScheduleOutlined />}
-                    title="Đặt lịch 24/7"
-                  />
+                  <FeatureMini icon={<ScheduleOutlined />} title="Đặt lịch 24/7" theme={theme} />
                 </Col>
                 <Col span={12}>
-                  <FeatureMini
-                    icon={<MobileOutlined />}
-                    title="Quản lý trên mobile"
-                  />
+                  <FeatureMini icon={<MobileOutlined />} title="Quản lý trên mobile" theme={theme} />
                 </Col>
                 <Col span={12}>
-                  <FeatureMini
-                    icon={<SafetyCertificateOutlined />}
-                    title="Bảo mật & riêng tư"
-                  />
+                  <FeatureMini icon={<SafetyCertificateOutlined />} title="Bảo mật & riêng tư" theme={theme} />
                 </Col>
                 <Col span={12}>
-                  <FeatureMini
-                    icon={<CustomerServiceOutlined />}
-                    title="Hỗ trợ nhanh"
-                  />
+                  <FeatureMini icon={<CustomerServiceOutlined />} title="Hỗ trợ nhanh" theme={theme} />
                 </Col>
               </Row>
             </Card>
@@ -96,116 +121,144 @@ const AboutPage = () => {
       </div>
 
       {/* Mission */}
-      <div
-        style={{ maxWidth: 1200, margin: "0 auto", padding: "8px 16px 32px" }}
-      >
-        <Card style={{ borderRadius: 16 }}>
+      <div className="max-w-7xl mx-auto px-4 pb-8">
+        <Card
+          className={`transition ${
+            theme === "dark"
+              ? "!bg-[#0f1b2d] !border-white/10 !text-white"
+              : "shadow-sm"
+          }`}
+          style={{ borderRadius: 16 }}
+        >
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={14}>
-              <Typography.Title level={4} style={{ marginTop: 0 }}>
+              <Typography.Title
+                level={4}
+                className={theme === "dark" ? "!text-white" : ""}
+              >
                 Sứ mệnh của chúng tôi
               </Typography.Title>
-              <Typography.Paragraph style={{ color: "#475569" }}>
-                Medicare Booking ra đời để giảm thời gian chờ, nâng cao trải
-                nghiệm khám chữa bệnh và kết nối hiệu quả giữa bệnh nhân – bác
-                sĩ – cơ sở y tế. Chúng tôi tập trung vào sự đơn giản, tốc độ và
-                độ tin cậy: bệnh nhân đặt lịch trong vài chạm, bác sĩ chủ động
-                quản lý lịch, cơ sở dễ dàng điều phối.
+
+              <Typography.Paragraph
+                className={theme === "dark" ? "!text-gray-300" : "!text-gray-600"}
+              >
+                Giảm thời gian chờ, tăng trải nghiệm khám chữa bệnh. Bệnh nhân
+                đặt lịch dễ dàng – bác sĩ chủ động quản lý – bệnh viện điều phối
+                hiệu quả.
               </Typography.Paragraph>
+
               <Space size={[8, 8]} wrap>
-                <Tag>Minh bạch chi phí</Tag>
-                <Tag>Nhắc lịch tự động</Tag>
-                <Tag>Đánh giá sau khám</Tag>
-                <Tag>Hồ sơ sức khỏe</Tag>
+                {["Minh bạch chi phí", "Nhắc lịch tự động", "Đánh giá sau khám", "Hồ sơ sức khỏe"].map(
+                  (t, i) => (
+                    <Tag
+                      key={i}
+                      className="font-medium"
+                      style={
+                        theme === "dark"
+                          ? {
+                              background: "rgba(255,255,255,0.08)",
+                              borderColor: "rgba(255,255,255,0.15)",
+                              color: "#e2e8f0",
+                            }
+                          : {}
+                      }
+                    >
+                      {t}
+                    </Tag>
+                  )
+                )}
               </Space>
             </Col>
+
             <Col xs={24} md={10}>
-              <Stats />
+              <Stats theme={theme} />
             </Col>
           </Row>
         </Card>
       </div>
 
       {/* Features */}
-      <div
-        style={{ maxWidth: 1200, margin: "0 auto", padding: "8px 16px 32px" }}
-      >
-        <Typography.Title level={4} style={{ marginTop: 0 }}>
+      <div className="max-w-7xl mx-auto px-4 pb-10">
+        <Typography.Title
+          level={4}
+          className={theme === "dark" ? "!text-white" : ""}
+        >
           Tính năng nổi bật
         </Typography.Title>
+
         <Row gutter={[16, 16]}>
           <Col xs={24} md={8}>
             <FeatureCard
+              theme={theme}
               icon={<ThunderboltOutlined />}
               title="Đặt lịch siêu nhanh"
-              desc="Tìm bác sĩ, chọn khung giờ và xác nhận chỉ trong 60 giây."
+              desc="Chỉ 60 giây – tìm bác sĩ, chọn khung giờ và xác nhận."
             />
           </Col>
           <Col xs={24} md={8}>
             <FeatureCard
+              theme={theme}
               icon={<TeamOutlined />}
-              title="Kết nối bác sĩ uy tín"
-              desc="Danh mục chuyên khoa rõ ràng, hồ sơ bác sĩ minh bạch."
+              title="Bác sĩ uy tín"
+              desc="Danh mục chuyên khoa rõ ràng, hồ sơ minh bạch."
             />
           </Col>
           <Col xs={24} md={8}>
             <FeatureCard
+              theme={theme}
               icon={<SafetyCertificateOutlined />}
               title="An toàn dữ liệu"
-              desc="Mã hóa và kiểm soát truy cập, tôn trọng quyền riêng tư."
+              desc="Mã hóa – kiểm soát truy cập – bảo mật tối đa."
             />
           </Col>
         </Row>
       </div>
 
       {/* How it works */}
-      <div
-        style={{ maxWidth: 1200, margin: "0 auto", padding: "8px 16px 56px" }}
-      >
-        <Card style={{ borderRadius: 16 }}>
-          <Typography.Title level={4} style={{ marginTop: 0 }}>
+      <div className="max-w-7xl mx-auto px-4 pb-24">
+        <Card
+          className={`transition ${
+            theme === "dark"
+              ? "!bg-[#0f1b2d] !border-white/10 !text-white"
+              : ""
+          }`}
+          style={{ borderRadius: 16 }}
+        >
+          <Typography.Title
+            level={4}
+            className={theme === "dark" ? "!text-white" : ""}
+          >
             Quy trình đặt lịch
           </Typography.Title>
+
           <Row gutter={[16, 16]}>
             <Col xs={24} md={6}>
-              <Step
-                title="1. Tìm kiếm"
-                desc="Chọn chuyên khoa, bác sĩ hoặc cơ sở y tế phù hợp."
-              />
+              <Step theme={theme} title="1. Tìm kiếm" desc="Chọn chuyên khoa, bác sĩ hoặc cơ sở y tế." />
             </Col>
             <Col xs={24} md={6}>
-              <Step
-                title="2. Chọn thời gian"
-                desc="Xem lịch trống và chọn khung giờ mong muốn."
-              />
+              <Step theme={theme} title="2. Chọn thời gian" desc="Xem lịch trống và đặt trong vài giây." />
             </Col>
             <Col xs={24} md={6}>
-              <Step
-                title="3. Xác nhận"
-                desc="Đăng nhập/đăng ký, điền thông tin cần thiết và xác nhận."
-              />
+              <Step theme={theme} title="3. Xác nhận" desc="Đăng nhập, điền thông tin, xác nhận lịch." />
             </Col>
             <Col xs={24} md={6}>
-              <Step
-                title="4. Khám & đánh giá"
-                desc="Nhận nhắc lịch, tới khám và đánh giá sau dịch vụ."
-              />
+              <Step theme={theme} title="4. Khám & đánh giá" desc="Nhận nhắc lịch và đánh giá dịch vụ." />
             </Col>
           </Row>
+
           <Divider />
-          {isAuthenticated === false ? (
+
+          {isAuthenticated ? (
+            <Link to="/my-account">
+              <Button type="primary">Quản lý tài khoản</Button>
+            </Link>
+          ) : (
             <Space>
               <Link to="/login">
                 <Button type="primary">Đăng nhập để đặt lịch</Button>
               </Link>
               <Link to="/register">
                 <Button>Đăng ký tài khoản</Button>
-              </Link>
-            </Space>
-          ) : (
-            <Space>
-              <Link to="/my-account">
-                <Button type="primary">Quản lý tài khoản</Button>
               </Link>
             </Space>
           )}
@@ -215,14 +268,22 @@ const AboutPage = () => {
   );
 };
 
+
+/* ✅ COMPONENTS — support dark mode */
+
 const FeatureMini = ({
   icon,
   title,
+  theme,
 }: {
   icon: React.ReactNode;
   title: string;
+  theme: string;
 }) => (
   <Card
+    className={`transition ${
+      theme === "dark" ? "!bg-[#152238] !border-white/10 !text-white" : ""
+    }`}
     style={{ borderRadius: 12 }}
     bodyStyle={{ display: "flex", alignItems: "center", gap: 12 }}
   >
@@ -233,14 +294,16 @@ const FeatureMini = ({
         borderRadius: 8,
         display: "grid",
         placeItems: "center",
-        background: "#eff6ff",
-        color: "#1d4ed8",
+        background: theme === "dark" ? "rgba(96,165,250,0.15)" : "#eff6ff",
+        color: theme === "dark" ? "#60a5fa" : "#1d4ed8",
         fontSize: 18,
       }}
     >
       {icon}
     </div>
-    <Typography.Text strong>{title}</Typography.Text>
+    <Typography.Text className={theme === "dark" ? "!text-gray-100" : ""}>
+      {title}
+    </Typography.Text>
   </Card>
 );
 
@@ -248,12 +311,19 @@ const FeatureCard = ({
   icon,
   title,
   desc,
+  theme,
 }: {
   icon: React.ReactNode;
   title: string;
   desc: string;
+  theme: string;
 }) => (
-  <Card style={{ borderRadius: 16, height: "100%" }}>
+  <Card
+    className={`transition ${
+      theme === "dark" ? "!bg-[#0f1b2d] !border-white/10 !text-white" : ""
+    }`}
+    style={{ borderRadius: 16, height: "100%" }}
+  >
     <Space direction="vertical" size={8}>
       <div
         style={{
@@ -262,53 +332,88 @@ const FeatureCard = ({
           borderRadius: 10,
           display: "grid",
           placeItems: "center",
-          background: "#eef2ff",
-          color: "#4f46e5",
+          background: theme === "dark" ? "rgba(96,165,250,0.15)" : "#eef2ff",
+          color: theme === "dark" ? "#60a5fa" : "#4f46e5",
           fontSize: 22,
         }}
       >
         {icon}
       </div>
-      <Typography.Title level={5} style={{ margin: "8px 0 0" }}>
+      <Typography.Title
+        level={5}
+        className={theme === "dark" ? "!text-white" : ""}
+        style={{ margin: "8px 0 0" }}
+      >
         {title}
       </Typography.Title>
-      <Typography.Paragraph style={{ color: "#64748b", margin: 0 }}>
+      <Typography.Paragraph
+        className={theme === "dark" ? "!text-gray-300" : "!text-gray-600"}
+        style={{ margin: 0 }}
+      >
         {desc}
       </Typography.Paragraph>
     </Space>
   </Card>
 );
 
-const Stats = () => (
+const Stats = ({ theme }: { theme: string }) => (
   <Row gutter={[12, 12]}>
-    <Col span={12}>
-      <StatItem label="Bệnh nhân hài lòng" value="98%" />
-    </Col>
-    <Col span={12}>
-      <StatItem label="Bác sĩ đối tác" value="> 500" />
-    </Col>
-    <Col span={12}>
-      <StatItem label="Thời gian đặt lịch" value="~ 60s" />
-    </Col>
-    <Col span={12}>
-      <StatItem label="Đánh giá 5★" value="> 10k" />
-    </Col>
+    {[
+      { label: "Bệnh nhân hài lòng", value: "98%" },
+      { label: "Bác sĩ đối tác", value: "> 500" },
+      { label: "Thời gian đặt lịch", value: "~ 60s" },
+      { label: "Đánh giá 5★", value: "> 10k" },
+    ].map((s, i) => (
+      <Col span={12} key={i}>
+        <Card
+          className={`transition text-center ${
+            theme === "dark" ? "!bg-[#152238] !border-white/10 !text-white" : ""
+          }`}
+          style={{ borderRadius: 12 }}
+        >
+          <Typography.Title
+            level={4}
+            className={theme === "dark" ? "!text-white" : ""}
+            style={{ margin: 0 }}
+          >
+            {s.value}
+          </Typography.Title>
+          <Typography.Text
+            className={theme === "dark" ? "!text-gray-300" : ""}
+          >
+            {s.label}
+          </Typography.Text>
+        </Card>
+      </Col>
+    ))}
   </Row>
 );
 
-const StatItem = ({ label, value }: { label: string; value: string }) => (
-  <Card style={{ borderRadius: 12, textAlign: "center" }}>
-    <Typography.Title level={4} style={{ margin: 0 }}>
-      {value}
-    </Typography.Title>
-    <Typography.Text type="secondary">{label}</Typography.Text>
-  </Card>
-);
-
-const Step = ({ title, desc }: { title: string; desc: string }) => (
-  <Card style={{ borderRadius: 12, height: "100%" }}>
-    <Typography.Text strong>{title}</Typography.Text>
-    <Typography.Paragraph style={{ color: "#64748b", marginTop: 6 }}>
+const Step = ({
+  title,
+  desc,
+  theme,
+}: {
+  title: string;
+  desc: string;
+  theme: string;
+}) => (
+  <Card
+    className={`transition ${
+      theme === "dark" ? "!bg-[#152238] !border-white/10 !text-white" : ""
+    }`}
+    style={{ borderRadius: 12, height: "100%" }}
+  >
+    <Typography.Text
+      strong
+      className={theme === "dark" ? "!text-white" : ""}
+    >
+      {title}
+    </Typography.Text>
+    <Typography.Paragraph
+      style={{ marginTop: 6 }}
+      className={theme === "dark" ? "!text-gray-300" : "!text-gray-600"}
+    >
       {desc}
     </Typography.Paragraph>
   </Card>

@@ -2,30 +2,46 @@ import { Typography, Button, Breadcrumb } from "antd";
 import { HomeOutlined, RightOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import BookingOptions from "../../components/BookingOptions/BookingOptions";
+import { useCurrentApp } from "@/components/contexts/app.context";
 
 const { Title, Paragraph, Text } = Typography;
 
 const BookingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { theme } = useCurrentApp();
 
   return (
     <div
       className="bg-gradient-to-b from-white to-gray-50"
       style={{
-        backgroundImage: `
-        linear-gradient(to right, rgba(229,231,235,0.8) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(229,231,235,0.8) 1px, transparent 1px),
-        radial-gradient(circle 500px at 0% 20%, rgba(139,92,246,0.3), transparent),
-        radial-gradient(circle 500px at 100% 0%, rgba(59,130,246,0.3), transparent)
-      `,
-        backgroundSize: "48px 48px, 48px 48px, 100% 100%, 100% 100%",
+        ...(theme === "dark"
+          ? { background: "#0D1224" }
+          : {
+              backgroundImage: `
+          linear-gradient(to right, rgba(229,231,235,0.8) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(229,231,235,0.8) 1px, transparent 1px),
+          radial-gradient(circle 500px at 0% 20%, rgba(139,92,246,0.3), transparent),
+          radial-gradient(circle 500px at 100% 0%, rgba(59,130,246,0.3), transparent)
+        `,
+              backgroundSize: "48px 48px, 48px 48px, 100% 100%, 100% 100%",
+            }),
       }}
     >
       {/* Breadcrumb Navigation */}
-      <div className="bg-white border-b">
+      <div
+        className={`bg-white border-b ${
+          theme === "dark" ? "!bg-[#0f1b2d]" : "bg-white"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 py-3">
           <Breadcrumb
-            separator={<RightOutlined className="text-gray-400" />}
+            separator={
+              <RightOutlined
+                className={`${
+                  theme === "dark" ? "text-gray-400" : "text-gray-500"
+                }`}
+              />
+            }
             className="text-sm"
           >
             <Breadcrumb.Item>
@@ -33,13 +49,21 @@ const BookingPage: React.FC = () => {
                 type="link"
                 size="small"
                 onClick={() => navigate("/")}
-                className="!p-0 !h-auto !text-gray-600 hover:!text-blue-600"
+                className={`!font-bold !p-0 !h-auto ${
+                  theme === "dark"
+                    ? "!text-gray-400 hover:!text-blue-400 hover:!font-bold"
+                    : "!text-gray-600 hover:!text-blue-600 hover:!font-bold"
+                }`}
                 icon={<HomeOutlined />}
               >
                 Trang chủ
               </Button>
             </Breadcrumb.Item>
-            <Breadcrumb.Item className="text-blue-600 font-medium">
+            <Breadcrumb.Item
+              className={`!font-bold ${
+                theme === "dark" ? "!text-blue-400" : "text-blue-600"
+              }`}
+            >
               Hình thức đặt lịch
             </Breadcrumb.Item>
           </Breadcrumb>
@@ -54,12 +78,20 @@ const BookingPage: React.FC = () => {
 
           <Title
             level={1}
-            className="!mt-2 !text-3xl sm:!text-4xl !font-bold !text-gray-800"
+            className={`
+              text-3xl md:text-[40px] font-extrabold leading-tight transition
+              ${theme === "dark" ? "!text-white" : "text-gray-900"}
+            `}
           >
             Đặt lịch khám bệnh
           </Title>
 
-          <Paragraph className="!text-gray-600 !text-base max-w-3xl mx-auto !text-[17px]">
+          <Paragraph
+            className={`
+              leading-relaxed mb-6 transition
+              ${theme === "dark" ? "!text-gray-300" : "!text-gray-700"}
+            `}
+          >
             Chọn cách thức đặt lịch phù hợp nhất với nhu cầu của bạn. Chúng tôi
             cung cấp nhiều lựa chọn để bạn dễ dàng tìm được bác sĩ và thời gian
             phù hợp.
@@ -68,11 +100,18 @@ const BookingPage: React.FC = () => {
       </header>
 
       {/* Cards */}
-      <BookingOptions />
+      <div className="mx-auto max-w-7xl px-4">
+        <BookingOptions />
+      </div>
 
       {/* Gợi ý phụ */}
       <div className="max-w-7xl mx-auto flex justify-center items-center text-center px-4 pb-8 pt-8">
-        <Text className="text-gray-500 !text-[17px]">
+        <Text
+          className={`
+              text-gray-500 !text-[17px] transition
+              ${theme === "dark" ? "!text-gray-400" : "!text-gray-500"}
+            `}
+        >
           Chưa biết bắt đầu từ đâu? Hãy thử{" "}
           <button
             onClick={() => navigate("/booking-options/specialty")}
