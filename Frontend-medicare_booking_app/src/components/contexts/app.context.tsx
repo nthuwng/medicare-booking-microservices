@@ -33,25 +33,26 @@ export const AppProvider = (props: TProps) => {
     return initialTheme;
   });
 
- // ...các import cũ
-useEffect(() => {
-  const root = document.documentElement;
-  // Tailwind dark-mode class
-  if (theme === "dark") root.classList.add("dark");
-  else root.classList.remove("dark");
+  // ...các import cũ
+  useEffect(() => {
+    const root = document.documentElement;
+    // Tailwind dark-mode class
+    if (theme === "dark") root.classList.add("dark");
+    else root.classList.remove("dark");
 
-  // Gắn class :root.dark cho CSS variables
-  if (theme === "dark") root.classList.add("dark"); // giữ cho tailwind
-  // đồng thời set attribute tùy ý nếu bạn muốn check khác
-  root.setAttribute("data-bs-theme", theme);
+    // Gắn class :root.dark cho CSS variables
+    if (theme === "dark") root.classList.add("dark"); // giữ cho tailwind
+    // đồng thời set attribute tùy ý nếu bạn muốn check khác
+    root.setAttribute("data-bs-theme", theme);
 
-  // đổi <meta name="theme-color"> cho mobile address bar
-  const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
-  if (meta) meta.content = theme === "dark" ? "#0b1220" : "#f7f9fc";
+    // đổi <meta name="theme-color"> cho mobile address bar
+    const meta = document.querySelector(
+      'meta[name="theme-color"]'
+    ) as HTMLMetaElement | null;
+    if (meta) meta.content = theme === "dark" ? "#0b1220" : "#f7f9fc";
 
-  localStorage.setItem("theme", theme);
-}, [theme]);
-
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   const fetchAccount = async () => {
     try {
@@ -73,7 +74,7 @@ useEffect(() => {
 
   useEffect(() => {
     const initApp = async () => {
-      const delay = new Promise((resolve) => setTimeout(resolve, 1500));
+      const delay = new Promise((resolve) => setTimeout(resolve, 1000));
       await fetchAccount();
       await delay;
       setIsAppLoading(false);

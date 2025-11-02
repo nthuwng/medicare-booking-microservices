@@ -38,7 +38,7 @@ const BookingPage: React.FC = () => {
             separator={
               <RightOutlined
                 className={`${
-                  theme === "dark" ? "text-gray-400" : "text-gray-500"
+                  theme === "dark" ? "!text-white" : "text-gray-500"
                 }`}
               />
             }
