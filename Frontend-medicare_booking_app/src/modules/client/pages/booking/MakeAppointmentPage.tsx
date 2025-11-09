@@ -141,7 +141,6 @@ const MakeAppointmentPage = () => {
     ? "!bg-[#0e1625] !border !border-[#1e293b66]"
     : "!bg-white !border";
   const titleTx = isDark ? "!text-slate-100" : "!text-gray-800";
-  const mutedTx = isDark ? "!text-slate-400" : "!text-gray-600";
 
   // ✅ Submit form step 1
   const handleFormSubmit = (values: BookingFormData) => {

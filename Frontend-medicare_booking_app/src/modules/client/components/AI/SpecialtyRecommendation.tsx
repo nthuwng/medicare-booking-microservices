@@ -2,7 +2,6 @@
 import type { IAiRecommendSpecialty } from "@/types";
 import { Card, Tag, Button, Typography, Space } from "antd";
 import { useCurrentApp } from "@/components/contexts/app.context";
-import React from "react";
 
 const { Text, Paragraph, Title } = Typography;
 

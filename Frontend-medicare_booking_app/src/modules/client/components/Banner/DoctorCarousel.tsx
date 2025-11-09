@@ -14,7 +14,7 @@ function getDoctorsPerView(width: number) {
   return 4;
 }
 
-const buildAvatarUrl = (url?: string, size?: number) => {
+const buildAvatarUrl = (url?: string) => {
   if (!url) return "/Logo/LOGO_MEDICARE.png";
   return url;
 };
@@ -146,8 +146,7 @@ const DoctorCarousel = () => {
             <div className="flex items-stretch justify-center gap-5 md:gap-7 px-6 md:px-10 select-none">
               {visibleDoctors.map((doc, idx) => {
                 const avatarUrl = buildAvatarUrl(
-                  doc.doctorProfile.avatarUrl,
-                  avatarPx * 2
+                  doc.doctorProfile.avatarUrl
                 );
                 return (
                   <div

@@ -10,11 +10,8 @@ export const fetchAccountAPI = () => {
   return axios.get<IBackendRes<IFetchAccount>>(urlBackend);
 };
 
-export const registerAPI = (
-  email: string,
-  password: string,
-  userType: string
-) => {
+export const registerAPI = (email: string, password: string) => {
+  const userType = "PATIENT";
   const urlBackend = "/api/auth/register";
   return axios.post<IBackendRes<IRegister>>(urlBackend, {
     email,

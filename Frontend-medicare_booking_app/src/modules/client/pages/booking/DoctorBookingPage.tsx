@@ -51,7 +51,6 @@ const DoctorBookingPage = () => {
   const sectionBg = isDark
     ? "bg-[#0e1625] border border-[#1e293b66]"
     : "bg-white border";
-  const surface = isDark ? "bg-[#0b1220]" : "bg-white";
   const titleTx = isDark ? "!text-slate-50" : "!text-slate-800"; // tiêu đề sáng hẳn
   const mutedTx = isDark ? "text-slate-300" : "text-slate-600"; // chữ mô tả sáng hơn
   const blueTx = isDark ? "text-blue-300" : "text-blue-600";

@@ -9,7 +9,6 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useCurrentApp } from "@/components/contexts/app.context";
-import React from "react";
 
 interface Props {
   text: string | null;

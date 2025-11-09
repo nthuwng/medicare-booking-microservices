@@ -91,50 +91,6 @@ const PatientTable = () => {
         return dayjs(entity.date_of_birth).format("DD/MM/YYYY");
       },
     },
-
-    {
-      title: "Action",
-      hideInSearch: true,
-      render(_, entity) {
-        return (
-          <>
-            <EyeOutlined
-              style={{
-                cursor: "pointer",
-                marginRight: 10,
-                color: "#1890ff",
-                fontSize: 15,
-              }}
-              onClick={() => {
-                setDataViewDetail(entity);
-                setOpenViewDetail(true);
-              }}
-            />
-            <EditTwoTone
-              twoToneColor="#f57800"
-              style={{ cursor: "pointer", marginRight: 10, fontSize: 15 }}
-              onClick={() => {}}
-            />
-
-            <Popconfirm
-              placement="leftTop"
-              title={"Xác nhận xóa chuyên khoa"}
-              description={"Bạn có chắc chắn muốn xóa chuyên khoa này ?"}
-              onConfirm={() => {}}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <span style={{ cursor: "pointer" }}>
-                <DeleteTwoTone
-                  twoToneColor="#ff4d4f"
-                  style={{ fontSize: 15 }}
-                />
-              </span>
-            </Popconfirm>
-          </>
-        );
-      },
-    },
   ];
 
   return (

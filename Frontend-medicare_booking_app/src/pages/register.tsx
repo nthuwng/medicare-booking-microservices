@@ -22,7 +22,6 @@ import { useCurrentApp } from "@/components/contexts/app.context";
 type FieldType = {
   email: string;
   password: string;
-  userType: string;
 };
 
 const RegisterPage = () => {
@@ -35,8 +34,8 @@ const RegisterPage = () => {
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     try {
       setIsSubmit(true);
-      const { email, password, userType } = values;
-      const res = await registerAPI(email, password, userType);
+      const { email, password } = values;
+      const res = await registerAPI(email, password);
       if (res?.success === true) {
         message.success(
           "Đăng ký tài khoản thành công! Vui lòng đăng nhập để tiếp tục!"
@@ -168,35 +167,6 @@ const RegisterPage = () => {
                 prefix={<LockOutlined />}
                 placeholder="••••••••"
                 className={isDark ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a] placeholder:text-gray-500" : ""}
-              />
-            </Form.Item>
-
-            <Form.Item<FieldType>
-              label={<span style={{ color: isDark ? "#d1d5db" : undefined }}>Vai trò</span>}
-              name="userType"
-              rules={[{ required: true, message: "Vai trò không được để trống!" }]}
-            >
-              <Select
-                size="large"
-                placeholder="Chọn vai trò"
-                className={isDark ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a]" : ""}
-                dropdownRender={(menu) => (
-                  <div
-                    style={{
-                      background: isDark ? "#0b1626" : "#fff",
-                      border: `1px solid ${isDark ? "#1f2a3a" : "#dfe3e8"}`,
-                      borderRadius: 8,
-                      color: isDark ? "#e5e7eb" : "#0f172a",
-                      padding: 4,
-                    }}
-                  >
-                    {menu}
-                  </div>
-                )}
-                options={[
-                  { value: "DOCTOR", label: "Bác sĩ" },
-                  { value: "PATIENT", label: "Bệnh nhân" },
-                ]}
               />
             </Form.Item>
 

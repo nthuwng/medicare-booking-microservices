@@ -21,6 +21,7 @@ import { getPatientProfileAPI } from "../services/client.api";
 import type { IPatientProfile } from "@/types/user";
 import ChangePassword from "../components/MyAccount/ChangePassword";
 import UpdateProfile from "../components/MyAccount/UpdateProfile";
+import CreatePassword from "../components/MyAccount/CreatePassword";
 
 const { Title, Text } = Typography;
 
@@ -34,6 +35,7 @@ const MyAccountPage = () => {
 
   const [openEdit, setOpenEdit] = useState(false);
   const [openPassword, setOpenPassword] = useState(false);
+  const [openChangePassword, setOpenChangePassword] = useState(false);
   const [dataUpdateProfile, setDataUpdateProfile] =
     useState<IPatientProfile | null>(null);
 
@@ -157,12 +159,19 @@ const MyAccountPage = () => {
               >
                 Chỉnh sửa hồ sơ
               </Button>
-              {canChangePassword && (
+              {canChangePassword ? (
                 <Button
                   icon={<LockOutlined />}
                   onClick={() => setOpenPassword(true)}
                 >
                   Đổi mật khẩu
+                </Button>
+              ) : (
+                <Button
+                  icon={<LockOutlined />}
+                  onClick={() => setOpenChangePassword(true)}
+                >
+                  Tạo mật khẩu đăng nhập
                 </Button>
               )}
             </div>
@@ -358,6 +367,13 @@ const MyAccountPage = () => {
       <ChangePassword
         passwordModalOpen={openPassword}
         setPasswordModalOpen={setOpenPassword}
+      />
+
+      <CreatePassword
+        openChangePassword={openChangePassword}
+        setOpenChangePassword={setOpenChangePassword}
+        loading={loading}
+        setLoading={setLoading}
       />
       <UpdateProfile
         loading={loading}

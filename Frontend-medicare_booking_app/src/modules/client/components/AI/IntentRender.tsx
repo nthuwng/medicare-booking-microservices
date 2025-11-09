@@ -1,5 +1,5 @@
 // src/components/AI/IntentRender/IntentRenderer.tsx
-import React from "react";
+
 import { useCurrentApp } from "@/components/contexts/app.context";
 import { SpecialtyRecommendation } from "./SpecialtyRecommendation";
 import { SpecialtyDoctorCheck } from "./SpecialtyDoctorCheck";

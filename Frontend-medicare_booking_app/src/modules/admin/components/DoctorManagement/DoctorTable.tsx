@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Popconfirm, Button, Tag } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -33,6 +33,10 @@ const DoctorTable = () => {
   const [dataViewDetail, setDataViewDetail] = useState<IDoctorProfile | null>(
     null
   );
+
+  useEffect(() => {
+    console.log("meta", meta);
+  }, [meta]);
 
   const columns: ProColumns<IDoctorProfile>[] = [
     {
@@ -123,49 +127,6 @@ const DoctorTable = () => {
       dataIndex: "approvalStatus",
       hideInSearch: true,
     },
-    {
-      title: "Action",
-      hideInSearch: true,
-      render(_, entity) {
-        return (
-          <>
-            <EyeOutlined
-              style={{
-                cursor: "pointer",
-                marginRight: 10,
-                color: "#1890ff",
-                fontSize: 15,
-              }}
-              onClick={() => {
-                setDataViewDetail(entity);
-                setOpenViewDetail(true);
-              }}
-            />
-            <EditTwoTone
-              twoToneColor="#f57800"
-              style={{ cursor: "pointer", marginRight: 10, fontSize: 15 }}
-              onClick={() => {}}
-            />
-
-            <Popconfirm
-              placement="leftTop"
-              title={"Xác nhận xóa chuyên khoa"}
-              description={"Bạn có chắc chắn muốn xóa chuyên khoa này ?"}
-              onConfirm={() => {}}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <span style={{ cursor: "pointer" }}>
-                <DeleteTwoTone
-                  twoToneColor="#ff4d4f"
-                  style={{ fontSize: 15 }}
-                />
-              </span>
-            </Popconfirm>
-          </>
-        );
-      },
-    },
   ];
 
   return (
@@ -195,8 +156,16 @@ const DoctorTable = () => {
             }
           }
           const res = await getAllDoctorsProfile(query);
-          if (res?.data?.meta) {
-            setMeta(res.data.meta);
+          const payload = res?.data;
+          const metaApi = payload?.meta;
+
+          if (metaApi) {
+            setMeta({
+              current: metaApi.current,
+              pageSize: metaApi.pageSize,
+              pages: metaApi.pages,
+              total: metaApi.total,
+            });
           }
           return {
             data: res.data?.result || [],

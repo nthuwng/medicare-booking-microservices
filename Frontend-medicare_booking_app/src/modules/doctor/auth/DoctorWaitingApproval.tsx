@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getDoctorProfileByUserId } from "../services/doctor.api";
 import { useCurrentApp } from "@/components/contexts/app.context";
 import type { IDoctorProfile } from "@/types";
-import { Button, Empty, Tag, Card, Modal, Typography } from "antd";
+import { Button, Empty, Tag, Card, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;

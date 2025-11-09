@@ -5,7 +5,6 @@ import Banner from "../components/Banner/Banner";
 import DoctorCarousel from "../components/Banner/DoctorCarousel";
 import BookingOptions from "../components/BookingOptions/BookingOptions";
 import { useCurrentApp } from "@/components/contexts/app.context";
-import React from "react";
 
 type Mode = "light" | "dark";
 

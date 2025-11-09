@@ -47,44 +47,6 @@ const TimeslotTable = () => {
       dataIndex: "endTime",
       hideInSearch: true,
     },
-    {
-      title: "Action",
-      hideInSearch: true,
-      render(_) {
-        return (
-          <>
-            <EyeOutlined
-              style={{
-                cursor: "pointer",
-                marginRight: 10,
-                color: "#1890ff",
-                fontSize: 15,
-              }}
-            />
-            <EditTwoTone
-              twoToneColor="#f57800"
-              style={{ cursor: "pointer", marginRight: 10, fontSize: 15 }}
-            />
-
-            <Popconfirm
-              placement="leftTop"
-              title={"Xác nhận xóa thời gian"}
-              description={"Bạn có chắc chắn muốn xóa thời gian này ?"}
-              onConfirm={() => {}}
-              okText="Xác nhận"
-              cancelText="Hủy"
-            >
-              <span style={{ cursor: "pointer" }}>
-                <DeleteTwoTone
-                  twoToneColor="#ff4d4f"
-                  style={{ fontSize: 15 }}
-                />
-              </span>
-            </Popconfirm>
-          </>
-        );
-      },
-    },
   ];
 
   return (
