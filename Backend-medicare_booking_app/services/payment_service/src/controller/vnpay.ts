@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { prisma } from "src/config/client";
-import { publishUpdatePaymentStatus } from "src/queue/publishers/appointmentEventUpdate";
 import { updatePaymentStatusViaRabbitMQ } from "src/queue/publishers/payment.publisher";
 const {
   VNPay,
@@ -51,6 +50,98 @@ const createVNPayPayment = async (req: Request, res: Response) => {
   res.json({ data: { paymentUrl: url, txnRef } });
 };
 
+const refundPayment = async (req: Request, res: Response) => {
+  const { txnRef, amount, refundReason } = req.body;
+
+  try {
+    // 1. Kiểm tra payment tồn tại và đã thanh toán thành công
+    const payment = await prisma.payment.findUnique({
+      where: { txnRef: String(txnRef) },
+    });
+
+    if (!payment) {
+      res.status(404).json({
+        ok: false,
+        message: "Payment not found",
+      });
+      return;
+    }
+
+    if (payment.state !== "PAID") {
+      res.status(400).json({
+        ok: false,
+        message: `Cannot refund payment with state: ${payment.state}`,
+      });
+      return;
+    }
+
+    // 2. Kiểm tra số tiền hoàn trả
+    const refundAmount = Number(amount) || payment.amount;
+    if (refundAmount > payment.amount) {
+      res.status(400).json({
+        ok: false,
+        message: `Refund amount (${refundAmount}) exceeds payment amount (${payment.amount})`,
+      });
+      return;
+    }
+
+    // 3. Kiểm tra có transactionDate (BẮT BUỘC theo tài liệu VNPay)
+    if (!payment.transactionDate) {
+      res.status(400).json({
+        ok: false,
+        message: "Payment missing transaction date. Cannot refund.",
+        note: "vnp_TransactionDate is required for refund (format: yyyyMMddHHmmss)",
+      });
+      return;
+    }
+
+    // 4. Gọi VNPay API để hoàn tiền
+    const refundTxnRef = `REFUND-${txnRef}-${Date.now()}`;
+
+    const refundResponse = await vnpay.refund({
+      vnp_RequestId: refundTxnRef, // Mã yêu cầu hoàn tiền (duy nhất trong ngày)
+      vnp_Version: "2.1.0", // Phiên bản API
+      vnp_Command: "refund", // Command refund
+      vnp_TmnCode: "7HSAB3FG", // Mã merchant
+      vnp_TransactionType: "02", // 02: Hoàn toàn phần, 03: Hoàn một phần
+      vnp_TxnRef: payment.txnRef, // ✅ Mã giao dịch GỐC (không phải refundTxnRef)
+      vnp_Amount: refundAmount, // Số tiền hoàn (VND)
+      vnp_OrderInfo: refundReason || `Hoàn tiền cho giao dịch ${txnRef}`,
+      vnp_TransactionNo: payment.transactionNo || "", // Tùy chọn: Mã giao dịch VNPay
+      vnp_TransactionDate: payment.transactionDate, // ✅ BẮT BUỘC: Ngày giao dịch gốc (yyyyMMddHHmmss)
+      vnp_CreateBy: "admin", // Người tạo yêu cầu
+      vnp_CreateDate: dateFormat(new Date()), // Ngày tạo yêu cầu hoàn tiền
+      vnp_IpAddr: req.ip || "127.0.0.1",
+    });
+
+    // 4. Cập nhật trạng thái payment (tùy chọn: tạo bảng Refund riêng)
+    await prisma.payment.update({
+      where: { txnRef },
+      data: {
+        state: "CANCELED", // hoặc tạo state mới: REFUNDED
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        txnRef,
+        refundTxnRef,
+        refundAmount,
+        refundResponse,
+      },
+      message: "Refund request submitted successfully",
+    });
+  } catch (e: any) {
+    console.error("❌ Refund Error:", e);
+    res.status(500).json({
+      ok: false,
+      message: "Refund error",
+      error: e.message || e,
+    });
+  }
+};
+
 const vnpReturn = async (req: Request, res: Response) => {
   try {
     const isValid = vnpay.verifyReturnUrl(req.query); // lib hỗ trợ
@@ -94,8 +185,9 @@ const vnpIpn = async (req: Request, res: Response) => {
 
     const txnRef = String(req.query["vnp_TxnRef"]);
     const rspCode = String(req.query["vnp_ResponseCode"]); // "00" là thành công
-
-    // Note: bankCode and payDate not used in current implementation
+    const transactionNo = String(req.query["vnp_TransactionNo"] || ""); // ← MÃ GIAO DỊCH VNPAY (BẮT BUỘC ĐỂ REFUND)
+    const transactionDate = String(req.query["vnp_PayDate"] || ""); // ← NGÀY GIAO DỊCH (BẮT BUỘC ĐỂ REFUND)
+    const bankCode = String(req.query["vnp_BankCode"] || "");
 
     const payment = await prisma.payment.findUnique({ where: { txnRef } });
     if (!payment) {
@@ -118,7 +210,24 @@ const vnpIpn = async (req: Request, res: Response) => {
         where: { txnRef },
         data: {
           state: newState,
-          // Simplified: only update essential fields
+          transactionNo, // ← LƯU MÃ GIAO DỊCH VNPAY
+          transactionDate, // ← LƯU NGÀY GIAO DỊCH
+          bankCode,
+          payDate: transactionDate
+            ? new Date(
+                transactionDate.slice(0, 4) +
+                  "-" +
+                  transactionDate.slice(4, 6) +
+                  "-" +
+                  transactionDate.slice(6, 8) +
+                  "T" +
+                  transactionDate.slice(8, 10) +
+                  ":" +
+                  transactionDate.slice(10, 12) +
+                  ":" +
+                  transactionDate.slice(12, 14)
+              )
+            : null,
         },
       });
 
@@ -126,7 +235,6 @@ const vnpIpn = async (req: Request, res: Response) => {
       if (success) {
         try {
           await updatePaymentStatusViaRabbitMQ(payment.appointmentId);
-
         } catch (mqError) {
           console.error("❌ Lỗi khi gửi message qua RabbitMQ:", mqError);
           // Không throw error vì payment đã thành công
@@ -143,4 +251,4 @@ const vnpIpn = async (req: Request, res: Response) => {
   }
 };
 
-export { createVNPayPayment, vnpReturn, vnpIpn };
+export { createVNPayPayment, vnpReturn, vnpIpn, refundPayment };

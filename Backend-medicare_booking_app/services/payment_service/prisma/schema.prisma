@@ -13,18 +13,20 @@ datasource db {
 
 // prisma/schema.prisma
 model Payment {
-  id            String         @id @default(uuid())
-  appointmentId String // lấy từ client hoặc từ service booking
-  txnRef        String         @unique // vnp_TxnRef
-  amount        Int // VND (nhân 100 theo chuẩn VNPay, xem ghi chú)
-  gateway       PaymentGateway @default(VNPAY)
-  state         PaymentState   @default(PENDING)
-  orderInfo     String
-  bankCode      String?
-  payDate       DateTime?
-  rawQuery      String? // lưu full query VNPay (debug/audit)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id              String         @id @default(uuid())
+  appointmentId   String // lấy từ client hoặc từ service booking
+  txnRef          String         @unique // vnp_TxnRef (do mình tạo)
+  transactionNo   String?        @map("transaction_no") // vnp_TransactionNo (do VNPay trả về) - BẮT BUỘC để refund
+  amount          Int // VND (nhân 100 theo chuẩn VNPay, xem ghi chú)
+  gateway         PaymentGateway @default(VNPAY)
+  state           PaymentState   @default(PENDING)
+  orderInfo       String
+  bankCode        String?
+  payDate         DateTime?
+  transactionDate String?        @map("transaction_date") // vnp_PayDate format: yyyyMMddHHmmss - BẮT BUỘC để refund
+  rawQuery        String?        @db.Text // lưu full query VNPay (debug/audit)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 enum PaymentGateway {
