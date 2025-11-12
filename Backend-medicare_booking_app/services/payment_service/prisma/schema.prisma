@@ -31,6 +31,7 @@ model Payment {
 
 enum PaymentGateway {
   VNPAY
+  CASH
 }
 
 enum PaymentState {

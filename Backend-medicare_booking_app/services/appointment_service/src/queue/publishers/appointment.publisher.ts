@@ -1,6 +1,8 @@
 import { publishAppointmentEventClientToDoctor } from "./appointmentEvent_ClientToDoctor";
+import { publishCreatePaymentDefault } from "./createPaymentDefault";
 import { rpcRequest } from "./rpcRequest";
 import { publishUpdateTimeSlot } from "./scheduleEventUpdate";
+import { publishUpdateCancelScheduleAndTimeSlotId } from "./updateScheduleCancelEvent";
 
 const verifyTokenViaRabbitMQ = async (token: string) => {
   return rpcRequest("auth.verify_token", { token });
@@ -51,11 +53,47 @@ const checkFullDetailDoctorViaRabbitMQ = async (doctorId: string) => {
   return rpcRequest("doctor.check_full_detail_doctor", { doctorId });
 };
 
-const checkScheduleAndTimeslotIdViaRabbitMQ = async (scheduleId: string, timeSlotId: number) => {
-  return rpcRequest("schedule.check_schedule_and_timeslot_id", { scheduleId, timeSlotId });
+const checkScheduleAndTimeslotIdViaRabbitMQ = async (
+  scheduleId: string,
+  timeSlotId: number
+) => {
+  return rpcRequest("schedule.check_schedule_and_timeslot_id", {
+    scheduleId,
+    timeSlotId,
+  });
+};
+
+const updateCancelScheduleAndTimeSlotIdViaRabbitMQ = async (
+  scheduleId: string,
+  timeSlotId: string
+) => {
+  return await publishUpdateCancelScheduleAndTimeSlotId(scheduleId, timeSlotId);
+};
+
+const updateCancelPaymentByAppointmentIdViaRabbitMQ = async (
+  appointmentId: string
+) => {
+  return rpcRequest("payment.update_cancel_payment_by_appointment_id", {
+    appointmentId,
+  });
+};
+
+const getPaymentByAppointmentIdViaRabbitMQ = async (appointmentId: string) => {
+  return rpcRequest("payment.get_payment_by_appointment_id", { appointmentId });
+};
+
+const createPaymentDefaultViaRabbitMQ = async (
+  appointmentId: string,
+  amount: string
+) => {
+  return await publishCreatePaymentDefault(appointmentId, amount);
 };
 
 export {
+  createPaymentDefaultViaRabbitMQ,
+  updateCancelPaymentByAppointmentIdViaRabbitMQ,
+  updateCancelScheduleAndTimeSlotIdViaRabbitMQ,
+  getPaymentByAppointmentIdViaRabbitMQ,
   verifyTokenViaRabbitMQ,
   checkAdminViaRabbitMQ,
   getUserByIdViaRabbitMQ,

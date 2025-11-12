@@ -1,8 +1,9 @@
 import express from "express";
 import "dotenv/config";
-import vnpay from "./routes/vnpay";
 import { connectRabbitMQ } from "./queue/connection";
 import cors from "cors";
+import routers from "./routes";
+import { initializeAllRabbitMQConsumers } from "./queue/consumer";
 const app = express();
 const port = process.env.PORT || 8085;
 
@@ -15,7 +16,7 @@ app.use(
   })
 );
 //config Routes
-vnpay(app);
+routers(app);
 
 const startApplication = async () => {
   try {
@@ -24,8 +25,8 @@ const startApplication = async () => {
     console.log("✅ Connected to RabbitMQ");
 
     //Khởi tạo tất cả Consumers
-    // await initializeAllRabbitMQConsumers();
-    // console.log("✅ All RabbitMQ consumers initialized successfully.");
+    await initializeAllRabbitMQConsumers();
+    console.log("✅ All RabbitMQ consumers initialized successfully.");
 
     //Khởi động HTTP Server (hoặc gRPC server)
     app.listen(port, () => {

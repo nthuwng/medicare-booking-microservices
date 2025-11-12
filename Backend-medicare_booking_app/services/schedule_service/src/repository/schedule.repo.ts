@@ -170,10 +170,31 @@ const updateTimeSlotByScheduleIdAndTimeSlotId = async (
   return schedule;
 };
 
+const updateCancelTimeSlotByScheduleIdAndTimeSlotId = async (
+  scheduleId: string,
+  timeSlotId: number
+) => {
+  const checkSchedule = await prisma.scheduleTimeSlot.findFirst({
+    where: { scheduleId: scheduleId, timeSlotId: +timeSlotId },
+  });
+  if (!checkSchedule?.timeSlotId) {
+    throw new Error("Time slot not found");
+  }
+  if (checkSchedule.currentBooking <= 0) {
+    throw new Error("Current booking is already zero");
+  }
+  const schedule = await prisma.scheduleTimeSlot.update({
+    where: { scheduleId_timeSlotId: { scheduleId, timeSlotId: +timeSlotId } },
+    data: { currentBooking: { decrement: 1 } },
+  });
+  return schedule;
+};
+
 export {
   createSchedule,
   getScheduleByDoctorId,
   getScheduleByScheduleId,
   updateTimeSlotByScheduleIdAndTimeSlotId,
   getScheduleByScheduleIdAndTimeSlotId,
+  updateCancelTimeSlotByScheduleIdAndTimeSlotId,
 };

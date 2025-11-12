@@ -6,6 +6,7 @@ import {
   updateAppointmentStatusService,
   handleAppointmentsByDoctorIdServices,
   countTotalAppointmentPage,
+  handleCancelAppointment,
 } from "src/services/appointment.services";
 import { AppointmentStatus } from "@shared/index";
 import { getDoctorIdByUserIdViaRabbitMQ } from "src/queue/publishers/appointment.publisher";
@@ -27,13 +28,40 @@ const createAppointmentController = async (req: Request, res: Response) => {
 
 const getAppointmentsByUserController = async (req: Request, res: Response) => {
   try {
+    const { page, pageSize, status } = req.query;
+
+    // Validate and set page number
+    let currentPage = page ? +page : 1;
+    if (currentPage <= 0) {
+      currentPage = 1;
+    }
+
+    // Validate and set page size (min: 1, max: 100, default: 10)
+    const size = Math.max(1, Math.min(100, Number(pageSize) || 10));
+
     const userId = req.user?.userId || "";
-    const appointments = await getAppointmentsByUserService(userId);
+
+    // Get appointments with pagination
+    const result = await getAppointmentsByUserService(
+      userId,
+      currentPage,
+      size,
+      status as string | undefined
+    );
+
     res.status(200).json({
       success: true,
-      length: appointments.length,
+      length: result.pagination.totalItems,
       message: "Lấy danh sách cuộc hẹn thành công.",
-      data: appointments,
+      data: {
+        meta: {
+          currentPage: result.pagination.currentPage,
+          pageSize: result.pagination.pageSize,
+          totalPages: result.pagination.totalPages,
+          totalItems: result.pagination.totalItems,
+        },
+        result: result.appointments,
+      },
     });
   } catch (error: any) {
     console.error("Error getting appointments:", error.message);
@@ -146,10 +174,44 @@ const getAllAppointmentsByDoctorIdController = async (
   }
 };
 
+const cancelAppointmentController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await handleCancelAppointment(id);
+
+    // Xác định message dựa trên payment gateway
+    let message = "Đã hủy lịch hẹn thành công.";
+
+    if (result.payment.gateway === "VNPAY") {
+      if (result.payment.refundProcessed) {
+        message =
+          "Đã hủy lịch hẹn và hoàn tiền thành công. Tiền sẽ về tài khoản trong 3-5 ngày làm việc.";
+      } else if (result.payment.refundRequired) {
+        message =
+          "Đã hủy lịch hẹn và đang xử lý hoàn tiền. Vui lòng kiểm tra lại sau.";
+      } else {
+        message = "Đã hủy lịch hẹn thành công.";
+      }
+    } else if (result.payment.gateway === "CASH") {
+      message = "Đã hủy lịch hẹn thành công.";
+    }
+
+    res.status(200).json({
+      success: true,
+      message: message,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("Error cancelling appointment:", error.message);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export {
   createAppointmentController,
   getAppointmentsByUserController,
   getAppointmentByIdController,
   updateAppointmentStatusController,
   getAllAppointmentsByDoctorIdController,
+  cancelAppointmentController,
 };

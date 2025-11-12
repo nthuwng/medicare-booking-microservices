@@ -1,4 +1,4 @@
-import express, { Express } from "express";
+import { Express } from "express";
 import doctorRoutes from "./doctorRoutes";
 import clinicRoutes from "./clinicRoutes";
 import specialtiesRoutes from "./specialtiesRoutes";

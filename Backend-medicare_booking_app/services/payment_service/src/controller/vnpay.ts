@@ -1,3 +1,4 @@
+import { PaymentGateway, PaymentState } from "@prisma/client";
 import { Request, Response } from "express";
 import { prisma } from "src/config/client";
 import { updatePaymentStatusViaRabbitMQ } from "src/queue/publishers/payment.publisher";
@@ -37,13 +38,32 @@ const createVNPayPayment = async (req: Request, res: Response) => {
     vnp_CreateDate: dateFormat(new Date()),
   });
 
+  const checkExisting = await prisma.payment.findFirst({
+    where: { appointmentId, gateway: "CASH", amount: Number(amount) },
+  });
+
+  if (checkExisting) {
+    await prisma.payment.update({
+      where: { id: checkExisting.id },
+      data: {
+        txnRef,
+        orderInfo: `Thanh toán lịch hẹn ${appointmentId}`,
+        gateway: "VNPAY" as PaymentGateway,
+        state: "PENDING" as PaymentState,
+      },
+    });
+    res.json({ data: { paymentUrl: url, txnRef } });
+    return;
+  }
+
   await prisma.payment.create({
     data: {
       appointmentId,
       txnRef,
       amount: Number(amount), // lưu VND “đơn vị đồng” để dễ đọc
       orderInfo: `Thanh toán lịch hẹn ${appointmentId}`,
-      state: "PENDING",
+      gateway: "VNPAY" as PaymentGateway,
+      state: "PENDING" as PaymentState,
     },
   });
 
@@ -251,4 +271,130 @@ const vnpIpn = async (req: Request, res: Response) => {
   }
 };
 
-export { createVNPayPayment, vnpReturn, vnpIpn, refundPayment };
+const createCashPayment = async (req: Request, res: Response) => {
+  const { appointmentId, amount } = req.body;
+  const txnRef = `CASH-${appointmentId}-${Date.now()}`;
+  const checkExisting = await prisma.payment.findFirst({
+    where: { appointmentId, gateway: "CASH", amount: Number(amount) },
+  });
+
+  if (checkExisting) {
+    res.json({
+      success: true,
+      message: "Vui lòng đến quầy thu ngân để hoàn tất thanh toán.",
+    });
+    return;
+  } else {
+    await prisma.payment.create({
+      data: {
+        appointmentId,
+        txnRef,
+        amount: Number(amount), // lưu VND “đơn vị đồng” để dễ đọc
+        orderInfo: `Thanh toán tiền mặt cho lịch hẹn ${appointmentId}`,
+        state: "PENDING" as PaymentState, // Tiền mặt mặc định là chưa thanh toán
+        gateway: "CASH" as PaymentGateway,
+      },
+    });
+    res.json({
+      success: true,
+      message: "Vui lòng đến quầy thu ngân để hoàn tất thanh toán.",
+    });
+  }
+};
+
+/**
+ * Check refund status by appointmentId
+ * GET /api/payment/refund-status/:appointmentId
+ */
+const getRefundStatus = async (req: Request, res: Response) => {
+  try {
+    const { appointmentId } = req.params;
+
+    const payment = await prisma.payment.findFirst({
+      where: { appointmentId },
+      select: {
+        id: true,
+        appointmentId: true,
+        txnRef: true,
+        transactionNo: true,
+        amount: true,
+        gateway: true,
+        state: true,
+        rawQuery: true,
+        payDate: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!payment) {
+      res.status(404).json({
+        success: false,
+        message: "Payment not found for this appointment",
+      });
+      return;
+    }
+
+    // Parse refund info from rawQuery
+    let refundInfo = null;
+    if (payment.rawQuery) {
+      try {
+        const parsed = JSON.parse(payment.rawQuery);
+        if (parsed.refund) {
+          refundInfo = {
+            refundDate: parsed.refundDate,
+            vnpayResponse: parsed.refund,
+            originalTransaction: parsed.originalTransaction,
+          };
+        }
+      } catch (e) {
+        console.error("Error parsing rawQuery:", e);
+      }
+    }
+
+    // Determine refund status
+    const isRefunded = payment.state === "CANCELED" && refundInfo !== null;
+    const isCanceled = payment.state === "CANCELED" && refundInfo === null;
+
+    res.json({
+      success: true,
+      data: {
+        appointmentId: payment.appointmentId,
+        txnRef: payment.txnRef,
+        transactionNo: payment.transactionNo,
+        amount: payment.amount,
+        gateway: payment.gateway,
+        state: payment.state,
+        payDate: payment.payDate,
+        updatedAt: payment.updatedAt,
+        refundStatus: {
+          isRefunded, // true = đã hoàn tiền
+          isCanceled, // true = đã hủy nhưng chưa thanh toán (không cần refund)
+          refundInfo, // Chi tiết refund nếu có
+        },
+      },
+      message: isRefunded
+        ? "Đã hoàn tiền thành công"
+        : isCanceled
+        ? "Đã hủy (không cần hoàn tiền)"
+        : payment.state === "PAID"
+        ? "Đã thanh toán (chưa hủy)"
+        : "Chưa thanh toán",
+    });
+  } catch (error: any) {
+    console.error("Error checking refund status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error checking refund status",
+      error: error.message,
+    });
+  }
+};
+
+export {
+  createVNPayPayment,
+  vnpReturn,
+  vnpIpn,
+  refundPayment,
+  createCashPayment,
+  getRefundStatus,
+};

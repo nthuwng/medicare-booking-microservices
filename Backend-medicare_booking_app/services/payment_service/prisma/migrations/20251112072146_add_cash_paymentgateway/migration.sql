@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Payment` MODIFY `gateway` ENUM('VNPAY', 'CASH') NOT NULL DEFAULT 'VNPAY';

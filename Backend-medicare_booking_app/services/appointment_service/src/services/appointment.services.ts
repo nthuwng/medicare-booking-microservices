@@ -14,9 +14,12 @@ import {
   checkFullDetailDoctorViaRabbitMQ,
   checkScheduleAndTimeslotIdViaRabbitMQ,
   checkScheduleViaRabbitMQ,
-  getDoctorIdByUserIdViaRabbitMQ,
+  createPaymentDefaultViaRabbitMQ,
   getDoctorUserIdByDoctorIdViaRabbitMQ,
+  getPaymentByAppointmentIdViaRabbitMQ,
   publishAppointmentCreatedEvent,
+  updateCancelPaymentByAppointmentIdViaRabbitMQ,
+  updateCancelScheduleAndTimeSlotIdViaRabbitMQ,
   updateScheduleViaRabbitMQ,
 } from "src/queue/publishers/appointment.publisher";
 import {
@@ -126,6 +129,9 @@ const createAppointmentService = async (
         gte: new Date(appointmentDate + "T00:00:00.000Z"),
         lt: new Date(appointmentDate + "T23:59:59.999Z"),
       },
+      status: {
+        in: ["Pending", "Confirmed"],
+      },
     },
   });
 
@@ -174,6 +180,9 @@ const createAppointmentService = async (
     appointment.doctorId
   );
 
+  await createPaymentDefaultViaRabbitMQ(appointment.id, String(appointment.totalFee) );
+
+
   await publishAppointmentCreatedEvent({
     appointmentId: appointment.id,
     doctorId: appointment.doctorId,
@@ -185,6 +194,7 @@ const createAppointmentService = async (
     reason: reason || "Không có lý do cụ thể",
     totalFee: appointment.totalFee,
   });
+
 
   return {
     appointment: {
@@ -222,30 +232,95 @@ const createAppointmentService = async (
 };
 
 // Get appointments by user
-const getAppointmentsByUserService = async (userId: string) => {
+const getAppointmentsByUserService = async (
+  userId: string,
+  page: number,
+  pageSize: number,
+  status?: string
+) => {
+  const skip = (page - 1) * pageSize;
+
+  // Build where condition
+  const whereCondition: any = { userId };
+
+  // Add status filter if provided and validate
+  if (status && status.trim() !== "") {
+    const normalizedStatus = status.trim();
+
+    // Map common variants to correct enum values
+    const statusMap: Record<string, string> = {
+      Cancel: "Cancelled",
+      Canceled: "Cancelled",
+      Cancelled: "Cancelled",
+      Pending: "Pending",
+      Confirmed: "Confirmed",
+      Completed: "Completed",
+    };
+
+    const mappedStatus = statusMap[normalizedStatus] || normalizedStatus;
+
+    // Only add to where condition if it's a valid status
+    if (
+      ["Pending", "Confirmed", "Cancelled", "Completed"].includes(mappedStatus)
+    ) {
+      whereCondition.status = mappedStatus;
+    }
+  }
+
+  // Get total count for pagination
+  const totalItems = await prisma.appointment.count({
+    where: whereCondition,
+  });
+
+  const totalPages = Math.ceil(totalItems / pageSize);
+
+  // Get appointments with pagination
   const appointments = await prisma.appointment.findMany({
-    where: { userId },
+    where: whereCondition,
     include: {
       patient: true,
     },
     orderBy: {
       createdAt: "desc",
     },
+    skip: skip,
+    take: pageSize,
   });
 
+  // Fetch schedule and doctor info for each appointment
   const appointmentsWithScheduleInfo = await Promise.all(
     appointments.map(async (appointment) => {
-      const schedule = await checkScheduleViaRabbitMQ(appointment.scheduleId);
-      const { schedule: scheduleArray, doctor: doctorArray } = schedule.data;
-      return {
-        ...appointment,
-        schedule: scheduleArray,
-        doctor: doctorArray,
-      };
+      try {
+        const schedule = await checkScheduleViaRabbitMQ(appointment.scheduleId);
+        const { schedule: scheduleArray, doctor: doctorArray } = schedule.data;
+        return {
+          ...appointment,
+          schedule: scheduleArray,
+          doctor: doctorArray,
+        };
+      } catch (error) {
+        console.error(
+          `Error fetching schedule for appointment ${appointment.id}:`,
+          error
+        );
+        return {
+          ...appointment,
+          schedule: null,
+          doctor: null,
+        };
+      }
     })
   );
 
-  return appointmentsWithScheduleInfo;
+  return {
+    appointments: appointmentsWithScheduleInfo,
+    pagination: {
+      currentPage: page,
+      pageSize: pageSize,
+      totalPages: totalPages,
+      totalItems: totalItems,
+    },
+  };
 };
 
 // Get appointment by ID
@@ -256,6 +331,8 @@ const getAppointmentByIdService = async (appointmentId: string) => {
       patient: true,
     },
   });
+
+  const payment = await getPaymentByAppointmentIdViaRabbitMQ(appointmentId);
 
   const schedule = await checkScheduleAndTimeslotIdViaRabbitMQ(
     appointment?.scheduleId || "",
@@ -269,6 +346,7 @@ const getAppointmentByIdService = async (appointmentId: string) => {
     ...appointment,
     schedule: schedule,
     doctor: doctor,
+    payment: payment,
   };
 
   return appointmentWithScheduleInfo;
@@ -366,6 +444,70 @@ const handleAppointmentsByDoctorIdServices = async (
   };
 };
 
+const handleCancelAppointment = async (appointmentId: string) => {
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+  });
+
+  if (!appointment) {
+    throw new Error("Appointment not found");
+  }
+
+  // Kiểm tra thời gian hủy - không cho hủy trước 12 tiếng
+  const appointmentTime = dayjs(appointment.appointmentDateTime).tz(
+    "Asia/Ho_Chi_Minh"
+  );
+  const now = dayjs().tz("Asia/Ho_Chi_Minh");
+  const hoursDiff = appointmentTime.diff(now, "hour", true);
+
+  if (hoursDiff < 12) {
+    throw new Error(
+      "Không thể hủy lịch hẹn. Chỉ được hủy trước 12 tiếng so với giờ khám."
+    );
+  }
+
+  // Kiểm tra trạng thái - chỉ cho phép hủy Pending hoặc Confirmed
+  if (appointment.status !== "Pending" && appointment.status !== "Confirmed") {
+    throw new Error("Không thể hủy lịch hẹn với trạng thái hiện tại.");
+  }
+
+  // 1. Update appointment status
+  const updatedAppointment = await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: {
+      status: "Cancelled",
+    },
+  });
+
+  // 2. Release schedule timeslot
+  await updateCancelScheduleAndTimeSlotIdViaRabbitMQ(
+    appointment.scheduleId,
+    String(appointment.timeSlotId)
+  );
+
+  // 3. Process payment cancellation and refund
+  const cancelPaymentResult =
+    await updateCancelPaymentByAppointmentIdViaRabbitMQ(appointment.id);
+
+  // 4. Build response for frontend
+  const response = {
+    appointment: {
+      id: updatedAppointment.id,
+      status: updatedAppointment.status,
+      appointmentDateTime: updatedAppointment.appointmentDateTime,
+      totalFee: Number(updatedAppointment.totalFee),
+      updatedAt: updatedAppointment.updatedAt,
+    },
+    payment: {
+      gateway: cancelPaymentResult?.gateway || "UNKNOWN",
+      refundProcessed: cancelPaymentResult?.refundProcessed || false,
+      refundRequired: cancelPaymentResult?.refundRequired || false,
+    },
+  };
+
+  return response;
+};
+
 export {
   createAppointmentService,
   getAppointmentsByUserService,
@@ -374,4 +516,5 @@ export {
   putPaymentByAppointmentIdService,
   handleAppointmentsByDoctorIdServices,
   countTotalAppointmentPage,
+  handleCancelAppointment,
 };
