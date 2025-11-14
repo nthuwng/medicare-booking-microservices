@@ -130,6 +130,7 @@ const getAllAppointmentsByDoctorIdController = async (
     );
 
     const doctorId = await getDoctorIdByUserIdViaRabbitMQ(userId as string);
+    console.log("Doctor ID received from RabbitMQ:", doctorId);
     const { appointments, totalAppointments } =
       await handleAppointmentsByDoctorIdServices(
         doctorId,

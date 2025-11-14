@@ -407,6 +407,7 @@ const handleAppointmentsByDoctorIdServices = async (
 ) => {
   const skip = (page - 1) * pageSize;
   const appointments = await prisma.appointment.findMany({
+    where: { doctorId: doctorId },
     include: {
       patient: true,
     },
