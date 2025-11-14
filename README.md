@@ -68,4 +68,11 @@ Không chạy đồng thời 3 lệnh cùng lúc
     up --build -d → build + chạy ngầm
     stop → tắt container nhưng không xóa
     down → tắt + xóa container + network
+
+    ⚠️ Lưu ý: KHÔNG dùng các lệnh sau trên production vì sẽ mất toàn bộ dữ liệu DB:
+
+    - docker compose down -v
+    - docker volume prune
+    - docker system prune --volumes
+
 ```

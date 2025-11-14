@@ -43,33 +43,52 @@ export const dispatchByIntent = async (
         };
       }
 
-      // symptoms có thể lấy từ parsed.args hoặc prompt trong ctx
       const symptoms = (parsed.args?.symptoms || ctx.prompt || "").trim();
 
-      // nếu hàm của bạn là dạng (sys, model, user, file, base64)
       const sys =
-        "You are a triage assistant. Respond strict JSON: specialty (vn), confidence (0.0-1), reasoning (vn).";
+        "You are a triage assistant. If the image is NOT clearly related to medicine, " +
+        'return JSON: {"specialty_name":"Không áp dụng","confidence":0,"reasoning":"…"}. ' +
+        "Otherwise, respond strict JSON: {specialty_name (vn), confidence (0.0-1), reasoning (vn)}.";
+
       const user = `Ảnh triệu chứng. Thông tin bổ sung: ${
         symptoms || "không có"
       }. Chỉ trả JSON.`;
+
       const text = await handleRecommendSpecialtyFromImage(
         sys,
         ctx.modelImage || process.env.GEMINI_MODEL_NAME!,
         user,
-        ctx.image, // <- file
-        ctx.image.base64 ?? ctx.image.buffer.toString("base64") // <- base64
+        ctx.image,
+        ctx.image.base64 ?? ctx.image.buffer.toString("base64")
       );
 
       const rawObj = text ? tryParseJSON(text) : null;
+
       const specialtyName =
         rawObj?.specialty_name || rawObj?.specialty || "Nội tổng quát";
       const confidence =
         typeof rawObj?.confidence === "number" ? rawObj.confidence : 0.6;
       const reasoning = rawObj?.reasoning || "";
 
+      // ⚠️ Nếu model bảo "Không áp dụng" hoặc confidence quá thấp → nói lại cho user dễ hiểu
+      const isNotApplicable =
+        specialtyName.toLowerCase().includes("không áp dụng") ||
+        confidence <= 0.1;
+
+      if (isNotApplicable) {
+        return {
+          intent: "recommend_specialty_image",
+          content:
+            "Ảnh bạn gửi có vẻ không phải hình ảnh y tế hoặc không đủ thông tin để tư vấn chuyên khoa. " +
+            "Bạn có thể gửi lại ảnh rõ hơn (ví dụ vùng tổn thương, kết quả xét nghiệm) " +
+            "hoặc mô tả triệu chứng bằng chữ để mình hỗ trợ chính xác hơn nhé! 😊",
+          data: rawObj ? { specialtyName, confidence, reasoning } : null,
+        };
+      }
+
       return {
         intent: "recommend_specialty_image",
-        content: `- Dựa trên ảnh bạn gửi, mình nghĩ bạn nên khám chuyên khoa ${specialtyName} nhé!`,
+        content: `Dựa trên ảnh bạn gửi, mình nghĩ bạn nên khám chuyên khoa ${specialtyName} nhé!`,
         data: rawObj
           ? { specialty_name: specialtyName, confidence, reasoning }
           : null,
