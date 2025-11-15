@@ -95,7 +95,7 @@ const postLoginAPI = async (req: Request, res: Response) => {
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
@@ -286,7 +286,7 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
       path: "/",
     });
@@ -331,7 +331,7 @@ const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
     res.clearCookie("refresh_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     });
 
@@ -445,7 +445,7 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
