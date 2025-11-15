@@ -94,8 +94,8 @@ const postLoginAPI = async (req: Request, res: Response) => {
       // Set refresh token as HTTP-only cookie
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production", // HTTPS only in production
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
@@ -269,6 +269,7 @@ const putUpdatePasswordApi = async (req: Request, res: Response) => {
 const postRefreshTokenApi = async (req: Request, res: Response) => {
   try {
     const refresh_token = req.cookies.refresh_token;
+    console.log("cookies in logout:", req.cookies);
 
     if (!refresh_token) {
       res.status(400).json({
@@ -284,9 +285,9 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
     // Set new refresh token as HTTP-only cookie
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
       path: "/",
     });
 
@@ -314,21 +315,26 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
 const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
   try {
     const refresh_token = req.cookies.refresh_token;
+    console.log("cookies in logout:", req.cookies);
 
-    // Nếu có refresh token, revoke nó
-    if (refresh_token) {
-      await handleRevokeRefreshToken(refresh_token);
+    if (!refresh_token) {
+      res.status(400).json({
+        success: false,
+        message: "Refresh token không tìm thấy trong cookie",
+      });
+      return;
     }
 
-    // Clear cookie (dù có hay không)
+    await handleRevokeRefreshToken(refresh_token);
+
+    // Clear the refresh token cookie
     res.clearCookie("refresh_token", {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       path: "/",
     });
 
-    // Luôn trả success vì mục đích là logout
     res.status(200).json({
       success: true,
       message: "Đăng xuất thành công",
@@ -438,8 +444,8 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
       // Set refresh token as HTTP-only cookie
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
-        secure: false,
-        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production", // HTTPS only in production
+        sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
@@ -625,25 +631,7 @@ const putUpdateLockUserApi = async (req: Request, res: Response) => {
   });
 };
 
-const getMeAPI = async (req: Request, res: Response) => {
-  const checkUser = req.user as JwtPayload;
-  try {
-    res.status(200).json({
-      success: true,
-      message: "Lấy thông tin người dùng thành công",
-      data: checkUser,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Lỗi khi lấy thông tin người dùng",
-      data: null,
-    });
-  }
-};
-
 export {
-  getMeAPI,
   postRegisterAPI,
   postLoginAPI,
   postVerifyTokenAPI,

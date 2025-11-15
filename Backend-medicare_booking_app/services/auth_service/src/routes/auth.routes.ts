@@ -14,7 +14,6 @@ import {
   postVerifyOtpApi,
   putUpdatePasswordFromEmailApi,
   putUpdateLockUserApi, 
-  getMeAPI,
 } from "../controllers/auth.controller";
 import {
   authenticateToken,
@@ -26,7 +25,6 @@ const router = express.Router();
 const authRoutes = (app: Express) => {
   router.post("/register", postRegisterAPI);
   router.get("/", authenticateToken, authorizeAdmin, getAllUsersAPI);
-  router.get("/me", authenticateToken, getMeAPI);
   router.post("/login", postLoginAPI);
   router.post("/login-with-google", postLoginWithGoogleAPI);
   router.post("/verify-token", postVerifyTokenAPI);
