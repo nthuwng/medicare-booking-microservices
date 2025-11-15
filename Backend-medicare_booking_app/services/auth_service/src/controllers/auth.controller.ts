@@ -269,7 +269,6 @@ const putUpdatePasswordApi = async (req: Request, res: Response) => {
 const postRefreshTokenApi = async (req: Request, res: Response) => {
   try {
     const refresh_token = req.cookies.refresh_token;
-    console.log("cookies in logout:", req.cookies);
 
     if (!refresh_token) {
       res.status(400).json({
@@ -315,7 +314,6 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
 const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
   try {
     const refresh_token = req.cookies.refresh_token;
-    console.log("cookies in logout:", req.cookies);
 
     if (!refresh_token) {
       res.status(400).json({
@@ -444,7 +442,7 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
       // Set refresh token as HTTP-only cookie
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
-        secure: false,// HTTPS only in production
+        secure: false, // HTTPS only in production
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
