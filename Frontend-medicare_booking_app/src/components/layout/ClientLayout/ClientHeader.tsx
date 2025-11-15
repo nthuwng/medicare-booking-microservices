@@ -4,6 +4,7 @@ import { RiAdminFill } from "react-icons/ri";
 import { useCurrentApp } from "@/components/contexts/app.context";
 import { useEffect } from "react";
 import ThemeToggle from "@/components/common/ThemeToggle";
+import { revokeTokenAPI } from "@/services/api";
 
 const ClientHeader = () => {
   const {
@@ -23,12 +24,19 @@ const ClientHeader = () => {
     }
   }, [isAuthenticated, user, isAppLoading, refreshUserData]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    setIsAuthenticated(false);
-    setUser(null);
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      // Gọi API revoke refresh token
+      await revokeTokenAPI();
+    } catch (error) {
+      console.log("Revoke token error:", error);
+    } finally {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      setIsAuthenticated(false);
+      setUser(null);
+      navigate("/");
+    }
   };
 
   const itemsDropdown = [

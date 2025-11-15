@@ -300,9 +300,14 @@ const handleRefreshToken = async (refreshToken: string) => {
       );
     }
 
-    const newRefreshToken = jwt.sign(payload, refreshSecret, {
-      expiresIn: refreshExpiresIn,
-    });
+    // Thêm timestamp để tránh trùng token
+    const newRefreshToken = jwt.sign(
+      { ...payload, timestamp: Date.now() },
+      refreshSecret,
+      {
+        expiresIn: refreshExpiresIn,
+      }
+    );
 
     // Revoke old refresh token
     await prisma.refreshToken.update({
@@ -513,9 +518,13 @@ const handleLoginWithGoogleAPI = async (
       };
     }
 
-    const refresh_token = jwt.sign(payload, refreshSecret, {
-      expiresIn: refreshExpiresIn,
-    });
+    const refresh_token = jwt.sign(
+      { ...payload, timestamp: Date.now() },
+      refreshSecret,
+      {
+        expiresIn: refreshExpiresIn,
+      }
+    );
 
     // Save refresh token to database
     const expiresAt = new Date();

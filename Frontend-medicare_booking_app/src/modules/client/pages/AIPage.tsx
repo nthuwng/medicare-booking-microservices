@@ -204,7 +204,7 @@ const AIPage = () => {
           />
         );
       } else {
-        aiText = res?.text ?? "Tôi không thể xử lí yêu cầu này.";
+        aiText = res?.error?.message ?? "Tôi không thể xử lí yêu cầu này.";
         displayContent = aiText;
       }
 

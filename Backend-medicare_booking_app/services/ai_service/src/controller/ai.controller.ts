@@ -3,19 +3,21 @@ import { Request, Response } from "express";
 import { dispatchByIntent } from "src/services/ai.registry";
 import { parseIntent } from "src/validations/ai.intent";
 import type { UploadedImage as UImage } from "src/types/ai.runtime";
+import { MODEL_AI } from "src/config/gemini";
 
-const MODEL_AI = process.env.GEMINI_MODEL_NAME!;
-
-export const chatController = async (req: Request, res: Response) => {
+export const chatController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const file = (req as any).file as UImage | undefined;
     const { prompt = "" } = (req.body || {}) as { prompt?: string };
 
-    // Có ảnh → ép intent image, gửi file qua ctx
+    // Có ảnh → ép intent image
     if (file) {
       const image: UImage = {
         ...file,
-        base64: file.buffer.toString("base64"), // tiện cho downstream
+        base64: file.buffer.toString("base64"),
       };
 
       const result = await dispatchByIntent(
@@ -40,14 +42,15 @@ export const chatController = async (req: Request, res: Response) => {
         intent: "recommend_specialty_image",
         model: MODEL_AI,
         text: result?.content ?? "",
-        data: result?.data ?? null, // nếu bạn có parse JSON từ text
+        data: result?.data ?? null,
       });
       return;
     }
 
     // TEXT → intent → handler
     if (!prompt) {
-      res.status(400).json({ error: "message is required" });
+      res.status(400).json({ success: false, error: "message is required" });
+      return;
     }
 
     const parsed = await parseIntent(prompt);
@@ -62,6 +65,36 @@ export const chatController = async (req: Request, res: Response) => {
     });
     return;
   } catch (e: any) {
-    res.status(500).json({ error: e.message || "AI error" });
+    // Log chi tiết
+    console.error("[AI] chatController error:", {
+      message: e?.message,
+      code: e?.code,
+      status: e?.status,
+      details: e?.response?.data ?? e?.response ?? e,
+    });
+
+    const msg = e?.message || "";
+
+    if (msg.includes("The model is overloaded")) {
+      res.status(503).json({
+        success: false,
+        error: {
+          code: "AI_MODEL_OVERLOADED",
+          message:
+            "Hệ thống AI của nhà cung cấp đang quá tải, bạn vui lòng thử lại sau ít phút nhé! 🙏",
+        },
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "AI_INTERNAL_ERROR",
+        message:
+          "Xin lỗi, hệ thống AI đang gặp sự cố. Bạn vui lòng thử lại sau hoặc liên hệ bộ phận hỗ trợ.",
+      },
+    });
+    return;
   }
 };

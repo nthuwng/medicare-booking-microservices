@@ -14,9 +14,14 @@ declare global {
     success: boolean;
     intent: string;
     model: string;
-    error?: string | string[];
+    error?: IErrorAiResponse;
     data?: T;
     text?: string;
+  }
+
+  interface IErrorAiResponse {
+    code: string;
+    message: string;
   }
 
   interface IModelPaginate<T> {

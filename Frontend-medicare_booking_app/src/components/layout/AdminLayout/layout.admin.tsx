@@ -18,6 +18,7 @@ import { MdAccountCircle } from "react-icons/md";
 import NotificationAdmin from "@/modules/admin/components/NotificationAdmin.tsx/NotificationAdmin";
 import { FaUserInjured } from "react-icons/fa";
 import { useCurrentApp } from "@/components/contexts/app.context";
+import { revokeTokenAPI } from "@/services/api";
 type MenuItem = Required<MenuProps>["items"][number];
 
 const { Content, Sider } = Layout;
@@ -29,14 +30,21 @@ const LayoutAdmin = () => {
 
   const { setIsAuthenticated, setUser } = useCurrentApp();
 
-  const handleLogout = () => {
-    // Xóa token từ localStorage
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+  const handleLogout = async () => {
+    try {
+      // Gọi API revoke refresh token
+      await revokeTokenAPI();
+    } catch (error) {
+      console.log("Revoke token error:", error);
+    } finally {
+      // Xóa token từ localStorage
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
 
-    // Reset trạng thái
-    setIsAuthenticated(false);
-    setUser(null);
+      // Reset trạng thái
+      setIsAuthenticated(false);
+      setUser(null);
+    }
   };
 
   const items: MenuItem[] = [

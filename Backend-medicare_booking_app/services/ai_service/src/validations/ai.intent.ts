@@ -2,9 +2,7 @@
 import { z } from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { intentPrompt } from "src/prompts/intent.prompts";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const MODEL_AI = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
+import { ai, MODEL_AI } from "src/config/gemini";
 
 export const IntentSchema = z.object({
   intent: z.enum([

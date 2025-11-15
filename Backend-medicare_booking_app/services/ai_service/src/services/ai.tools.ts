@@ -1,11 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
+import { ai, MODEL_AI } from "src/config/gemini";
 import {
   promptMedicalQA,
   promptRecommendSpecialtyText,
 } from "src/prompts/prompts";
 import { checkSpecialtyDoctorViaRabbitMQ } from "src/queue/publishers/ai.publishers";
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-const MODEL_AI = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
 
 export type ToolResult = { content?: string; data?: any };
 

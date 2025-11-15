@@ -1,3 +1,4 @@
+
 import axios from "services/axios.customize";
 
 export const loginAPI = (email: string, password: string) => {
@@ -24,3 +25,8 @@ export const loginWithGoogleAPI = (credential: string) => {
   const urlBackend = "/api/auth/login-with-google";
   return axios.post<IBackendRes<ILogin>>(urlBackend, { credential });
 };
+
+export const revokeTokenAPI = () => {
+  const urlBackend = "/api/auth/revoke-token";
+  return axios.post<IBackendRes<null>>(urlBackend, {});
+}

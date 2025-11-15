@@ -1,5 +1,6 @@
 import { createElement, useState, useEffect } from "react";
 import "./layout.doctor.css";
+import { revokeTokenAPI } from "@/services/api";
 import {
   AppstoreOutlined,
   CalendarOutlined,
@@ -72,14 +73,21 @@ const LayoutDoctor = () => {
     fetchDoctorProfile();
   }, [user?.id]);
 
-  const handleLogout = () => {
-    // Xóa token từ localStorage
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+  const handleLogout = async () => {
+    try {
+      // Gọi API revoke refresh token
+      await revokeTokenAPI();
+    } catch (error) {
+      console.log("Revoke token error:", error);
+    } finally {
+      // Xóa token từ localStorage
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
 
-    // Reset trạng thái
-    setIsAuthenticated(false);
-    setUser(null);
+      // Reset trạng thái
+      setIsAuthenticated(false);
+      setUser(null);
+    }
   };
 
   const handleOpenAvatarModal = () => {

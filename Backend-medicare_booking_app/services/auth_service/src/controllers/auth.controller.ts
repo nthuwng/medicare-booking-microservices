@@ -95,7 +95,7 @@ const postLoginAPI = async (req: Request, res: Response) => {
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
@@ -211,7 +211,7 @@ const getAccountApi = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(401).json({
       success: false,
       message: "Lỗi khi lấy thông tin tài khoản.",
       data: null,
@@ -285,8 +285,8 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
 
@@ -329,7 +329,7 @@ const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
     res.clearCookie("refresh_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
     });
 
@@ -443,7 +443,7 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
       });
@@ -629,7 +629,25 @@ const putUpdateLockUserApi = async (req: Request, res: Response) => {
   });
 };
 
+const getMeAPI = async (req: Request, res: Response) => {
+  const checkUser = req.user as JwtPayload;
+  try {
+    res.status(200).json({
+      success: true,
+      message: "Lấy thông tin người dùng thành công",
+      data: checkUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy thông tin người dùng",
+      data: null,
+    });
+  }
+};
+
 export {
+  getMeAPI,
   postRegisterAPI,
   postLoginAPI,
   postVerifyTokenAPI,

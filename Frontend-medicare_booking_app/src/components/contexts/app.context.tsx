@@ -55,6 +55,14 @@ export const AppProvider = (props: TProps) => {
   }, [theme]);
 
   const fetchAccount = async () => {
+    // Chỉ fetch khi có access_token
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setIsAuthenticated(false);
+      setUser(null);
+      return;
+    }
+
     try {
       const res = await fetchAccountAPI();
       if (res.data) {
@@ -65,6 +73,7 @@ export const AppProvider = (props: TProps) => {
       console.log("Error fetching account:", error);
       setIsAuthenticated(false);
       setUser(null);
+      localStorage.removeItem("access_token");
     }
   };
 
