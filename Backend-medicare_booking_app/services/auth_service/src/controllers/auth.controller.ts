@@ -95,10 +95,13 @@ const postLoginAPI = async (req: Request, res: Response) => {
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
-        domain: process.env.NODE_ENV === "production" ? "medicare-booking-app.cloud" : undefined,
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".medicare-booking-app.cloud"
+            : undefined,
       });
 
       const response: LoginResponse = {
@@ -286,10 +289,13 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
-      domain: process.env.NODE_ENV === "production" ? "medicare-booking-app.cloud" : undefined,
+      domain:
+        process.env.NODE_ENV === "production"
+          ? ".medicare-booking-app.cloud"
+          : undefined,
     });
 
     const response: RefreshTokenResponse = {
@@ -326,9 +332,12 @@ const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
     res.clearCookie("refresh_token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
-      domain: process.env.NODE_ENV === "production" ? "medicare-booking-app.cloud" : undefined,
+      domain:
+        process.env.NODE_ENV === "production"
+          ? ".medicare-booking-app.cloud"
+          : undefined,
     });
 
     // Luôn trả success vì mục đích là logout
@@ -445,7 +454,10 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
-        domain: process.env.NODE_ENV === "production" ? ".medicare-booking-app.cloud" : undefined,
+        domain:
+          process.env.NODE_ENV === "production"
+            ? ".medicare-booking-app.cloud"
+            : undefined,
       });
 
       const response: LoginResponse = {
