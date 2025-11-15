@@ -94,7 +94,7 @@ const postLoginAPI = async (req: Request, res: Response) => {
       // Set refresh token as HTTP-only cookie
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
-        secure: false, 
+        secure: false,
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
@@ -284,7 +284,7 @@ const postRefreshTokenApi = async (req: Request, res: Response) => {
     // Set new refresh token as HTTP-only cookie
     res.cookie("refresh_token", result.refresh_token, {
       httpOnly: true,
-      secure: false, 
+      secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
@@ -323,7 +323,7 @@ const postRevokeRefreshTokenApi = async (req: Request, res: Response) => {
     // Clear cookie (dù có hay không)
     res.clearCookie("refresh_token", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       path: "/",
     });
@@ -438,7 +438,7 @@ const postLoginWithGoogleAPI = async (req: Request, res: Response) => {
       // Set refresh token as HTTP-only cookie
       res.cookie("refresh_token", result.refresh_token, {
         httpOnly: true,
-        secure: false, 
+        secure: false,
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
