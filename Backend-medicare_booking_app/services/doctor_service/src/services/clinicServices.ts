@@ -1,4 +1,8 @@
 import { CreateClinicProfileData } from "@shared/index";
+import {
+  AllClinicsCache,
+  AllClinicsCacheParams,
+} from "src/cache/clinic/clinic.cache";
 import { prisma } from "src/config/client";
 
 const VALID_CITIES = ["Hanoi", "HoChiMinh"] as const;
@@ -55,6 +59,10 @@ const handleCreateClinicProfile = async (body: CreateClinicProfileData) => {
       iconPublicId: icon_public_id,
     },
   });
+
+  // Clear cache khi tạo clinic mới
+  await AllClinicsCache.clear();
+
   return clinic;
 };
 
@@ -71,6 +79,18 @@ const handleGetAllClinics = async (
   city?: string,
   clinicName?: string
 ) => {
+  const cacheParams: AllClinicsCacheParams = {
+    page,
+    pageSize,
+    city,
+    clinicName,
+  };
+
+  const cachedClinics = await AllClinicsCache.get<any[]>(cacheParams);
+  if (cachedClinics) {
+    return cachedClinics; // clinics là array → controller dùng .length OK
+  }
+
   const skip = (page - 1) * pageSize;
 
   const where: any = {};
@@ -83,6 +103,8 @@ const handleGetAllClinics = async (
     take: pageSize,
     orderBy: { id: "asc" },
   });
+
+  await AllClinicsCache.set(cacheParams, clinics);
 
   return clinics;
 };
@@ -119,6 +141,10 @@ const handleDeleteClinic = async (id: string) => {
   await prisma.clinic.delete({
     where: { id: clinicId },
   });
+
+  // Clear cache khi xóa clinic
+  await AllClinicsCache.clear();
+
   return true;
 };
 
@@ -173,6 +199,10 @@ const handleUpdateClinic = async (
       iconPublicId: icon_public_id,
     },
   });
+
+  // Clear cache khi update clinic
+  await AllClinicsCache.clear();
+
   return updatedClinic;
 };
 

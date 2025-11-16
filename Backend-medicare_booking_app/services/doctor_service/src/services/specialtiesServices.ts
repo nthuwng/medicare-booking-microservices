@@ -1,4 +1,8 @@
 import { CreateSpecialtiesProfileData } from "@shared/interfaces/specialties/ISpecialties";
+import {
+  AllSpecialitiesCache,
+  AllSpecialitiesCacheParams,
+} from "src/cache/specialities/specialities.cache";
 import { prisma } from "src/config/client";
 
 const handleCreateSpecialtiesProfile = async (
@@ -34,6 +38,17 @@ const handleGetAllSpecialties = async (
   pageSize: number,
   specialtyName?: string
 ) => {
+  const cacheParams: AllSpecialitiesCacheParams = {
+    page,
+    pageSize,
+    specialtyName,
+  };
+  const cachedSpecialties = await AllSpecialitiesCache.get<any[]>(cacheParams);
+  if (cachedSpecialties) {
+    console.log("✅ Specialities fetched from cache");
+    return cachedSpecialties;
+  }
+
   const skip = (page - 1) * pageSize;
 
   const where: any = {};
@@ -45,7 +60,7 @@ const handleGetAllSpecialties = async (
     take: pageSize,
     orderBy: { id: "asc" },
   });
-
+  await AllSpecialitiesCache.set(cacheParams, specialties);
   return specialties;
 };
 

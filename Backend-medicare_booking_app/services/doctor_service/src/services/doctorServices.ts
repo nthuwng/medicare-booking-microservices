@@ -16,6 +16,10 @@ import {
   findDoctorById,
   getUserIdByDoctorId,
 } from "src/repository/doctor.repo";
+import {
+  ApprovedDoctorsCache,
+  type ApprovedDoctorsCacheParams,
+} from "src/cache/doctor/doctorApprove.cache";
 
 const createDoctorProfile = async (
   body: CreateDoctorProfileData,
@@ -206,6 +210,9 @@ const updateDoctorStatusService = async (id: string) => {
     );
   }
 
+  // Clear cache khi doctor được approve
+  await ApprovedDoctorsCache.clear();
+
   return doctorUpdated;
 };
 
@@ -321,25 +328,41 @@ const handleGetAllApprovedDoctors = async (
   specialtyId?: string,
   clinicId?: string
 ) => {
-  const skip = (page - 1) * pageSize;
+  // Cache params
+  const cacheParams: ApprovedDoctorsCacheParams = {
+    page,
+    pageSize,
+    fullName,
+    phone,
+    title,
+    specialtyId,
+    clinicId,
+  };
 
-  // Build where conditions
+  // Try to get from cache
+  const cachedData = await ApprovedDoctorsCache.get<{
+    doctors: any[];
+    totalDoctors: number;
+  }>(cacheParams);
+
+  if (cachedData) {
+    return cachedData;
+  }
+
+  // Cache miss - query database
+  const skip = (page - 1) * pageSize;
   const whereConditions: any[] = [];
 
+  // Build filters
   if (fullName && fullName.trim() !== "") {
-    whereConditions.push({
-      fullName: { contains: fullName },
-    });
+    whereConditions.push({ fullName: { contains: fullName } });
   }
 
   if (phone && phone.trim() !== "") {
-    whereConditions.push({
-      phone: { contains: phone },
-    });
+    whereConditions.push({ phone: { contains: phone } });
   }
 
   if (title && title.trim() !== "") {
-    // Map Vietnamese titles to enum values
     const titleMapping: { [key: string]: string } = {
       "bác sĩ": "BS",
       "bac si": "BS",
@@ -354,13 +377,10 @@ const handleGetAllApprovedDoctors = async (
     };
 
     let searchTitle = title.trim();
-
-    // Check if it's a Vietnamese title
     if (titleMapping[searchTitle.toLowerCase()]) {
       searchTitle = titleMapping[searchTitle.toLowerCase()];
     }
 
-    // Validate title enum values
     const validTitles = ["BS", "ThS", "TS", "PGS", "GS"];
     if (!validTitles.includes(searchTitle)) {
       throw new Error(
@@ -368,12 +388,9 @@ const handleGetAllApprovedDoctors = async (
       );
     }
 
-    whereConditions.push({
-      title: { equals: searchTitle as Title },
-    });
+    whereConditions.push({ title: { equals: searchTitle as Title } });
   }
 
-  // Filter by specialtyId (if provided)
   if (specialtyId && String(specialtyId).trim() !== "") {
     const numericSpecialtyId = Number(specialtyId);
     if (!Number.isNaN(numericSpecialtyId)) {
@@ -381,13 +398,14 @@ const handleGetAllApprovedDoctors = async (
     }
   }
 
-  // Filter by clinicId (if provided)
   if (clinicId && String(clinicId).trim() !== "") {
     const numericClinicId = Number(clinicId);
     if (!Number.isNaN(numericClinicId)) {
       whereConditions.push({ clinicId: numericClinicId });
     }
   }
+
+  // Query database
   const doctors = await prisma.doctor.findMany({
     include: {
       clinic: true,
@@ -397,9 +415,11 @@ const handleGetAllApprovedDoctors = async (
       approvalStatus: ApprovalStatus.Approved,
       ...(whereConditions.length > 0 ? { AND: whereConditions } : {}),
     },
-    skip: skip,
+    skip,
     take: pageSize,
   });
+
+  // Get user info
   const userAllUsers = await getAllDoctorsViaRabbitMQ();
 
   if (!userAllUsers || userAllUsers.length === 0) {
@@ -410,6 +430,8 @@ const handleGetAllApprovedDoctors = async (
       warning: "Không thể lấy thông tin user từ auth service",
     };
   }
+
+  // Enrich with user info and rating stats
   const doctorsWithUserInfo = await Promise.all(
     doctors.map(async (doctor) => {
       const userInfo = userAllUsers.find(
@@ -424,10 +446,15 @@ const handleGetAllApprovedDoctors = async (
     })
   );
 
-  return {
+  const result = {
     doctors: doctorsWithUserInfo,
     totalDoctors: doctorsWithUserInfo.length,
   };
+
+  // Save to cache
+  await ApprovedDoctorsCache.set(cacheParams, result);
+
+  return result;
 };
 
 const checkDoctorInfor = async (doctorId: string) => {
