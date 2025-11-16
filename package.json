@@ -8,7 +8,7 @@
     "down": "docker compose down",
     "stop": "docker compose stop",
     "dev": "docker compose --env-file docker-compose.env up",
-    "dev:databases": "docker compose --env-file docker-compose.env up --build rabbitmq user_db auth_db doctor_db appointment_db schedule_db notification_db payment_db rating_db message_db",
+    "dev:databases": "docker compose --env-file docker-compose.env up --build rabbitmq redis user_db auth_db doctor_db appointment_db schedule_db notification_db payment_db rating_db message_db",
     "build:prod": "docker compose --env-file docker-compose.env up --build -d",
     "down:prod": "docker compose --env-file docker-compose.env down",
     "stop:prod": "docker compose --env-file docker-compose.env stop"

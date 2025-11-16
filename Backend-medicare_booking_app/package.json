@@ -8,7 +8,8 @@
     "down": "docker-compose down",
     "stop": "docker-compose stop",
     "dev": "docker-compose --env-file docker-compose.env up",
-    "dev:services": "docker-compose --env-file docker-compose.env up --build api-gateway ai-service user-service auth-service doctor-service appointment-service schedule-service notification-service payment-service rating-service message-service"
+    "dev:services": "docker-compose --env-file docker-compose.env up api-gateway ai-service user-service auth-service doctor-service appointment-service schedule-service notification-service payment-service rating-service message-service",
+    "rebuild:auth": "docker-compose --env-file docker-compose.env up --build -d auth-service"
   },
   "author": "",
   "license": "ISC",

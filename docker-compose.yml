@@ -35,6 +35,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  redis:
+    image: public.ecr.aws/docker/library/redis:7.2.12-alpine
+    container_name: redis
+    restart: unless-stopped
+    mem_limit: 200m
+    cpus: "0.30"
+    ports:
+      - "6379:6379" # để dev local có thể connect nếu cần
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - healthcare_network
+
   api-gateway:
     build:
       context: ./Backend-medicare_booking_app/api_gateway_service
@@ -209,6 +224,11 @@ services:
       - ./Backend-medicare_booking_app/services/doctor_service/.env
     environment:
       - DATABASE_URL=${DOCTOR_DATABASE_URL}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_URL=${REDIS_URL}
+
     volumes:
       - ./Backend-medicare_booking_app/services/doctor_service:/app:cached
       - doctor_node_modules:/app/node_modules
@@ -218,6 +238,8 @@ services:
         condition: service_healthy
       doctor_db:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - healthcare_network
     command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run dev"
@@ -574,3 +596,4 @@ volumes:
   ai_node_modules:
   rating_node_modules:
   rating_mysql_data:
+  redis_data:

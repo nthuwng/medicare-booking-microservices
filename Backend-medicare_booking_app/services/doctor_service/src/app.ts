@@ -5,6 +5,7 @@ import { initializeAllRabbitMQConsumers } from "./queue/consumers";
 import routers from "./routes/index.routes";
 import initDatabase from "./config/seed";
 import cors from "cors";
+import { redis } from "src/config/redis";
 const app = express();
 const port = process.env.PORT || 8083;
 
@@ -28,6 +29,8 @@ routers(app);
 // Start server
 const startApplication = async () => {
   try {
+    const pong = await redis.ping();
+    console.log("PING =>", pong);
     //Kết nối Message Broker (RabbitMQ)
     await connectRabbitMQ();
     console.log("✅ Connected to RabbitMQ");
