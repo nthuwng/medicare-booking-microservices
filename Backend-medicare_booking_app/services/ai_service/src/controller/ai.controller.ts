@@ -65,14 +65,6 @@ export const chatController = async (
     });
     return;
   } catch (e: any) {
-    // Log chi tiết
-    console.error("[AI] chatController error:", {
-      message: e?.message,
-      code: e?.code,
-      status: e?.status,
-      details: e?.response?.data ?? e?.response ?? e,
-    });
-
     const msg = e?.message || "";
 
     if (msg.includes("The model is overloaded")) {

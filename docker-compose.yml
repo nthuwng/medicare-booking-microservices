@@ -44,7 +44,14 @@ services:
     cpus: "0.30"
     ports:
       - "6379:6379" # để dev local có thể connect nếu cần
-    command: ["redis-server", "--appendonly", "yes"]
+    command: 
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - "180mb"
+      - --maxmemory-policy
+      - allkeys-lru
     volumes:
       - redis_data:/data
     networks:

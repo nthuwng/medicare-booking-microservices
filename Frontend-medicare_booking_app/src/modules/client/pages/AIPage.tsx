@@ -226,7 +226,7 @@ const AIPage = () => {
             ? {
                 ...m,
                 content:
-                  "Xin lỗi, tôi gặp sự cố kỹ thuật. Vui lòng thử lại sau.",
+                  "Hệ thống AI của nhà cung cấp đang quá tải, bạn vui lòng thử lại sau ít phút nhé! 🙏",
                 isLoading: false,
               }
             : m

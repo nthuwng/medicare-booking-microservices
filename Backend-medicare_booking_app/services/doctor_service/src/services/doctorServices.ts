@@ -336,7 +336,6 @@ const handleGetAllApprovedDoctors = async (
     phone,
     title,
     specialtyId,
-    clinicId,
   };
 
   // Try to get from cache
