@@ -143,10 +143,15 @@ export const dispatchByIntent = async (
     }
 
     case "other": {
+      // Gợi ý lại cho user các câu hỏi liên quan hoặc xin thêm thông tin
       return {
         intent: "other",
         content:
-          "Xin lỗi, mình chỉ có thể hỗ trợ các câu hỏi về sức khỏe, gợi ý chuyên khoa, tìm bác sĩ và đặt lịch khám thôi. Bạn có thể hỏi mình về những vấn đề này nhé! 😊",
+          "Xin lỗi, mình chưa hiểu rõ câu hỏi của bạn. Bạn có thể hỏi về: \n" +
+          "- Triệu chứng sức khỏe (ví dụ: 'Tôi bị đau đầu, nên khám khoa nào?')\n" +
+          "- Hỏi về thuốc (ví dụ: 'Thuốc paracetamol dùng thế nào?')\n" +
+          "- Đặt lịch khám, tìm bác sĩ, hoặc các vấn đề y tế khác.\n" +
+          "\nBạn vui lòng mô tả rõ hơn để mình hỗ trợ chính xác nhé! 😊",
       };
     }
   }
