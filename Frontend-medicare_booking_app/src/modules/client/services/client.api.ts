@@ -1,4 +1,4 @@
-import { uploadFileAPI } from "./../../admin/services/admin.api";
+
 import axios from "services/axios.customize";
 import type {
   IDoctorProfile,

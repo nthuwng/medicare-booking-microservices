@@ -14,7 +14,7 @@ import {
   User,
   Loader2,
 } from "lucide-react";
-import { App, Avatar, Image, Modal } from "antd";
+import { App, Avatar, Image } from "antd";
 import { FaUser } from "react-icons/fa";
 import {
   getAllConversationsDoctorAPI,
@@ -70,7 +70,6 @@ const DoctorMessagePage = () => {
     number | null
   >(null);
   const [messageInput, setMessageInput] = useState("");
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dataDoctor, setDataDoctor] = useState<IDoctorProfile | null>(null);
   const [selectedPatientInfo, setSelectedPatientInfo] =
@@ -580,106 +579,6 @@ const DoctorMessagePage = () => {
     }
   };
 
-  const handleSendImage = async (file: File) => {
-    if (!socket || !user?.id || !dataDoctor?.id) return;
-
-    // Tạo URL preview local để hiển thị ngay
-    const previewUrl = URL.createObjectURL(file);
-    const tempId = `temp-${Date.now()}`;
-
-    // Message tạm với trạng thái đang gửi
-    const tempMsg = {
-      id: tempId,
-      content: previewUrl,
-      messageType: "IMAGE",
-      timestamp: "",
-      isOwn: true,
-      conversationId: selectedConversationId,
-      senderId: user.id,
-      isLoading: true,
-    };
-
-    setMessages((prev) => [...prev, tempMsg]);
-    setTimeout(scrollToBottom, 50);
-
-    try {
-      // 1) Upload ảnh
-      const res = await uploadFileAPI(file);
-      const backendRes = res.data; // IBackendRes<{ url, public_id }>
-
-      const imageUrl = backendRes?.url;
-      if (!imageUrl) {
-        notification.error({
-          message: "Lỗi tải ảnh",
-          description: res?.message || "Không lấy được URL ảnh từ máy chủ",
-        });
-        // Xoá message tạm
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        return;
-      }
-
-      const base = {
-        senderId: user.id,
-        senderType: "DOCTOR" as const,
-        content: imageUrl,
-        messageType: "IMAGE" as const,
-      };
-
-      let ack;
-      if (selectedConversationId) {
-        ack = await sendMessage(socket, {
-          ...base,
-          conversationId: selectedConversationId,
-        });
-      } else {
-        const pid =
-          patientId || selectedPatientInfo?.id || dataPatientFromParam?.id;
-        if (!pid) {
-          setMessages((prev) => prev.filter((m) => m.id !== tempId));
-          return;
-        }
-        ack = await sendMessage(socket, {
-          ...base,
-          patientId: pid,
-          doctorId: dataDoctor.id,
-        });
-      }
-
-      if (!ack?.ok) {
-        console.error("Send image failed:", ack?.error);
-        notification.error({
-          message: "Gửi ảnh thất bại",
-          description: "Vui lòng thử lại.",
-        });
-        setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        return;
-      }
-
-      // ✅ Thành công: xoá message tạm, để message thật do socket onMessageNew tự add
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-
-      // Nếu vừa tạo conv mới
-      if (!selectedConversationId && ack.conversationId) {
-        await openConversation(
-          ack.conversationId,
-          patientId || selectedPatientInfo?.id || dataPatientFromParam?.id
-        );
-      }
-
-      setTimeout(scrollToBottom, 50);
-    } catch (err) {
-      console.error("Upload/send image error:", err);
-      notification.error({
-        message: "Lỗi tải ảnh",
-        description: "Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại.",
-      });
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-    } finally {
-      // Giải phóng URL local
-      URL.revokeObjectURL(previewUrl);
-    }
-  };
-
   const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1043,12 +942,9 @@ const DoctorMessagePage = () => {
                         {m.messageType === "IMAGE" ? (
                           <>
                             <div className="relative">
-                              <img
+                              <Image
                                 src={m.content}
                                 alt="Ảnh gửi"
-                                onClick={() =>
-                                  !m.isLoading && setPreviewImage(m.content)
-                                }
                                 className={`max-w-[230px] max-h-[230px] rounded-lg object-cover cursor-zoom-in ${
                                   m.isLoading ? "opacity-60" : ""
                                 }`}
@@ -1113,6 +1009,9 @@ const DoctorMessagePage = () => {
                               </div>
                             ),
                           }}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleSendMessage()
+                          }
                         />
                         <button
                           type="button"
@@ -1178,34 +1077,6 @@ const DoctorMessagePage = () => {
               </div>
             )}
           </div>
-          {/* Preview ảnh phóng to */}
-          <Modal
-            open={!!previewImage}
-            footer={null}
-            onCancel={() => setPreviewImage(null)}
-            centered
-            width="auto"
-            style={{ maxWidth: "90vw" }}
-            bodyStyle={{
-              padding: 0,
-              background: "transparent",
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt="Xem ảnh"
-                style={{
-                  maxHeight: "80vh",
-                  maxWidth: "100%",
-                  borderRadius: 8,
-                  display: "block",
-                }}
-              />
-            )}
-          </Modal>
         </div>
       </div>
     </div>
