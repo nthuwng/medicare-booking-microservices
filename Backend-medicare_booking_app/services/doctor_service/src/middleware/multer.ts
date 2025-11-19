@@ -25,7 +25,8 @@ const fileUploadMiddleware = (fieldName: string, dir: string = "images") => {
       ) {
         cb(null, true);
       } else {
-        cb(new Error("Only JPEG and PNG images are allowed."), false);
+        (req as any).fileValidationError = "ONLY_JPEG_PNG_ALLOWED";
+        cb(null, false); // skip file
       }
     },
   }).single(fieldName);

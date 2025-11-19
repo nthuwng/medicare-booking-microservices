@@ -28,6 +28,7 @@ export interface IConversationDisplay {
   name: string;
   avatar: string;
   lastMessage: string;
+  lastMessageType: string;
   timestamp: string;
   isOnline: boolean;
   unreadCount: number;

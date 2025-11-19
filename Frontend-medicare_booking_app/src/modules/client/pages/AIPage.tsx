@@ -238,6 +238,33 @@ const AIPage = () => {
     }
   };
 
+  const handlePasteImage = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      // Tìm file image trong clipboard
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault(); // chặn dán text base64 linh tinh
+
+          // clear preview cũ nếu có
+          if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+          }
+
+          // giống onPickImage
+          setImageFile(file);
+          const url = URL.createObjectURL(file);
+          setImagePreview(url);
+        }
+        break;
+      }
+    }
+  };
+
   useEffect(() => {
     if (isNearBottom()) scrollToBottom();
   }, [messages]);
@@ -752,6 +779,7 @@ const AIPage = () => {
                     <TextArea
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
+                      onPaste={handlePasteImage}
                       placeholder="Hãy hỏi tôi về sức khỏe, chuyên khoa, đặt lịch, y tế..."
                       className={`composer-textarea !no-scrollbar !mb-2 focus:!outline-none focus:!shadow-none ${
                         isDark ? "is-dark" : "is-light"

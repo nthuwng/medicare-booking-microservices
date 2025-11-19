@@ -1,3 +1,4 @@
+import { uploadFileAPI } from "./../../admin/services/admin.api";
 import axios from "services/axios.customize";
 import type {
   IDoctorProfile,
@@ -227,7 +228,26 @@ const putUpdatePasswordFromEmailApi = (
   });
 };
 
+const uploadFileAPIClient = (img: any) => {
+  const bodyFormData = new FormData();
+  bodyFormData.append("image", img);
+  return axios<
+    IBackendRes<{
+      url: string;
+      public_id: string;
+    }>
+  >({
+    method: "post",
+    url: "/api/message/upload/image",
+    data: bodyFormData,
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 export {
+  uploadFileAPIClient,
   resendOtpAPI,
   putUpdatePasswordFromEmailApi,
   verifyOtpAPI,

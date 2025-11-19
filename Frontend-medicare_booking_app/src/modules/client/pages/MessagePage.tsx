@@ -9,11 +9,14 @@ import {
   Video,
   MoreVertical,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
+
 import { useLocation } from "react-router-dom";
 import type { IDoctorProfile } from "@/types";
 import type { IConversation, ILastMessage } from "@/types/message";
 import { useCurrentApp } from "@/components/contexts/app.context";
+import { FaImages } from "react-icons/fa";
 import {
   connectMessageSocket,
   joinConversationRoom,
@@ -32,12 +35,15 @@ import {
   getPatientByUserIdAPI,
   getUnreadCountMessageAPI,
   markMessagesAsReadAPI,
+  uploadFileAPIClient,
 } from "../services/client.api";
-import { Avatar } from "antd";
+import { App, Avatar, Button, Image, Modal } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
 
 type NavState = { doctorId?: string };
 
 const MessagePage = () => {
+  const { notification } = App.useApp();
   const location = useLocation();
   const { doctorId } = (location.state as NavState) || {};
 
@@ -49,6 +55,18 @@ const MessagePage = () => {
   >([]);
   const [messages, setMessages] = useState<any[]>([]);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(
+    null
+  );
+
+  const clearPendingImage = () => {
+    if (pendingImagePreview) {
+      URL.revokeObjectURL(pendingImagePreview);
+    }
+    setPendingImageFile(null);
+    setPendingImagePreview(null);
+  };
 
   const { user, theme } = useCurrentApp();
   const isDark = theme === "dark";
@@ -60,7 +78,9 @@ const MessagePage = () => {
   >(null);
   const [unreadByConv, setUnreadByConv] = useState<Record<number, number>>({});
   const didAutoOpenRef = useRef(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const currentConvIdRef = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     currentConvIdRef.current = selectedConversationId;
   }, [selectedConversationId]);
@@ -145,6 +165,7 @@ const MessagePage = () => {
       const formatted = res.data.map((msg: any) => ({
         id: msg.id,
         content: msg.content,
+        messageType: msg.messageType,
         timestamp: new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
           timeZone: "Asia/Ho_Chi_Minh",
           hour12: false,
@@ -217,6 +238,7 @@ const MessagePage = () => {
             {
               id: msg.id,
               content: msg.content,
+              messageType: msg.messageType,
               timestamp: msg.timestamp,
               isOwn: msg.senderId === user?.id,
               conversationId: msg.conversationId,
@@ -239,6 +261,123 @@ const MessagePage = () => {
     onMessageNew(socket, handleNew);
     return () => offMessageNew(socket, handleNew);
   }, [socket, selectedConversationId, user?.id]);
+
+  const handleSendImage = async (file: File) => {
+    if (!socket || !user?.id) return;
+
+    // Tạo URL preview local để show ngay
+    const previewUrl = URL.createObjectURL(file);
+    const tempId = `temp-${Date.now()}`;
+
+    // Message tạm để hiển thị "Đang gửi ảnh..."
+    const tempMsg = {
+      id: tempId,
+      content: previewUrl,
+      messageType: "IMAGE",
+      timestamp: "",
+      isOwn: true,
+      conversationId: selectedConversationId,
+      senderId: user.id,
+      isLoading: true,
+    };
+
+    setMessages((prev) => [...prev, tempMsg]);
+    setTimeout(scrollToBottom, 50);
+
+    try {
+      // 1) Upload ảnh
+      const res = await uploadFileAPIClient(file);
+      const backendRes = res.data; // IBackendRes<{ url, public_id }>
+
+      if (!backendRes?.url) {
+        notification.error({
+          message: "Lỗi tải ảnh",
+          description: res?.message || "Không lấy được URL ảnh từ máy chủ",
+        });
+        // Xoá message tạm
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        return;
+      }
+
+      const imageUrl = backendRes?.url;
+
+      const base = {
+        senderId: user.id,
+        senderType: "PATIENT" as const,
+        content: imageUrl,
+        messageType: "IMAGE" as const,
+      };
+
+      let ack;
+      if (selectedConversationId) {
+        ack = await sendMessage(socket, {
+          ...base,
+          conversationId: selectedConversationId,
+        });
+      } else {
+        if (!patientIdState || !doctorId) {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+        ack = await sendMessage(socket, {
+          ...base,
+          patientId: patientIdState,
+          doctorId,
+        });
+      }
+
+      if (!ack?.ok) {
+        console.error("Send image failed:", ack?.error);
+        notification.error({
+          message: "Gửi ảnh thất bại",
+          description: "Vui lòng thử lại",
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        return;
+      }
+
+      // ✅ Thành công:
+      // Xoá message tạm, để message "thật" do socket onMessageNew tự thêm vào
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+      // Nếu vừa tạo mới conversation
+      if (!selectedConversationId && ack.conversationId) {
+        setSelectedConversationId(ack.conversationId);
+        if (socket && user?.id)
+          joinConversationRoom(socket, ack.conversationId, user.id);
+        await loadMessages(String(ack.conversationId));
+      }
+
+      setTimeout(scrollToBottom, 50);
+    } catch (e) {
+      console.error("Upload/send image error:", e);
+      notification.error({
+        message: "Lỗi tải ảnh",
+        description: "Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại.",
+      });
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } finally {
+      // Giải phóng URL local
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const handleSelectImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // clear preview cũ nếu có
+    if (pendingImagePreview) {
+      URL.revokeObjectURL(pendingImagePreview);
+    }
+
+    setPendingImageFile(file);
+    const url = URL.createObjectURL(file);
+    setPendingImagePreview(url);
+
+    // reset value để lần sau chọn cùng file vẫn trigger
+    e.target.value = "";
+  };
 
   useEffect(() => {
     if (!socket) return;
@@ -286,41 +425,170 @@ const MessagePage = () => {
   }, [socket, doctorId, dataDoctor, selectedConversationId, user?.id]);
 
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !socket || !user?.id) return;
+    if (!socket || !user?.id) return;
 
-    const base = {
+    const text = messageInput.trim();
+    const hasText = text.length > 0;
+    const hasImage = !!pendingImageFile;
+
+    if (!hasText && !hasImage) return;
+
+    let convId = selectedConversationId;
+
+    const baseSender = {
       senderId: user.id,
       senderType: "PATIENT" as const,
-      content: messageInput.trim(),
-      messageType: "TEXT" as const,
     };
 
-    let ack;
-    if (selectedConversationId) {
-      ack = await sendMessage(socket, {
-        ...base,
-        conversationId: selectedConversationId,
-      });
-    } else {
-      if (!patientIdState || !doctorId) return;
-      ack = await sendMessage(socket, {
-        ...base,
-        patientId: patientIdState,
-        doctorId,
-      });
+    // ===== 1. Nếu có ảnh: upload + gửi ảnh =====
+    if (hasImage && pendingImageFile) {
+      const file = pendingImageFile;
+
+      // message tạm để show "đang gửi ảnh..."
+      const localUrl = pendingImagePreview || URL.createObjectURL(file);
+      const tempId = `temp-${Date.now()}`;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          content: localUrl,
+          messageType: "IMAGE",
+          timestamp: "",
+          isOwn: true,
+          conversationId: convId,
+          senderId: user.id,
+          isLoading: true,
+        },
+      ]);
+      setTimeout(scrollToBottom, 50);
+
+      try {
+        const res = await uploadFileAPIClient(file);
+        const backendRes = res.data;
+
+        if (!backendRes?.url) {
+          notification.error({
+            message: "Lỗi tải ảnh",
+            description: res?.message || "Không lấy được URL ảnh từ máy chủ",
+          });
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+
+        const imageUrl = backendRes.url;
+        let ack;
+
+        if (convId) {
+          ack = await sendMessage(socket, {
+            ...baseSender,
+            content: imageUrl,
+            messageType: "IMAGE" as const,
+            conversationId: convId,
+          });
+        } else {
+          if (!patientIdState || !doctorId) return;
+          ack = await sendMessage(socket, {
+            ...baseSender,
+            content: imageUrl,
+            messageType: "IMAGE" as const,
+            patientId: patientIdState,
+            doctorId,
+          });
+        }
+
+        if (!ack?.ok) {
+          notification.error({
+            message: "Gửi ảnh thất bại",
+            description: "Vui lòng thử lại",
+          });
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+
+        // socket sẽ đẩy message "thật", xoá temp
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+        // nếu đây là message đầu tiên → tạo conversation
+        if (!convId && ack.conversationId) {
+          convId = ack.conversationId;
+          setSelectedConversationId(ack.conversationId);
+          if (socket && user?.id) {
+            joinConversationRoom(socket, ack.conversationId, user.id);
+          }
+        }
+      } catch (err) {
+        console.error("Upload/send image error:", err);
+        notification.error({
+          message: "Lỗi tải ảnh",
+          description: "Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại.",
+        });
+      } finally {
+        clearPendingImage();
+      }
     }
 
-    if (!ack?.ok) return;
+    // ===== 2. Nếu có text: gửi text =====
+    if (hasText) {
+      const baseText = {
+        ...baseSender,
+        content: text,
+        messageType: "TEXT" as const,
+      };
 
-    if (!selectedConversationId && ack.conversationId) {
-      setSelectedConversationId(ack.conversationId);
-      if (socket && user?.id)
-        joinConversationRoom(socket, ack.conversationId, user.id);
-      await loadMessages(String(ack.conversationId));
+      let ackText;
+
+      if (convId) {
+        ackText = await sendMessage(socket, {
+          ...baseText,
+          conversationId: convId,
+        });
+      } else {
+        if (!patientIdState || !doctorId) return;
+        ackText = await sendMessage(socket, {
+          ...baseText,
+          patientId: patientIdState,
+          doctorId,
+        });
+      }
+
+      if (!convId && ackText?.conversationId) {
+        convId = ackText.conversationId;
+        setSelectedConversationId(convId);
+        if (socket && user?.id) {
+          joinConversationRoom(socket, convId, user.id);
+        }
+      }
     }
 
     setMessageInput("");
     setTimeout(scrollToBottom, 50);
+  };
+
+  // nếu dùng TypeScript, thêm: import type React from "react"; ở đầu file
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault(); // chặn dán text base64
+
+          if (pendingImagePreview) {
+            URL.revokeObjectURL(pendingImagePreview);
+          }
+
+          setPendingImageFile(file);
+          const url = URL.createObjectURL(file);
+          setPendingImagePreview(url);
+        }
+        break;
+      }
+    }
   };
 
   useEffect(() => {
@@ -412,7 +680,7 @@ const MessagePage = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overscroll-contain">
             {/* Card bác sĩ khi vào theo doctorId */}
             {doctorId && dataDoctor && !convWithDoctor && (
               <div
@@ -556,9 +824,9 @@ const MessagePage = () => {
                         </div>
 
                         <div className="flex items-center justify-between mt-1">
-                          <p
+                          <div
                             className={cls(
-                              "text-sm truncate",
+                              "text-sm truncate flex items-center gap-2",
                               unreadByConv[conv.id]
                                 ? isDark
                                   ? "font-semibold text-gray-100"
@@ -566,9 +834,19 @@ const MessagePage = () => {
                                 : textMuted
                             )}
                           >
-                            {conv.lastMessage?.content ??
-                              "Bắt đầu cuộc trò chuyện"}
-                          </p>
+                            {conv.lastMessage &&
+                            conv.lastMessage.messageType === "IMAGE" &&
+                            conv.lastMessage.content ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
+                                <FaImages className="w-3 h-3" />
+                                <span>Hình ảnh</span>
+                              </span>
+                            ) : conv.lastMessage ? (
+                              <span>{conv.lastMessage.content}</span>
+                            ) : (
+                              <span>Bắt đầu cuộc trò chuyện</span>
+                            )}
+                          </div>
                           {unreadByConv[conv.id] ? (
                             <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
                               {unreadByConv[conv.id]}
@@ -694,7 +972,7 @@ const MessagePage = () => {
               <div
                 ref={messagesContainerRef}
                 className={cls(
-                  "flex-1 overflow-y-auto p-4 space-y-2",
+                  "flex-1 overflow-y-auto overscroll-contain p-4 space-y-2",
                   isDark ? "bg-[#0b1220]" : "bg-gray-50"
                 )}
               >
@@ -734,19 +1012,60 @@ const MessagePage = () => {
                   >
                     <div
                       className={cls(
-                        "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
+                        "max-w-xs lg:max-w-md px-3 py-2 rounded-lg relative",
                         message.isOwn ? "bg-blue-500 text-white" : bubbleOther
                       )}
                     >
-                      <p className="text-sm">{message.content}</p>
-                      <p
-                        className={cls(
-                          "text-xs mt-1",
-                          message.isOwn ? "text-blue-100" : textMuted2
-                        )}
-                      >
-                        {message.timestamp}
-                      </p>
+                      {message.messageType === "IMAGE" ? (
+                        <>
+                          <div className="relative">
+                            <img
+                              src={message.content}
+                              alt="Ảnh tin nhắn"
+                              onClick={() =>
+                                !message.isLoading &&
+                                setPreviewImage(message.content)
+                              }
+                              className={cls(
+                                "max-w-[220px] max-h-[220px] rounded-md object-cover cursor-zoom-in",
+                                message.isLoading ? "opacity-60" : ""
+                              )}
+                            />
+                            {message.isLoading && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="flex items-center gap-1 bg-black/50 text-white text-[11px] px-2 py-1 rounded-full">
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Đang gửi ảnh...</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <p
+                            className={cls(
+                              "text-[11px] mt-1 text-right",
+                              message.isOwn ? "text-blue-100" : textMuted2
+                            )}
+                          >
+                            {message.isLoading
+                              ? "Đang gửi..."
+                              : message.timestamp}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm break-words">
+                            {message.content}
+                          </p>
+                          <p
+                            className={cls(
+                              "text-xs mt-1 text-right",
+                              message.isOwn ? "text-blue-100" : textMuted2
+                            )}
+                          >
+                            {message.timestamp}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -754,8 +1073,63 @@ const MessagePage = () => {
 
               {/* Input */}
               <div className={cls("p-4 border-t", borderSoft, panel)}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleSelectImage}
+                />
+                {pendingImagePreview && (
+                  <div className="mb-3">
+                    <div
+                      className={cls(
+                        "relative inline-block rounded-2xl overflow-hidden shadow-md",
+                        isDark
+                          ? "border border-slate-600/70 bg-[#050816]"
+                          : "border border-slate-200 bg-white"
+                      )}
+                    >
+                      {/* Ảnh preview */}
+                      <Image
+                        src={pendingImagePreview}
+                        alt="Ảnh xem trước"
+                        className="!w-[110px] !h-[110px] !object-cover"
+                        preview={{
+                          mask: (
+                            <div className="text-xs font-medium text-white">
+                              Xem trước
+                            </div>
+                          ),
+                        }}
+                      />
+
+                      {/* Nút xoá nhỏ gọn trong góc */}
+                      <button
+                        type="button"
+                        onClick={clearPendingImage}
+                        className={cls(
+                          "absolute top-1.5 right-1.5 flex items-center justify-center",
+                          "w-6 h-6 rounded-full border shadow-sm transition cursor-pointer",
+                          isDark
+                            ? "bg-black/55 border-white/40 hover:bg-black/80"
+                            : "bg-red-500/90 border-white/70 hover:bg-red-500"
+                        )}
+                      >
+                        <CloseOutlined
+                          style={{
+                            fontSize: 10,
+                            color: "#fff",
+                          }}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center space-x-2">
                   <button
+                    onClick={() => fileInputRef.current?.click()}
                     className={cls(
                       "p-2 rounded-lg transition-colors",
                       isDark ? "hover:bg-[#0c1626]" : "hover:bg-gray-100"
@@ -772,6 +1146,7 @@ const MessagePage = () => {
                       onKeyDown={(e) =>
                         e.key === "Enter" && handleSendMessage()
                       }
+                      onPaste={handlePaste}
                       placeholder="Nhập tin nhắn..."
                       className={cls(inputBase, inputTone)}
                     />
@@ -800,6 +1175,33 @@ const MessagePage = () => {
               <p className={cls(textMuted)}>Chọn cuộc trò chuyện để bắt đầu</p>
             </div>
           )}
+          <Modal
+            open={!!previewImage}
+            footer={null}
+            onCancel={() => setPreviewImage(null)}
+            centered
+            width="auto"
+            style={{ maxWidth: "90vw" }}
+            bodyStyle={{
+              padding: 0,
+              background: "transparent",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Xem ảnh"
+                style={{
+                  maxHeight: "80vh",
+                  maxWidth: "100%",
+                  borderRadius: 8,
+                  display: "block",
+                }}
+              />
+            )}
+          </Modal>
         </div>
       </div>
     </div>

@@ -12,14 +12,16 @@ import {
   ArrowLeft,
   Clock,
   User,
+  Loader2,
 } from "lucide-react";
-import { Avatar } from "antd";
+import { App, Avatar, Image, Modal } from "antd";
 import { FaUser } from "react-icons/fa";
 import {
   getAllConversationsDoctorAPI,
   getDoctorProfileByUserId,
   getMessagesByConversationIdAPI,
   getPatientDetailBookingById,
+  uploadFileAPI,
 } from "../services/doctor.api";
 import {
   getUnreadCountMessageAPI,
@@ -44,7 +46,9 @@ import {
   offMessageNew,
   sendMessage,
 } from "@/sockets/message.socket";
+import { FaImages } from "react-icons/fa";
 import type { Socket } from "socket.io-client";
+import { CloseOutlined } from "@ant-design/icons";
 
 // Helper: format giờ VN (nếu backend chưa gắn sẵn timestamp chuỗi)
 const fmtTimeVN = (d: Date | string) =>
@@ -56,6 +60,7 @@ const fmtTimeVN = (d: Date | string) =>
   }).format(typeof d === "string" ? new Date(d) : d);
 
 const DoctorMessagePage = () => {
+  const { notification } = App.useApp();
   const { patientId } = useParams<{ patientId?: string }>();
   const navigate = useNavigate();
   const { user } = useCurrentApp();
@@ -65,12 +70,25 @@ const DoctorMessagePage = () => {
     number | null
   >(null);
   const [messageInput, setMessageInput] = useState("");
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [dataDoctor, setDataDoctor] = useState<IDoctorProfile | null>(null);
   const [selectedPatientInfo, setSelectedPatientInfo] =
     useState<IPatientProfile | null>(null);
   const [dataPatientFromParam, setDataPatientFromParam] =
     useState<IPatientProfile | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(
+    null
+  );
+
+  const clearPendingImage = () => {
+    if (pendingImagePreview) {
+      URL.revokeObjectURL(pendingImagePreview);
+    }
+    setPendingImageFile(null);
+    setPendingImagePreview(null);
+  };
 
   const [displayConversations, setDisplayConversations] = useState<
     IConversationDisplay[]
@@ -85,6 +103,8 @@ const DoctorMessagePage = () => {
   // Refs
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const currentConversationIdRef = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     currentConversationIdRef.current = selectedConversationId;
   }, [selectedConversationId]);
@@ -127,6 +147,7 @@ const DoctorMessagePage = () => {
                 last?.senderId === user?.id
                   ? `Bạn: ${last?.content ?? ""}`
                   : last?.content ?? "",
+              lastMessageType: last?.messageType,
               timestamp:
                 last?.timestamp ??
                 (last?.createdAt ? fmtTimeVN(last.createdAt) : "—"),
@@ -189,6 +210,7 @@ const DoctorMessagePage = () => {
       const formatted = rows.map((m: any) => ({
         id: m.id,
         content: m.content,
+        messageType: m.messageType,
         timestamp: m.timestamp ?? fmtTimeVN(m.createdAt),
         isOwn: m.senderId === user?.id,
         conversationId: m.conversationId,
@@ -278,6 +300,7 @@ const DoctorMessagePage = () => {
             {
               id: msg.id,
               content: msg.content,
+              messageType: msg.messageType,
               timestamp: msg.timestamp ?? fmtTimeVN(msg.createdAt),
               isOwn: msg.senderId === user?.id,
               conversationId: msg.conversationId,
@@ -383,49 +406,294 @@ const DoctorMessagePage = () => {
 
   // ====== Send message ======
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !socket || !user?.id || !dataDoctor?.id) return;
+    if (!socket || !user?.id || !dataDoctor?.id) return;
 
-    const base = {
+    const text = messageInput.trim();
+    const hasText = text.length > 0;
+    const hasImage = !!pendingImageFile;
+
+    if (!hasText && !hasImage) return;
+
+    let convId = selectedConversationId;
+
+    const baseSender = {
       senderId: user.id,
       senderType: "DOCTOR" as const,
-      content: messageInput.trim(),
-      messageType: "TEXT" as const,
     };
 
-    let ack;
-    if (selectedConversationId) {
-      // đã có convId
-      ack = await sendMessage(socket, {
-        ...base,
-        conversationId: selectedConversationId,
-      });
-    } else {
-      // chưa có convId: cần patientId (từ param hoặc từ selectedPatientInfo)
-      const pid =
-        patientId || selectedPatientInfo?.id || dataPatientFromParam?.id;
-      if (!pid) return;
-      ack = await sendMessage(socket, {
-        ...base,
-        patientId: pid,
-        doctorId: dataDoctor.id,
-      });
+    const resolvePatientId = () =>
+      patientId || selectedPatientInfo?.id || dataPatientFromParam?.id || null;
+
+    // 1) Nếu có ảnh: upload + gửi ảnh trước
+    if (hasImage && pendingImageFile) {
+      const file = pendingImageFile;
+      const localUrl = pendingImagePreview || URL.createObjectURL(file);
+      const tempId = `temp-${Date.now()}`;
+
+      // bubble tạm để hiển thị “Đang gửi ảnh…”
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: tempId,
+          content: localUrl,
+          messageType: "IMAGE",
+          timestamp: "",
+          isOwn: true,
+          conversationId: convId,
+          senderId: user.id,
+          isLoading: true,
+        },
+      ]);
+      setTimeout(scrollToBottom, 50);
+
+      try {
+        const res = await uploadFileAPI(file);
+        const backendRes = res.data;
+        const imageUrl = backendRes?.url;
+
+        if (!imageUrl) {
+          notification.error({
+            message: "Lỗi tải ảnh",
+            description: res?.message || "Không lấy được URL ảnh từ máy chủ",
+          });
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+
+        const baseImage = {
+          ...baseSender,
+          content: imageUrl,
+          messageType: "IMAGE" as const,
+        };
+
+        let ack;
+        if (convId) {
+          ack = await sendMessage(socket, {
+            ...baseImage,
+            conversationId: convId,
+          });
+        } else {
+          const pid = resolvePatientId();
+          if (!pid) {
+            setMessages((prev) => prev.filter((m) => m.id !== tempId));
+            return;
+          }
+          ack = await sendMessage(socket, {
+            ...baseImage,
+            patientId: pid,
+            doctorId: dataDoctor.id,
+          });
+        }
+
+        if (!ack?.ok) {
+          notification.error({
+            message: "Gửi ảnh thất bại",
+            description: "Vui lòng thử lại.",
+          });
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+
+        // Nếu vừa tạo conv mới
+        if (!convId && ack.conversationId) {
+          convId = ack.conversationId;
+          await openConversation(
+            ack.conversationId,
+            resolvePatientId() || undefined
+          );
+        }
+
+        // xoá bubble tạm, message thật sẽ được socket đẩy vào
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      } catch (err) {
+        console.error("Upload/send image error:", err);
+        notification.error({
+          message: "Lỗi tải ảnh",
+          description: "Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại.",
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      } finally {
+        clearPendingImage();
+      }
     }
 
-    if (!ack?.ok) {
-      console.error("Send failed:", ack?.error);
-      return;
-    }
+    // 2) Nếu có text: gửi text
+    if (hasText) {
+      const baseText = {
+        ...baseSender,
+        content: text,
+        messageType: "TEXT" as const,
+      };
 
-    // Nếu vừa tạo conv mới
-    if (!selectedConversationId && ack.conversationId) {
-      await openConversation(
-        ack.conversationId,
-        patientId || selectedPatientInfo?.id || dataPatientFromParam?.id
-      );
+      let ackText;
+      if (convId) {
+        ackText = await sendMessage(socket, {
+          ...baseText,
+          conversationId: convId,
+        });
+      } else {
+        const pid = resolvePatientId();
+        if (!pid) return;
+        ackText = await sendMessage(socket, {
+          ...baseText,
+          patientId: pid,
+          doctorId: dataDoctor.id,
+        });
+      }
+
+      if (!convId && ackText?.conversationId) {
+        convId = ackText.conversationId;
+        await openConversation(
+          ackText.conversationId,
+          resolvePatientId() || undefined
+        );
+      }
     }
 
     setMessageInput("");
     setTimeout(scrollToBottom, 50);
+  };
+
+  // nếu dùng TypeScript, thêm: import type React from "react"; ở đầu file
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+
+          // clear preview cũ nếu có
+          if (pendingImagePreview) {
+            URL.revokeObjectURL(pendingImagePreview);
+          }
+
+          const url = URL.createObjectURL(file);
+          setPendingImageFile(file);
+          setPendingImagePreview(url);
+        }
+        break;
+      }
+    }
+  };
+
+  const handleSendImage = async (file: File) => {
+    if (!socket || !user?.id || !dataDoctor?.id) return;
+
+    // Tạo URL preview local để hiển thị ngay
+    const previewUrl = URL.createObjectURL(file);
+    const tempId = `temp-${Date.now()}`;
+
+    // Message tạm với trạng thái đang gửi
+    const tempMsg = {
+      id: tempId,
+      content: previewUrl,
+      messageType: "IMAGE",
+      timestamp: "",
+      isOwn: true,
+      conversationId: selectedConversationId,
+      senderId: user.id,
+      isLoading: true,
+    };
+
+    setMessages((prev) => [...prev, tempMsg]);
+    setTimeout(scrollToBottom, 50);
+
+    try {
+      // 1) Upload ảnh
+      const res = await uploadFileAPI(file);
+      const backendRes = res.data; // IBackendRes<{ url, public_id }>
+
+      const imageUrl = backendRes?.url;
+      if (!imageUrl) {
+        notification.error({
+          message: "Lỗi tải ảnh",
+          description: res?.message || "Không lấy được URL ảnh từ máy chủ",
+        });
+        // Xoá message tạm
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        return;
+      }
+
+      const base = {
+        senderId: user.id,
+        senderType: "DOCTOR" as const,
+        content: imageUrl,
+        messageType: "IMAGE" as const,
+      };
+
+      let ack;
+      if (selectedConversationId) {
+        ack = await sendMessage(socket, {
+          ...base,
+          conversationId: selectedConversationId,
+        });
+      } else {
+        const pid =
+          patientId || selectedPatientInfo?.id || dataPatientFromParam?.id;
+        if (!pid) {
+          setMessages((prev) => prev.filter((m) => m.id !== tempId));
+          return;
+        }
+        ack = await sendMessage(socket, {
+          ...base,
+          patientId: pid,
+          doctorId: dataDoctor.id,
+        });
+      }
+
+      if (!ack?.ok) {
+        console.error("Send image failed:", ack?.error);
+        notification.error({
+          message: "Gửi ảnh thất bại",
+          description: "Vui lòng thử lại.",
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        return;
+      }
+
+      // ✅ Thành công: xoá message tạm, để message thật do socket onMessageNew tự add
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+
+      // Nếu vừa tạo conv mới
+      if (!selectedConversationId && ack.conversationId) {
+        await openConversation(
+          ack.conversationId,
+          patientId || selectedPatientInfo?.id || dataPatientFromParam?.id
+        );
+      }
+
+      setTimeout(scrollToBottom, 50);
+    } catch (err) {
+      console.error("Upload/send image error:", err);
+      notification.error({
+        message: "Lỗi tải ảnh",
+        description: "Có lỗi xảy ra khi tải ảnh lên, vui lòng thử lại.",
+      });
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } finally {
+      // Giải phóng URL local
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
+  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (pendingImagePreview) {
+      URL.revokeObjectURL(pendingImagePreview);
+    }
+
+    const url = URL.createObjectURL(file);
+    setPendingImageFile(file);
+    setPendingImagePreview(url);
+
+    // reset input để chọn lại cùng file vẫn trigger
+    e.target.value = "";
   };
 
   // ====== Filter list theo search ======
@@ -610,15 +878,32 @@ const DoctorMessagePage = () => {
                           </span>
                         </div>
                         <div className="flex items-center justify-between mt-1">
-                          <p
+                          <div
                             className={`text-sm truncate ${
                               unreadByConv[conv.id]
                                 ? "font-semibold text-gray-900"
                                 : "text-gray-600"
                             }`}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
                           >
-                            {conv.lastMessage}
-                          </p>
+                            {/* If lastMessage looks like an image URL, show thumbnail, else show text */}
+                            {conv.lastMessage &&
+                            (conv.lastMessage.startsWith("http") ||
+                              /\.(jpg|jpeg|png|gif|webp)$/i.test(
+                                conv.lastMessage
+                              )) ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-50 text-blue-600">
+                                <FaImages className="w-3 h-3" />
+                                <span>Hình ảnh</span>
+                              </span>
+                            ) : (
+                              <span>{conv.lastMessage}</span>
+                            )}
+                          </div>
                           {unreadByConv[conv.id] ? (
                             <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full">
                               {unreadByConv[conv.id]}
@@ -749,20 +1034,55 @@ const DoctorMessagePage = () => {
                       }`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${
                           m.isOwn
                             ? "bg-blue-500 text-white"
                             : "bg-white text-gray-800 border border-gray-200"
                         }`}
                       >
-                        <p className="text-sm">{m.content}</p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            m.isOwn ? "text-blue-100" : "text-gray-500"
-                          }`}
-                        >
-                          {m.timestamp}
-                        </p>
+                        {m.messageType === "IMAGE" ? (
+                          <>
+                            <div className="relative">
+                              <img
+                                src={m.content}
+                                alt="Ảnh gửi"
+                                onClick={() =>
+                                  !m.isLoading && setPreviewImage(m.content)
+                                }
+                                className={`max-w-[230px] max-h-[230px] rounded-lg object-cover cursor-zoom-in ${
+                                  m.isLoading ? "opacity-60" : ""
+                                }`}
+                              />
+
+                              {m.isLoading && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="flex items-center gap-1 bg-black/50 text-white text-[11px] px-2 py-1 rounded-full">
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <span>Đang gửi ảnh...</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <p
+                              className={`text-xs mt-1 ${
+                                m.isOwn ? "text-blue-100" : "text-gray-500"
+                              }`}
+                            >
+                              {m.isLoading ? "Đang gửi..." : m.timestamp}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm break-words">{m.content}</p>
+                            <p
+                              className={`text-xs mt-1 ${
+                                m.isOwn ? "text-blue-100" : "text-gray-500"
+                              }`}
+                            >
+                              {m.timestamp}
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -770,8 +1090,51 @@ const DoctorMessagePage = () => {
 
                 {/* Input */}
                 <div className="p-4 border-t border-gray-200 bg-white">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleSelectImage}
+                  />
+
+                  {/* >>> Preview ảnh chờ gửi giống AIPage / MessagePage <<< */}
+                  {pendingImagePreview && (
+                    <div className="mb-3">
+                      <div className="relative inline-block rounded-2xl overflow-hidden border border-slate-300 bg-white shadow-md">
+                        <Image
+                          src={pendingImagePreview}
+                          alt="Ảnh xem trước"
+                          className="!w-[110px] !h-[110px] !object-cover"
+                          preview={{
+                            mask: (
+                              <div className="text-xs font-medium text-white">
+                                Xem trước
+                              </div>
+                            ),
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={clearPendingImage}
+                          className="cursor-pointer absolute top-1.5 right-1.5 flex items-center justify-center w-6 h-6 rounded-full border shadow-sm bg-red-500/90 border-white/70 hover:bg-red-500 transition"
+                        >
+                          <CloseOutlined
+                            style={{
+                              fontSize: 10,
+                              color: "#fff",
+                            }}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center space-x-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Paperclip className="w-5 h-5 text-gray-600" />
                     </button>
                     <div className="flex-1 relative">
@@ -782,6 +1145,7 @@ const DoctorMessagePage = () => {
                         onKeyDown={(e) =>
                           e.key === "Enter" && handleSendMessage()
                         }
+                        onPaste={handlePaste}
                         placeholder="Nhập tin nhắn cho bệnh nhân..."
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       />
@@ -814,6 +1178,34 @@ const DoctorMessagePage = () => {
               </div>
             )}
           </div>
+          {/* Preview ảnh phóng to */}
+          <Modal
+            open={!!previewImage}
+            footer={null}
+            onCancel={() => setPreviewImage(null)}
+            centered
+            width="auto"
+            style={{ maxWidth: "90vw" }}
+            bodyStyle={{
+              padding: 0,
+              background: "transparent",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Xem ảnh"
+                style={{
+                  maxHeight: "80vh",
+                  maxWidth: "100%",
+                  borderRadius: 8,
+                  display: "block",
+                }}
+              />
+            )}
+          </Modal>
         </div>
       </div>
     </div>
