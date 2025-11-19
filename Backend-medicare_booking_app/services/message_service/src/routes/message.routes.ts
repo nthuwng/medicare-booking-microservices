@@ -1,8 +1,7 @@
 import express, { Express } from "express";
+import multer from "multer";
 import {
   getMessagesByConversationIdAPI,
-  getAllConversationsPatientAPI,
-  getAllConversationsDoctorAPI,
   createOrGetConversationAPI,
   getConversationsByRoleAPI,
   sendMessageAPI,
@@ -11,6 +10,10 @@ import {
 } from "src/controllers/messageControllers";
 
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 const messageRoutes = (app: Express) => {
   // API tạo hoặc lấy conversation giữa doctor và patient
@@ -20,7 +23,7 @@ const messageRoutes = (app: Express) => {
   router.get("/conversations/:role/:userId", getConversationsByRoleAPI);
 
   // API gửi tin nhắn
-  router.post("/messages", sendMessageAPI);
+  router.post("/messages", upload.single("image"), sendMessageAPI);
 
   // API đánh dấu tin nhắn đã đọc
   router.patch("/messages/read", markMessagesAsReadAPI);

@@ -86,7 +86,6 @@ const getConversationsByRoleService = async (
 
   const formattedConversations = await Promise.all(
     conversations.map(async (conv) => {
-      // Lấy đúng info mỗi phía
       const [doctorInfo, patientInfo] = await Promise.all([
         getDoctorByIdViaRabbitMQ(conv.doctorId!),
         getPatientByIdViaRabbitMQ(conv.patientId!),
@@ -96,15 +95,10 @@ const getConversationsByRoleService = async (
 
       return {
         id: conv.id,
-
-        // GIỮ NGUYÊN id hai phía, KHÔNG đổi chéo
         doctorId: conv.doctorId,
         patientId: conv.patientId,
-
-        // Trả đủ info hai phía để FE dùng thẳng
         doctorInfo: doctorInfo || null,
         patientInfo: patientInfo || null,
-
         lastMessage: lastMessage
           ? {
               id: lastMessage.id,
@@ -112,6 +106,9 @@ const getConversationsByRoleService = async (
               senderId: lastMessage.senderId,
               senderType: lastMessage.senderType,
               messageType: lastMessage.messageType,
+              fileUrl: lastMessage.fileUrl,
+              fileName: lastMessage.fileName,
+              fileSize: lastMessage.fileSize,
               createdAt: lastMessage.createdAt,
               timestamp: new Date(lastMessage.createdAt).toLocaleTimeString(
                 "vi-VN",
@@ -137,6 +134,7 @@ const getConversationsByRoleService = async (
     total: formattedConversations.length,
   };
 };
+
 
 
 const createOrGetConversationService = async (

@@ -5,6 +5,7 @@ import http from "http";
 import messageRoutes from "./routes/message.routes";
 import { initSocketIO } from "./socket";
 import { connectRabbitMQ } from "./queue/connection";
+import uploadRoutes from "./routes/upload.routes";
 
 const app = express();
 const server = http.createServer(app);
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //config Routes
 messageRoutes(app);
+uploadRoutes(app);
 
 // Start server
 const startApplication = async () => {
