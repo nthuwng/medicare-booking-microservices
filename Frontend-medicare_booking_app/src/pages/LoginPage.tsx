@@ -32,22 +32,34 @@ const LoginPage = () => {
   const isDark = theme === "dark";
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+    const { email, password } = values;
     try {
       setIsSubmit(true);
-      const { email, password } = values;
+
       const res = await loginAPI(email, password);
-      if (res?.data) {
-        localStorage.setItem("access_token", res.data.access_token);
-        message.success("Đăng nhập tài khoản thành công!");
-        await refreshUserData();
-        navigate("/");
-      } else {
+
+      if (res?.success === false) {
         notification.error({
           message: "Đăng nhập tài khoản thất bại!",
           description: res?.message || "Vui lòng thử lại sau.",
           placement: "topRight",
         });
+      } else {
+        localStorage.setItem("access_token", res?.data?.access_token || "");
+        message.success("Đăng nhập tài khoản thành công!");
+        await refreshUserData();
+        navigate("/");
       }
+    } catch (error: any) {
+      // Bắt lỗi HTTP (401, 500, ...)
+      const apiMessage =
+        error?.response?.data?.message || "Vui lòng thử lại sau.";
+
+      notification.error({
+        message: "Đăng nhập tài khoản thất bại!",
+        description: apiMessage,
+        placement: "topRight",
+      });
     } finally {
       setIsSubmit(false);
     }
@@ -145,11 +157,25 @@ const LoginPage = () => {
             </Typography.Paragraph>
           </Space>
 
-          <Divider style={{ margin: "12px 0 20px", borderColor: isDark ? "#1f2a3a" : undefined }} />
+          <Divider
+            style={{
+              margin: "12px 0 20px",
+              borderColor: isDark ? "#1f2a3a" : undefined,
+            }}
+          />
 
-          <Form name="form-login" layout="vertical" onFinish={onFinish} autoComplete="off">
+          <Form
+            name="form-login"
+            layout="vertical"
+            onFinish={onFinish}
+            autoComplete="off"
+          >
             <Form.Item<FieldType>
-              label={<span style={{ color: isDark ? "#d1d5db" : undefined }}>Email</span>}
+              label={
+                <span style={{ color: isDark ? "#d1d5db" : undefined }}>
+                  Email
+                </span>
+              }
               name="email"
               rules={[
                 { required: true, message: "Email không được để trống!" },
@@ -160,20 +186,34 @@ const LoginPage = () => {
                 size="large"
                 prefix={<MailOutlined />}
                 placeholder="name@example.com"
-                className={isDark ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a] placeholder:text-gray-500" : ""}
+                className={
+                  isDark
+                    ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a] placeholder:text-gray-500"
+                    : ""
+                }
               />
             </Form.Item>
 
             <Form.Item<FieldType>
-              label={<span style={{ color: isDark ? "#d1d5db" : undefined }}>Mật khẩu</span>}
+              label={
+                <span style={{ color: isDark ? "#d1d5db" : undefined }}>
+                  Mật khẩu
+                </span>
+              }
               name="password"
-              rules={[{ required: true, message: "Mật khẩu không được để trống!" }]}
+              rules={[
+                { required: true, message: "Mật khẩu không được để trống!" },
+              ]}
             >
               <Input.Password
                 size="large"
                 prefix={<LockOutlined />}
                 placeholder="••••••••"
-                className={isDark ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a] placeholder:text-gray-500" : ""}
+                className={
+                  isDark
+                    ? "bg-[#0b1626] text-gray-100 border-[#1f2a3a] placeholder:text-gray-500"
+                    : ""
+                }
               />
             </Form.Item>
 
@@ -185,7 +225,10 @@ const LoginPage = () => {
                 marginBottom: 8,
               }}
             >
-              <Link to="/forgot-password" style={{ color: isDark ? "#93c5fd" : undefined }}>
+              <Link
+                to="/forgot-password"
+                style={{ color: isDark ? "#93c5fd" : undefined }}
+              >
                 Quên mật khẩu?
               </Link>
             </div>
@@ -207,7 +250,9 @@ const LoginPage = () => {
                 <GoogleLogin
                   onSuccess={handleLoginWithGoogle}
                   onError={() =>
-                    notification.error({ message: "Đăng nhập Google thất bại!" })
+                    notification.error({
+                      message: "Đăng nhập Google thất bại!",
+                    })
                   }
                   locale="vi"
                   theme={isDark ? "filled_black" : "filled_blue"}
@@ -221,14 +266,29 @@ const LoginPage = () => {
               </div>
             </Space>
 
-            <Divider plain style={{ borderColor: isDark ? "#1f2a3a" : undefined }}>
+            <Divider
+              plain
+              style={{ borderColor: isDark ? "#1f2a3a" : undefined }}
+            >
               Hoặc
             </Divider>
 
-            <Typography.Paragraph style={{ textAlign: "center", marginBottom: 0, color: isDark ? "#d1d5db" : undefined }}>
+            <Typography.Paragraph
+              style={{
+                textAlign: "center",
+                marginBottom: 0,
+                color: isDark ? "#d1d5db" : undefined,
+              }}
+            >
               Chưa có tài khoản?
               <span>
-                <Link to="/register" style={{ color: isDark ? "#93c5fd" : undefined }}> Đăng ký </Link>
+                <Link
+                  to="/register"
+                  style={{ color: isDark ? "#93c5fd" : undefined }}
+                >
+                  {" "}
+                  Đăng ký{" "}
+                </Link>
               </span>
             </Typography.Paragraph>
           </Form>

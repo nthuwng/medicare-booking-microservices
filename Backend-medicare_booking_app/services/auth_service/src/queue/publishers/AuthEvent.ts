@@ -1,6 +1,10 @@
 import { getChannel } from "../connection";
 
-type AuthRoutingKey = "auth.import_doctor_profile";
+type AuthRoutingKey =
+  | "auth.import_doctor_profile"
+  | "auth.create_one_doctor_profile"
+  | "auth.create_one_patient_profile"
+  | "auth.create_one_admin_profile";
 
 export const publishAuthEvent = async (
   routingKey: AuthRoutingKey,

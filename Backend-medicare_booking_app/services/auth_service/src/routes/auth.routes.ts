@@ -14,6 +14,7 @@ import {
   postVerifyOtpApi,
   putUpdatePasswordFromEmailApi,
   putUpdateLockUserApi, 
+  createOneUserAPI,
 } from "../controllers/auth.controller";
 import {
   authenticateToken,
@@ -33,6 +34,7 @@ const authRoutes = (app: Express) => {
   router.post("/revoke-token", postRevokeRefreshTokenApi);
   router.put("/users/:id/password", authenticateToken, putUpdatePasswordApi);
   router.post("/bulk-create-users", bulkCreateUsersAPI);
+  router.post("/create-one-user", createOneUserAPI);
 
   router.post("/forgot-password", postForgetPasswordApi);
   router.post("/verify-otp", postVerifyOtpApi);

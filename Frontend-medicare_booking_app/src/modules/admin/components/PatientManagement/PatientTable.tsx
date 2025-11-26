@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import {Button, Tag } from "antd";
+import { Button, Tag } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import utc from "dayjs/plugin/utc";
@@ -7,10 +7,7 @@ import timezone from "dayjs/plugin/timezone";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-import {
-  ExportOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import { ExportOutlined, PlusOutlined } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
 import { getAllPatientsProfile } from "../../services/admin.api";
@@ -140,17 +137,7 @@ const PatientTable = () => {
         toolBarRender={() => [
           <Button icon={<ExportOutlined />} type="primary">
             Export
-          </Button>,
-          <Button
-            key="button"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              // setOpenModalCreate(true);
-            }}
-            type="primary"
-          >
-            Add new
-          </Button>,
+          </Button>
         ]}
       />
 

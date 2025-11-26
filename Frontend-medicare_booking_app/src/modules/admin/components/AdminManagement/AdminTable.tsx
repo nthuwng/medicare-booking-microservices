@@ -140,17 +140,7 @@ const AdminTable = () => {
         toolBarRender={() => [
           <Button icon={<ExportOutlined />} type="primary">
             Export
-          </Button>,
-          <Button
-            key="button"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              // setOpenModalCreate(true);
-            }}
-            type="primary"
-          >
-            Add new
-          </Button>,
+          </Button>
         ]}
       />
 

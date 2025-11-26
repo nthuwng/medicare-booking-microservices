@@ -1,3 +1,4 @@
+import { Gender } from "@shared/interfaces/common/enums";
 import { prisma } from "src/config/client";
 import { checkUserExits } from "src/services/patient.service";
 
@@ -146,7 +147,19 @@ const getUserProfileByUserId = async (userId: string) => {
   return userProfile;
 };
 
+const createOnePatientProfile = async (patients: any) => {
+  await prisma.patient.create({
+    data: {
+      user_id: patients.userId,
+      full_name: patients.fullName,
+      phone: patients.phone,
+      avatar_url: patients.avatarUrl || "",
+    },
+  });
+};
+
 export {
+  createOnePatientProfile,
   getUserProfileByUserId,
   findPatientByUserId,
   createPatient,

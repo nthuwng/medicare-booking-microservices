@@ -17,6 +17,7 @@ import {
   handleVerifyOtp,
   handleUpdatePasswordFromEmail,
   handleUpdateLockUser,
+  handleCreateOneUserAPI,
 } from "../services/auth.services";
 import {
   changePasswordSchema,
@@ -46,7 +47,7 @@ const postRegisterAPI = async (req: Request, res: Response) => {
     if (result.success && result.user) {
       const response: RegisterResponse = {
         success: true,
-        message: "User registered successfully",
+        message: "Đăng ký thành công",
         data: {
           user: {
             id: result.user.id,
@@ -61,7 +62,7 @@ const postRegisterAPI = async (req: Request, res: Response) => {
       const response: RegisterResponse = {
         success: false,
         message:
-          result.success === false ? result.message : "Registration failed",
+          result.success === false ? result.message : "Đăng ký thất bại",
         data: null,
       };
       res.status(400).json(response);
@@ -118,7 +119,7 @@ const postLoginAPI = async (req: Request, res: Response) => {
       message: result.message || "Đăng nhập thất bại",
       data: null,
     };
-    res.status(401).json(response);
+    res.status(200).json(response);
   } catch (error) {
     console.error("Login error:", error);
     const response: LoginResponse = {
@@ -629,8 +630,24 @@ const putUpdateLockUserApi = async (req: Request, res: Response) => {
   });
 };
 
+const createOneUserAPI = async (req: Request, res: Response) => {
+  const result = await handleCreateOneUserAPI(req.body);
+  if (result.success === false) {
+    res.status(201).json({
+      success: result.success,
+      message: result.message,
+    });
+    return;
+  }
+  res.status(200).json({
+    success: result.success,
+    message: result.message,
+  });
+};
+
 export {
   postRegisterAPI,
+  createOneUserAPI,
   postLoginAPI,
   postVerifyTokenAPI,
   getAccountApi,

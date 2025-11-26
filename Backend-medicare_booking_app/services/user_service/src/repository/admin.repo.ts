@@ -97,7 +97,19 @@ const createAdminProfile = async (userId: string, email: string) => {
   }
 };
 
+const createOneAdminProfile = async (admin: any) => {
+  await prisma.admin.create({
+    data: {
+      user_id: admin.userId,
+      full_name: admin.fullName,
+      phone: admin.phone,
+      avatar_url: admin.avatarUrl || "",
+    },
+  });
+};
+
 export {
+  createOneAdminProfile,
   createAdmin,
   findAdminByUserId,
   getAllAdmin,

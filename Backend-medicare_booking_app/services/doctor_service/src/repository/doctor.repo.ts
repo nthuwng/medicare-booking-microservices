@@ -132,6 +132,32 @@ const handleSpecialtyDoctorCheckViaRepository = async (
   return doctor;
 };
 
+const createOneDoctorProfile = async (doctorData: any) => {
+  await prisma.doctor.create({
+    data: {
+      userId: doctorData.userId,
+      fullName: doctorData.fullName,
+      phone: doctorData.phone,
+      bio: doctorData.bio,
+      experienceYears: Number(doctorData.experienceYears),
+      gender: doctorData.gender as Gender,
+      title: doctorData.title as Title,
+      specialtyId: Number(doctorData.specialtyId),
+      clinicId: Number(doctorData.clinicId),
+      bookingFee: Number(doctorData.bookingFee),
+      avatarUrl: doctorData.avatarUrl || "",
+      avatarPublicId: doctorData.avatarPublicId || "",
+      approvalStatus: doctorData.approvalStatus as ApprovalStatus,
+    },
+    include: {
+      specialty: true,
+      clinic: true,
+    },
+  });
+
+  await ApprovedDoctorsCache.clear();
+  await DoctorsCache.clear();
+};
 const importDoctorProfiles = async (doctors: any[]) => {
   // Safety check to ensure doctors is an array
   if (!doctors || !Array.isArray(doctors)) {
@@ -186,4 +212,5 @@ export {
   doctorIdMessage,
   handleSpecialtyDoctorCheckViaRepository,
   importDoctorProfiles,
+  createOneDoctorProfile,
 };

@@ -1,3 +1,4 @@
+import { UserType } from "./../../../../shared/interfaces/common/enums";
 import {
   JwtPayload,
   JwtPayloadGoogle,
@@ -6,7 +7,7 @@ import {
 } from "@shared/index";
 import bcrypt from "bcrypt";
 import { prisma } from "../config/client";
-import { AuthProvider, UserType } from "@prisma/client";
+import { AuthProvider } from "@prisma/client";
 const saltRounds = 10;
 import jwt from "jsonwebtoken";
 import "dotenv/config";
@@ -15,6 +16,9 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import {
+  createOneAdminProfileViaRabbitMQ,
+  createOneDoctorProfileViaRabbitMQ,
+  createOnePatientProfileViaRabbitMQ,
   createUserProfileViaRabbitMQ,
   importDoctorProfilesViaRabbitMQ,
   sendEmailForgotPassword,
@@ -810,7 +814,128 @@ const handleUpdateLockUser = async (id: string, isActive: boolean) => {
       : "Khóa người dùng thành công.",
   };
 };
+
+const handleCreateOneUserAPI = async (data: any) => {
+  const {
+    email,
+    password,
+    userType,
+    fullName,
+    clinicId,
+    specialtyId,
+    phone,
+    bio,
+    experienceYears,
+    bookingFee,
+    title,
+    gender,
+    avatarUrl,
+    avatarPublicId,
+    approvalStatus,
+  } = data;
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (existingUser) {
+    return {
+      success: false,
+      message: "Email đã tồn tại trong hệ thống",
+    };
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  if (userType === UserType.DOCTOR) {
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        userType: userType as UserType,
+      },
+    });
+
+    const dataDoctor: any = {
+      userId: newUser.id,
+      fullName,
+      phone,
+      bio,
+      experienceYears: Number(experienceYears),
+      bookingFee: Number(bookingFee),
+      title,
+      gender,
+      specialtyId: Number(specialtyId),
+      clinicId: Number(clinicId),
+      avatarUrl: avatarUrl || "",
+      avatarPublicId: avatarPublicId || "",
+      approvalStatus,
+    };
+
+    await createOneDoctorProfileViaRabbitMQ(dataDoctor);
+
+    await AllUsersCache.clear();
+
+    return {
+      success: true,
+      message: "Tạo tài khoản bác sĩ thành công.",
+    };
+  }
+
+  if (userType === UserType.PATIENT) {
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        userType: userType as UserType,
+      },
+    });
+
+    const dataPatient: any = {
+      userId: newUser.id,
+      fullName,
+      phone,
+      avatarUrl: avatarUrl || "",
+    };
+
+    await createOnePatientProfileViaRabbitMQ(dataPatient);
+
+    await AllUsersCache.clear();
+
+    return {
+      success: true,
+      message: "Tạo tài khoản bệnh nhân thành công.",
+    };
+  }
+
+   const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        userType: userType as UserType,
+      },
+    });
+
+    const dataAdmin: any = {
+      userId: newUser.id,
+      fullName,
+      phone,
+      avatarUrl: avatarUrl || "",
+    };
+
+    await createOneAdminProfileViaRabbitMQ(dataAdmin);
+
+    await AllUsersCache.clear();
+
+  return {
+    success: true,
+    message: "Tạo admin thành công",
+  };
+};
 export {
+  handleCreateOneUserAPI,
   hashPassword,
   handleRegister,
   handleLoginApi,

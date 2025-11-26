@@ -81,9 +81,6 @@ const TimeslotTable = () => {
         }}
         headerTitle="Danh sách thời gian"
         toolBarRender={() => [
-          <Button icon={<ExportOutlined />} type="primary">
-            Export
-          </Button>,
           <Button
             key="button"
             icon={<PlusOutlined />}
@@ -91,7 +88,7 @@ const TimeslotTable = () => {
             type="primary"
           >
             Add new
-          </Button>,
+          </Button>
         ]}
       />
     </>

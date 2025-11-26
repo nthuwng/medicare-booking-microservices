@@ -184,6 +184,11 @@ export const bulkCreateUsersAPI = (users: any[]) => {
   );
 };
 
+export const createOneUserAPI = (user: any) => {
+  const urlBackend = `/api/auth/create-one-user`;
+  return axios.post<IBackendRes<any>>(urlBackend, user);
+};
+
 export const lockUserAPI = (userId: string, lock: boolean) => {
   const urlBackend = `/api/auth/lock-user/${userId}`;
   return axios.put<IBackendRes<any>>(urlBackend, { lock });

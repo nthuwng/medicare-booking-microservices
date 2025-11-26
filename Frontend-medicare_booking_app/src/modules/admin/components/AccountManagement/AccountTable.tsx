@@ -20,11 +20,13 @@ import type { ActionType, ProColumns } from "@ant-design/pro-components";
 import { getAllUsers, lockUserAPI } from "../../services/admin.api";
 import type { IManageUser } from "@/types";
 import ImportUser from "../Import/ImportUser";
+import CreateAccount from "./CreateAccount";
 
 const AccountTable = () => {
   const [openModalImport, setOpenModalImport] = useState(false);
   const actionRef = useRef<ActionType>(null);
   const { message } = App.useApp();
+  const [openModalAdd, setOpenModalAdd] = useState(false);
 
   const [meta, setMeta] = useState({
     current: 1,
@@ -212,7 +214,12 @@ const AccountTable = () => {
           >
             Import
           </Button>,
-          <Button key="add" icon={<PlusOutlined />} type="primary">
+          <Button
+            key="add"
+            icon={<PlusOutlined />}
+            type="primary"
+            onClick={() => setOpenModalAdd(true)}
+          >
             Add new
           </Button>,
         ]}
@@ -222,6 +229,12 @@ const AccountTable = () => {
         openModalImport={openModalImport}
         setOpenModalImport={setOpenModalImport}
         refreshTable={refreshTable}
+      />
+
+      <CreateAccount
+        refreshTable={refreshTable}
+        openModalAdd={openModalAdd}
+        setOpenModalAdd={setOpenModalAdd}
       />
     </>
   );
