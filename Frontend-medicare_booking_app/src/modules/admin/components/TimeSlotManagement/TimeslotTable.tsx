@@ -8,7 +8,6 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 import {
-  ExportOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
