@@ -23,7 +23,7 @@ import {
   Button,
   App,
 } from "antd";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import type { MenuProps } from "antd";
 import { RiAdminFill } from "react-icons/ri";
@@ -42,8 +42,8 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 const { Content, Sider } = Layout;
 const LayoutDoctor = () => {
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("dashboard");
   const [modalNotificationLayout, setModalNotificationLayout] = useState(false);
   const [doctorProfile, setDoctorProfile] = useState<IDoctorProfile | null>(
     null
@@ -193,6 +193,31 @@ const LayoutDoctor = () => {
       key: "logout",
     },
   ];
+
+  const pathToKeyMap: Record<string, string> = {
+    "/doctor": "dashboard",
+    "/doctor/schedule": "schedule",
+    "/doctor/appointments": "appointments",
+    "/doctor/messages": "messages",
+    "/doctor/ratings": "ratings",
+    "/doctor/profile-settings": "profile-settings",
+    "/doctor/change-password": "change-password",
+  };
+
+  const getSelectedMenuKey = (pathname: string) => {
+  // 1. Ưu tiên match chính xác
+  if (pathToKeyMap[pathname]) {
+    return pathToKeyMap[pathname];
+  }
+
+  // 2. Nếu không có exact match, tìm prefix dài nhất (cho các route con)
+  const matchedEntry = Object.entries(pathToKeyMap)
+    .sort((a, b) => b[0].length - a[0].length) // path dài trước
+    .find(([path]) => pathname.startsWith(path));
+
+  return matchedEntry ? matchedEntry[1] : "dashboard";
+};
+
 
   const renderTitleTag = (title: IDoctorProfile["title"]) => {
     const tagStyle = {
@@ -359,10 +384,9 @@ const LayoutDoctor = () => {
             </>
           )}
           <Menu
-            defaultSelectedKeys={[activeMenu]}
+            selectedKeys={[getSelectedMenuKey(location.pathname)]}
             mode="inline"
             items={items}
-            onClick={(e) => setActiveMenu(e.key)}
             className="admin-menu"
           />
         </Sider>

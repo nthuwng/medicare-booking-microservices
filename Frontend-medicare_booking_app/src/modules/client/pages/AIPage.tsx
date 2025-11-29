@@ -1,4 +1,3 @@
-// src/pages/AIPage.tsx
 import { useState, useRef, useEffect } from "react";
 import {
   Layout,
@@ -43,14 +42,14 @@ const palette = {
     pageBg: "#050816", // nền tổng thể
     surface: "#0b1120", // thẻ / composer
     surface2: "#020617",
-    border: "rgba(148,163,184,0.45)",
+    border: "rgba(148,163,184,0.6)", // 🔧 Tăng opacity từ 0.45 → 0.6
     text: "#e5e7eb",
     textMuted: "#9ca3af",
     textSoft: "#94a3b8",
     primary: "#38bdf8", // xanh nhạt
     shadow: "0 18px 45px rgba(15,23,42,0.8)",
-    bubbleAI: "rgba(15,23,42,0.95)",
-    bubbleUser: "#0369a1", // bong bóng user rõ hơn
+    bubbleAI: "#1e293b", // 🔧 Sáng hơn: từ rgba(15,23,42,0.95) → #1e293b (slate-800)
+    bubbleUser: "#0369a1", // bong bóp user rõ hơn
   },
   light: {
     pageBg: "#f4f5fb", // nền tổng thể sáng hơn chút
@@ -62,7 +61,7 @@ const palette = {
     textSoft: "#6b7280",
     primary: "#0ea5e9",
     shadow: "0 18px 45px rgba(15,23,42,0.08)",
-    // bong bóng chat
+    // bong bóp chat
     bubbleAI: "#ffffff", // AI: trắng
     bubbleUser: "#dbeafe", // User: xanh nhạt nhưng không quá chói
   },
@@ -295,6 +294,14 @@ const AIPage = () => {
              ? `
            .ai-chat-page .ant-tooltip-inner { background: ${C.surface2}; color: ${C.text}; }
            .ai-chat-page .ant-tooltip-arrow:before { background: ${C.surface2}; }
+           /* 🔧 Dark mode: AI bubble border rõ hơn */
+           .ai-chat-page .ai-bubble-ai {
+             background: ${C.bubbleAI};
+             border: 1px solid ${C.border} !important;
+           }
+           .ai-chat-page .ai-bubble-ai .ant-typography {
+             color: ${C.text};
+           }
          `
              : ``
          }
@@ -325,7 +332,7 @@ const AIPage = () => {
   width: 100% !important;          /* tất cả nút full width */
   display: flex !important;        /* căn trái nội dung giống nhau */
   align-items: center !important;
-  justify-content: flex-start !important;
+  justify-content: center  !important;
   gap: 8px !important;
   padding-left: 12px !important;   /* đồng bộ padding trái */
   padding-right: 12px !important;  /* đồng bộ padding phải */
@@ -337,7 +344,7 @@ const AIPage = () => {
   line-height: 1.4 !important;
 }
 
-/* giữ biên dạng khi dark/light để không “giật” kích thước */
+/* giữ biên dạng khi dark/light để không "giật" kích thước */
 .ai-suggestions .ant-btn,
 .ai-suggestions .ant-upload-wrapper .ant-btn {
   min-height: 32px; /* cùng chiều cao */
@@ -375,7 +382,9 @@ const AIPage = () => {
         {/* SIDEBAR */}
         <div
           style={{
-            width: isMobile ? "80%" : isSidebarCollapsed ? 100 : "15%",
+            width: isMobile ? "80%" : isSidebarCollapsed ? 100 : 260, // 👉 dùng px cho dễ kiểm soát
+            minWidth: isMobile ? undefined : isSidebarCollapsed ? 80 : 240, // đảm bảo không bé quá
+            flexShrink: 0, // 🔥 KHÔNG cho flex co sidebar
             display: isMobile && isSidebarCollapsed ? "none" : "block",
             position: isMobile ? "fixed" : "relative",
             left: 0,
@@ -542,7 +551,7 @@ const AIPage = () => {
 
             {/* Suggestions */}
             {!isSidebarCollapsed && (
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 8 }} className="ai-suggestions">
                 <div
                   style={{
                     fontWeight: 600,
@@ -566,6 +575,9 @@ const AIPage = () => {
                     style={{
                       background: isDark ? C.surface : "#fff",
                       color: isDark ? C.text : "",
+                      height: "auto",
+                      whiteSpace: "normal",
+                      padding: "8px 12px",
                     }}
                     onClick={() => handleQuickAsk("Xin chào!")}
                   >
@@ -578,6 +590,9 @@ const AIPage = () => {
                     style={{
                       background: isDark ? C.surface : "#fff",
                       color: isDark ? C.text : "",
+                      height: "auto",
+                      whiteSpace: "normal",
+                      padding: "8px 12px",
                     }}
                     onClick={() =>
                       handleQuickAsk(
@@ -601,7 +616,9 @@ const AIPage = () => {
                         style={{
                           background: isDark ? C.surface : "#fff",
                           color: isDark ? C.text : "",
-                          width: "100%", // <-- dự phòng
+                          height: "auto",
+                          whiteSpace: "normal",
+                          padding: "8px 12px",
                         }}
                       >
                         🖼️Gợi ý chuyên khoa từ ảnh (tải ảnh)
@@ -615,6 +632,9 @@ const AIPage = () => {
                     style={{
                       background: isDark ? C.surface : "#fff",
                       color: isDark ? C.text : "",
+                      height: "auto",
+                      whiteSpace: "normal",
+                      padding: "8px 12px",
                     }}
                     onClick={() =>
                       handleQuickAsk(
@@ -631,6 +651,9 @@ const AIPage = () => {
                     style={{
                       background: isDark ? C.surface : "#fff",
                       color: isDark ? C.text : "",
+                      height: "auto",
+                      whiteSpace: "normal",
+                      padding: "8px 12px",
                     }}
                     onClick={() =>
                       handleQuickAsk("Tìm bác sĩ chuyên khoa Tim mạch giúp tôi")
@@ -932,6 +955,9 @@ const AIPage = () => {
                               }}
                             >
                               <div
+                                className={
+                                  msg.type === "ai" ? "ai-bubble-ai" : ""
+                                }
                                 style={{
                                   maxWidth: isMobile ? "85%" : "75%",
                                   background:
@@ -1012,9 +1038,10 @@ const AIPage = () => {
                                                 ? "#f9fafb" // user dark: chữ trắng
                                                 : "#0f172a" // user light: tối cho dễ đọc
                                               : isDark
-                                              ? C.text
+                                              ? "#e5e7eb" // 🔧 AI text: sáng hơn
                                               : "#0f172a",
                                           fontSize: isMobile ? "14px" : "15px",
+                                          lineHeight: "1.5", // 🔧 Tăng line-height để dễ đọc
                                         }}
                                       >
                                         {msg.content}
@@ -1030,6 +1057,7 @@ const AIPage = () => {
                                         color: isDark ? C.textSoft : "#000",
                                         display: "block",
                                         marginTop: 4,
+                                        marginLeft: "10px",
                                       }}
                                     >
                                       {formatTime(msg.timestamp)}
@@ -1123,6 +1151,7 @@ const AIPage = () => {
                       <TextArea
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
+                        onPaste={handlePasteImage}
                         placeholder={
                           imageFile
                             ? "Mô tả thêm về triệu chứng/ảnh của bạn..."

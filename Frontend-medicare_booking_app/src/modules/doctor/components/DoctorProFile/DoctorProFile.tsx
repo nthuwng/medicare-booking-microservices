@@ -391,47 +391,116 @@ const DoctorProFile = () => {
                 <Col span={24}>
                   <Card
                     title={
-                      <div className="flex items-center">
-                        <SafetyCertificateOutlined className="mr-2 text-indigo-600" />
-                        <span className="text-lg font-semibold">
-                          Thao tác nhanh
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <SafetyCertificateOutlined className="text-indigo-600" />
+                          <span className="text-lg font-semibold">
+                            Thao tác nhanh
+                          </span>
+                        </div>
                       </div>
                     }
                     className="shadow-lg border-0 rounded-xl"
                     headStyle={{
                       borderBottom: "1px solid #f0f0f0",
-                      padding: "20px 24px",
+                      padding: "16px 20px",
                     }}
-                    bodyStyle={{ padding: "24px" }}
+                    bodyStyle={{ padding: "16px 20px" }}
                   >
-                    <Row gutter={[16, 16]}>
-                      <Col xs={24} sm={12} md={12}>
+                    <Row gutter={[12, 12]}>
+                      {/* Lịch làm việc */}
+                      <Col xs={24} sm={12} md={6}>
                         <Button
+                          type="default"
                           block
-                          icon={<CalendarOutlined />}
-                          className="h-12 text-base font-medium shadow-md hover:shadow-lg transition-shadow"
-                          style={{
-                            border: "2px solid #10b981",
-                            color: "#10b981",
-                          }}
+                          className="!h-auto !p-0 shadow-none border-none bg-transparent"
                           onClick={() => navigate("/doctor/schedule")}
                         >
-                          Xem lịch làm việc
+                          <div className="group w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-emerald-500 hover:bg-emerald-50 transition-all duration-200">
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+                              <CalendarOutlined className="text-emerald-500 text-base" />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="text-sm font-semibold text-gray-800">
+                                Lịch làm việc
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Xem & quản lý lịch khám
+                              </div>
+                            </div>
+                          </div>
                         </Button>
                       </Col>
-                      <Col xs={24} sm={12} md={12}>
+
+                      {/* Cuộc hẹn */}
+                      <Col xs={24} sm={12} md={6}>
                         <Button
+                          type="default"
                           block
-                          icon={<StarOutlined />}
-                          className="h-12 text-base font-medium shadow-md hover:shadow-lg transition-shadow"
-                          style={{
-                            border: "2px solid #f59e0b",
-                            color: "#f59e0b",
-                          }}
-                          onClick={() => navigate("/doctor/ratings")}
+                          className="!h-auto !p-0 shadow-none border-none bg-transparent"
+                          onClick={() => navigate("/doctor/appointments")}
                         >
-                          Xem đánh giá
+                          <div className="group w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-emerald-500 hover:bg-emerald-50 transition-all duration-200">
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+                              <CalendarOutlined className="text-emerald-500 text-base" />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="text-sm font-semibold text-gray-800">
+                                Cuộc hẹn
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Xem & quản lý cuộc hẹn
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      </Col>
+
+                      {/* Tin nhắn */}
+                      <Col xs={24} sm={12} md={6}>
+                        <Button
+                          type="default"
+                          block
+                          className="!h-auto !p-0 shadow-none border-none bg-transparent"
+                          onClick={() => navigate("/doctor/messages")}
+                        >
+                          <div className="group w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-emerald-500 hover:bg-emerald-50 transition-all duration-200">
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+                              <CalendarOutlined className="text-emerald-500 text-base" />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="text-sm font-semibold text-gray-800">
+                                Tin nhắn
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Quản lý tin nhắn với bệnh nhân
+                              </div>
+                            </div>
+                          </div>
+                        </Button>
+                      </Col>
+
+                      {/* Xem đánh giá */}
+                      <Col xs={24} sm={12} md={6}>
+                        <Button
+                          type="default"
+                          block
+                          className="!h-auto !p-0 shadow-none border-none bg-transparent"
+                          onClick={() => navigate("/doctor/messages")}
+                        >
+                          <div className="group w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-emerald-500 hover:bg-emerald-50 transition-all duration-200">
+                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+                              <StarOutlined className="text-emerald-500 text-base" />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="text-sm font-semibold text-gray-800">
+                                Xem đánh giá
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Phản hồi từ bệnh nhân
+                              </div>
+                            </div>
+                          </div>
                         </Button>
                       </Col>
                     </Row>

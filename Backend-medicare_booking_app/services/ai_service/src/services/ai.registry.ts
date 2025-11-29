@@ -45,10 +45,32 @@ export const dispatchByIntent = async (
 
       const symptoms = (parsed.args?.symptoms || ctx.prompt || "").trim();
 
-      const sys =
-        "You are a triage assistant. If the image is NOT clearly related to medicine, " +
-        'return JSON: {"specialty_name":"Không áp dụng","confidence":0,"reasoning":"…"}. ' +
-        "Otherwise, respond strict JSON: {specialty_name (vn), confidence (0.0-1), reasoning (vn)}.";
+      const sys = `You are a medical triage assistant. Classify the image STRICTLY:
+
+ACCEPT (return specialty recommendation):
+- Skin conditions, rashes, wounds, injuries (chân, tay, mặt, etc.)
+- Body parts showing medical symptoms
+- Medical test results, X-rays, scans
+- Clear health-related content
+
+REJECT (return "Không áp dụng"):
+- UI screenshots, app interfaces, logos
+- Non-medical general photos
+- Blurry or unidentifiable medical content
+
+RESPONSE FORMAT (ONLY JSON, no other text):
+{
+  "is_medical": <true|false>,
+  "specialty_name": "<chuyên khoa tiếng Việt hoặc 'Không áp dụng'>",
+  "confidence": <0.0-1.0>,
+  "reasoning": "<giải thích ngắn tiếng Việt>"
+}
+  
+IMPORTANT: If image contains MULTIPLE items/faces/elements mixed together:
+- REJECT if most content is non-medical (UI, logos, icons)
+- ACCEPT only if CLEARLY medical content is dominant;
+
+`;
 
       const user = `Ảnh triệu chứng. Thông tin bổ sung: ${
         symptoms || "không có"

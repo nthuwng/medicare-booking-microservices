@@ -7,7 +7,7 @@ import {
 } from "@ant-design/icons";
 import { Users } from "lucide-react";
 import { Layout, Menu, Dropdown, Space } from "antd";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import type { MenuProps } from "antd";
 import { RiAdminFill } from "react-icons/ri";
@@ -25,7 +25,7 @@ const { Content, Sider } = Layout;
 
 const LayoutAdmin = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const location = useLocation();
   const [modalNotificationLayout, setModalNotificationLayout] = useState(false);
 
   const { setIsAuthenticated, setUser } = useCurrentApp();
@@ -111,10 +111,6 @@ const LayoutAdmin = () => {
       key: "account",
     },
     {
-      // background: #e0f2fe !important;
-      // color: #1677ff !important;
-      // box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-      // transform: scale(1.04);
       label: (
         <Link to={"/"} onClick={() => handleLogout()}>
           Đăng xuất
@@ -123,6 +119,31 @@ const LayoutAdmin = () => {
       key: "logout",
     },
   ];
+
+  const pathToKeyMap: Record<string, string> = {
+    "/admin": "dashboard",
+    "/admin/account-management": "account-management",
+    "/admin/admin-management": "admin-management",
+    "/admin/doctor-management": "doctor-management",
+    "/admin/patient-management": "patient-management",
+    "/admin/specialities": "specialities",
+    "/admin/clinic": "clinic",
+    "/admin/time-slot-management": "time-slot-management",
+  };
+
+  const getSelectedMenuKey = (pathname: string) => {
+    // 1. Ưu tiên match chính xác
+    if (pathToKeyMap[pathname]) {
+      return pathToKeyMap[pathname];
+    }
+
+    // 2. Nếu không có exact match, tìm prefix dài nhất (cho các route con)
+    const matchedEntry = Object.entries(pathToKeyMap)
+      .sort((a, b) => b[0].length - a[0].length) // path dài trước
+      .find(([path]) => pathname.startsWith(path));
+
+    return matchedEntry ? matchedEntry[1] : "dashboard";
+  };
 
   return (
     <>
@@ -139,10 +160,9 @@ const LayoutAdmin = () => {
             <div className="sidebar-logo">Admin Dashboard</div>
           )}
           <Menu
-            defaultSelectedKeys={[activeMenu]}
+            selectedKeys={[getSelectedMenuKey(location.pathname)]}
             mode="inline"
             items={items}
-            onClick={(e) => setActiveMenu(e.key)}
             className="admin-menu"
           />
         </Sider>
