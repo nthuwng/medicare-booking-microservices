@@ -11,8 +11,8 @@ const {
 } = require("vnpay");
 
 const vnpay = new VNPay({
-  tmnCode: "7HSAB3FG",
-  secureSecret: "LCPUOLAM30S5A0FX5E5TY6JVPDY2ISEC",
+  tmnCode: "DFCSD3DL",
+  secureSecret: "B05LJYKHPOZTXEQVIWOGDRMTT7C1G4T4",
   vnpayHost: "https://sandbox.vnpayment.vn",
   testMode: true, // tùy chọn, ghi đè vnpayHost thành sandbox nếu là true
   hashAlgorithm: "SHA512", // tùy chọn
