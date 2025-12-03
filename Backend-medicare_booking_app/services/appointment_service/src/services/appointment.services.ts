@@ -429,8 +429,10 @@ const countTotalAppointmentPage = async (pageSize: number) => {
   return totalPages;
 };
 
-const countTotalAppointments = async () => {
-  const totalItems = await prisma.appointment.count();
+const countTotalAppointments = async (doctorId: string) => {
+  const totalItems = await prisma.appointment.count({
+    where: { doctorId },
+  });
   return totalItems;
 };
 
@@ -456,13 +458,15 @@ const handleAppointmentsByDoctorIdServices = async (
     paymentStatus,
   };
 
-  const cachedAppointments = await AllAppointmentByDoctorCache.get<any>(cacheParams);
+  const cachedAppointments = await AllAppointmentByDoctorCache.get<any>(
+    cacheParams
+  );
 
   if (cachedAppointments) {
     return cachedAppointments;
   }
 
-    // Build date condition for query
+  // Build date condition for query
   let dateCondition: any;
   if (range.mode === "exact") {
     dateCondition = { gte: range.start, lte: range.end };
@@ -522,12 +526,11 @@ const handleAppointmentsByDoctorIdServices = async (
     })
   );
 
-  const totalAppointments = await countTotalAppointments();
+  const totalAppointments = await countTotalAppointments(doctorId);
 
   const result = {
     appointments: appointmentsWithScheduleInfo,
     totalAppointments: totalAppointments,
-    
   };
 
   await AllAppointmentByDoctorCache.set(cacheParams, result);
