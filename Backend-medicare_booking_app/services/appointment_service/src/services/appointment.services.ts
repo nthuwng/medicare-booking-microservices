@@ -527,7 +527,6 @@ const handleAppointmentsByDoctorIdServices = async (
   );
 
   const totalAppointments = await countTotalAppointments(doctorId);
-
   const result = {
     appointments: appointmentsWithScheduleInfo,
     totalAppointments: totalAppointments,
