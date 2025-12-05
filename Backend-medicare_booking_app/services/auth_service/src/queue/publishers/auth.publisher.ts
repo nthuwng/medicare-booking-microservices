@@ -1,6 +1,7 @@
 import { publishAuthEvent } from "./AuthEvent";
 import { rpcRequest } from "./rpcRequest";
 import { publishSendEmailEvent } from "./SendEmailEvent";
+import { publishSendEmailRegisterEvent } from "./SendEmailRegisterEvent";
 import { publishSendPasswordToEmailEvent } from "./SendPasswordToEmail";
 
 const createUserProfileViaRabbitMQ = async (userId: string, email: string) => {
@@ -31,6 +32,10 @@ const sendEmailForgotPassword = async (email: string, otp: string) => {
   return publishSendEmailEvent("auth.forgot_password", { email, otp });
 };
 
+const sendEmailRegister = async (email: string, otp: string) => {
+  return publishSendEmailRegisterEvent("auth.register", { email, otp });
+};
+
 const sendEmailResetPassword = async (email: string, newPassword: string) => {
   return publishSendPasswordToEmailEvent("auth.reset_password", {
     email,
@@ -47,4 +52,5 @@ export {
   sendEmailForgotPassword,
   sendEmailResetPassword,
   createOneAdminProfileViaRabbitMQ,
+  sendEmailRegister
 };

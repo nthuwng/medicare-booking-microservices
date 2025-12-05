@@ -15,6 +15,8 @@ import {
   putUpdatePasswordFromEmailApi,
   putUpdateLockUserApi, 
   createOneUserAPI,
+  postVerifyOtpRegisterApi,
+  postResendOtpRegisterApi
 } from "../controllers/auth.controller";
 import {
   authenticateToken,
@@ -25,6 +27,8 @@ const router = express.Router();
 
 const authRoutes = (app: Express) => {
   router.post("/register", postRegisterAPI);
+  router.post("/register-verify-otp", postVerifyOtpRegisterApi);
+  router.post("/register-resend-otp", postResendOtpRegisterApi);
   router.get("/", authenticateToken, authorizeAdmin, getAllUsersAPI);
   router.post("/login", postLoginAPI);
   router.post("/login-with-google", postLoginWithGoogleAPI);
@@ -35,7 +39,6 @@ const authRoutes = (app: Express) => {
   router.put("/users/:id/password", authenticateToken, putUpdatePasswordApi);
   router.post("/bulk-create-users", bulkCreateUsersAPI);
   router.post("/create-one-user", createOneUserAPI);
-
   router.post("/forgot-password", postForgetPasswordApi);
   router.post("/verify-otp", postVerifyOtpApi);
   router.post("/resend-otp", postForgetPasswordApi);

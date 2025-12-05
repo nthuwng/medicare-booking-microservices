@@ -1,4 +1,3 @@
-
 import axios from "services/axios.customize";
 import type {
   IDoctorProfile,
@@ -245,6 +244,8 @@ const uploadFileAPIClient = (img: any) => {
     },
   });
 };
+
+
 
 export {
   uploadFileAPIClient,

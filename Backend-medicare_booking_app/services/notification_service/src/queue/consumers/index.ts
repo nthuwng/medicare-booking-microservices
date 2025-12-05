@@ -4,6 +4,7 @@ import { initDoctorRegisteredConsumer } from "./notification.registered.consumer
 import { initNotificationMsgCreateConsumer } from "./notification.msgCreate.consumer";
 import { initSendEmailConsumer } from "./sendEmail.consumer";
 import { initSendPasswordToEmailConsumer } from "./sendPasswordToEmail.consumer";
+import { initSendEmailRegisterConsumer } from "./sendEmailRegister.consumer";
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
@@ -13,6 +14,7 @@ export const initializeAllRabbitMQConsumers = async () => {
     await initNotificationMsgCreateConsumer();
     await initSendEmailConsumer();
     await initSendPasswordToEmailConsumer();
+    await initSendEmailRegisterConsumer();
     console.log(
       "✅ All RabbitMQ consumers notification_service initialized successfully."
     );

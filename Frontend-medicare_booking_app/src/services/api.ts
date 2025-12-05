@@ -29,3 +29,19 @@ export const revokeTokenAPI = () => {
   const urlBackend = "/api/auth/revoke-token";
   return axios.post<IBackendRes<null>>(urlBackend);
 };
+
+
+export const verifyOtpRegisterAPI = (email: string, otp: string) => {
+  const urlBackend = `/api/auth/register-verify-otp`;
+  return axios.post<IBackendRes<any>>(urlBackend, {
+    email,
+    otp,
+  });
+};
+
+export const resendOtpRegisterAPI = (email: string) => {
+  const urlBackend = `/api/auth/register-resend-otp`;
+  return axios.post<IBackendRes<any>>(urlBackend, {
+    email,
+  });
+};

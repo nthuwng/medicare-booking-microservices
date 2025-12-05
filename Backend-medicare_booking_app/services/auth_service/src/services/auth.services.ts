@@ -22,6 +22,7 @@ import {
   createUserProfileViaRabbitMQ,
   importDoctorProfilesViaRabbitMQ,
   sendEmailForgotPassword,
+  sendEmailRegister,
   sendEmailResetPassword,
 } from "src/queue/publishers/auth.publisher";
 import { randomUUID } from "crypto";
@@ -49,18 +50,26 @@ const handleRegister = async (
   if (existingUser) {
     return { success: false, message: "User đã tồn tại trong hệ thống" };
   }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 số
+  const expUtc = dayjs.utc().add(3, "minute").toDate();
+
   const user = await prisma.user.create({
     data: {
       email,
       password: newPassword,
       userType: userType as UserType,
-      verificationOtp: "",
+      isActive: false,
+      verificationOtp: otp,
+      verificationOtpExp: expUtc,
     },
   });
 
   if (userType === UserType.PATIENT) {
     await createUserProfileViaRabbitMQ(user.id, email);
   }
+
+  await sendEmailRegister(email, otp);
 
   return { success: true, user };
 };
@@ -83,7 +92,7 @@ const handleLoginApi = async (
     if (user.isActive === false) {
       return {
         success: false,
-        message: `Tài khoản của bạn đã bị khóa . Vui lòng liên hệ ADMIN .`,
+        message: `Tài khoản của bạn đã bị khóa hoặc chưa được kích hoạt.`,
       };
     }
 
@@ -910,29 +919,104 @@ const handleCreateOneUserAPI = async (data: any) => {
     };
   }
 
-   const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        userType: userType as UserType,
-      },
-    });
+  const newUser = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      userType: userType as UserType,
+    },
+  });
 
-    const dataAdmin: any = {
-      userId: newUser.id,
-      fullName,
-      phone,
-      avatarUrl: avatarUrl || "",
-    };
+  const dataAdmin: any = {
+    userId: newUser.id,
+    fullName,
+    phone,
+    avatarUrl: avatarUrl || "",
+  };
 
-    await createOneAdminProfileViaRabbitMQ(dataAdmin);
+  await createOneAdminProfileViaRabbitMQ(dataAdmin);
 
-    await AllUsersCache.clear();
+  await AllUsersCache.clear();
 
   return {
     success: true,
     message: "Tạo admin thành công",
   };
+};
+
+const handleVerifyOtpRegister = async (email: string, otp: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Email không tồn tại trong hệ thống.",
+    };
+  }
+
+  if (user.verificationOtp !== otp) {
+    return {
+      success: false,
+      message: "Mã OTP không đúng.",
+    };
+  }
+
+  const nowUtc = dayjs.utc();
+  const expUtc = dayjs(user.verificationOtpExp).utc();
+  const expired = nowUtc.valueOf() >= expUtc.valueOf();
+
+  if (expired) {
+    return { success: false, message: "Mã OTP đã hết hạn." };
+  }
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      isActive: true,
+      authProvider: AuthProvider.EMAIL,
+      verificationOtp: null,
+      verificationOtpExp: null,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Xác thực OTP thành công. Tài khoản đã được kích hoạt.",
+  };
+};
+
+const handleResendOtpRegister = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
+
+  if (!user) {
+    return {
+      success: false,
+      message: "Email không tồn tại trong hệ thống.",
+    };
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 số
+  const expUtc = dayjs.utc().add(3, "minute").toDate();
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      verificationOtp: otp,
+      verificationOtpExp: expUtc,
+    },
+  });
+
+  await sendEmailRegister(email, otp);
+
+  return null;
 };
 export {
   handleCreateOneUserAPI,
@@ -958,4 +1042,6 @@ export {
   handleVerifyOtp,
   handleUpdatePasswordFromEmail,
   handleUpdateLockUser,
+  handleVerifyOtpRegister,
+  handleResendOtpRegister,
 };

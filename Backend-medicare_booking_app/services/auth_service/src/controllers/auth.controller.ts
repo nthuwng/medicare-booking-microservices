@@ -18,6 +18,8 @@ import {
   handleUpdatePasswordFromEmail,
   handleUpdateLockUser,
   handleCreateOneUserAPI,
+  handleVerifyOtpRegister,
+  handleResendOtpRegister,
 } from "../services/auth.services";
 import {
   changePasswordSchema,
@@ -47,7 +49,8 @@ const postRegisterAPI = async (req: Request, res: Response) => {
     if (result.success && result.user) {
       const response: RegisterResponse = {
         success: true,
-        message: "Đăng ký thành công",
+        message:
+          "Đăng ký thành công . Hãy kiểm tra email để xác thực tài khoản.",
         data: {
           user: {
             id: result.user.id,
@@ -61,8 +64,7 @@ const postRegisterAPI = async (req: Request, res: Response) => {
     } else {
       const response: RegisterResponse = {
         success: false,
-        message:
-          result.success === false ? result.message : "Đăng ký thất bại",
+        message: result.success === false ? result.message : "Đăng ký thất bại",
         data: null,
       };
       res.status(400).json(response);
@@ -645,6 +647,61 @@ const createOneUserAPI = async (req: Request, res: Response) => {
   });
 };
 
+const postVerifyOtpRegisterApi = async (req: Request, res: Response) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    res.status(400).json({
+      success: false,
+      message: "Email và OTP là bắt buộc",
+      data: null,
+    });
+    return;
+  }
+
+  const result = await handleVerifyOtpRegister(email, otp);
+
+  if (result.success === false) {
+    res.status(400).json({
+      success: false,
+      message: result.message,
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: result.message,
+  });
+};
+
+const postResendOtpRegisterApi = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400).json({
+      success: false,
+      message: "Email là bắt buộc",
+      data: null,
+    });
+    return;
+  }
+
+  const password = await handleResendOtpRegister(email);
+
+  if (password?.success === false) {
+    res.status(404).json({
+      success: false,
+      message: password.message,
+    });
+    return;
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "OTP đã được gửi đến email của bạn",
+  });
+};
+
 export {
   postRegisterAPI,
   createOneUserAPI,
@@ -662,4 +719,6 @@ export {
   postVerifyOtpApi,
   putUpdateLockUserApi,
   putUpdatePasswordFromEmailApi,
+  postVerifyOtpRegisterApi,
+  postResendOtpRegisterApi,
 };
