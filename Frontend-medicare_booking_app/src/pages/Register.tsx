@@ -76,11 +76,6 @@ const RegisterPage = () => {
     }
   };
 
-  const handleSignupWithGoogle = () => {
-    const baseURL = import.meta.env.VITE_BACKEND_URL || "";
-    window.location.href = `${baseURL}/api/auth/google`;
-  };
-
   // countdown gửi lại OTP khi sang step 1
   useEffect(() => {
     if (step !== 1) return;
