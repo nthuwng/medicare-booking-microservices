@@ -39,7 +39,7 @@ const postRegisterAPI = async (req: Request, res: Response) => {
     const { email, password, userType } = req.body;
     const { error } = createUserSchema.validate(req.body);
     if (error) {
-      res.status(400).json({ message: error.message });
+      res.status(200).json({ message: error.message });
       return;
     }
     const newPassword = await hashPassword(password);
