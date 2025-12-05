@@ -429,13 +429,6 @@ const countTotalAppointmentPage = async (pageSize: number) => {
   return totalPages;
 };
 
-const countTotalAppointments = async (doctorId: string) => {
-  const totalItems = await prisma.appointment.count({
-    where: { doctorId },
-  });
-  return totalItems;
-};
-
 const handleAppointmentsByDoctorIdServices = async (
   doctorId: string,
   page: number,
@@ -493,17 +486,22 @@ const handleAppointmentsByDoctorIdServices = async (
   }
 
   const skip = (page - 1) * pageSize;
-  const appointments = await prisma.appointment.findMany({
-    where: whereCondition,
-    include: {
-      patient: true,
-    },
-    skip: skip,
-    take: pageSize,
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+   const [appointments, totalAppointments] = await Promise.all([
+    prisma.appointment.findMany({
+      where: whereCondition,
+      include: {
+        patient: true,
+      },
+      skip,
+      take: pageSize,
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.appointment.count({
+      where: whereCondition,
+    }),
+  ]);
 
   const appointmentsWithScheduleInfo = await Promise.all(
     appointments.map(async (appointment) => {
@@ -526,7 +524,6 @@ const handleAppointmentsByDoctorIdServices = async (
     })
   );
 
-  const totalAppointments = await countTotalAppointments(doctorId);
   const result = {
     appointments: appointmentsWithScheduleInfo,
     totalAppointments: totalAppointments,
