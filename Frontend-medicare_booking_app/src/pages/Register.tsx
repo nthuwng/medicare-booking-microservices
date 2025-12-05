@@ -15,7 +15,6 @@ import {
 import {
   LockOutlined,
   MailOutlined,
-  GoogleOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 import type { FormProps } from "antd";
