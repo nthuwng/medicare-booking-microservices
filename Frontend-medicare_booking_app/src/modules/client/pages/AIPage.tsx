@@ -27,7 +27,7 @@ import { chatWithAIAPI } from "../services/client.api";
 import { FiPaperclip } from "react-icons/fi";
 import IntentRenderer from "../components/AI/IntentRender";
 import { Link, useNavigate } from "react-router-dom";
-import Logo from "@/assets/Logo/LOGO_MEDICARE.png";
+import Logo from "@/assets/Logo/LOGO_MEDICARE.webp";
 import { useCurrentApp } from "@/components/contexts/app.context";
 import ThemeToggle from "@/components/common/ThemeToggle";
 

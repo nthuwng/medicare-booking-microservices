@@ -15,7 +15,7 @@ function getDoctorsPerView(width: number) {
 }
 
 const buildAvatarUrl = (url?: string) => {
-  if (!url) return "/Logo/LOGO_MEDICARE.png";
+  if (!url) return "/Logo/LOGO_MEDICARE.webp";
   return url;
 };
 
