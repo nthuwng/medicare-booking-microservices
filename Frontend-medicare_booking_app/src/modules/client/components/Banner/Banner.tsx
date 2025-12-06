@@ -6,9 +6,9 @@ import { useCurrentApp } from "@/components/contexts/app.context";
 type Slide = { id: number; img: string; alt?: string };
 
 const slides: Slide[] = [
-  { id: 1, img: "/Banner/doctor-banner-1.jpg", alt: "Bệnh viện 1" },
-  { id: 2, img: "/Banner/doctor-banner-2.jpg", alt: "Bệnh viện 2" },
-  { id: 3, img: "/Banner/doctor-banner-3.jpg", alt: "Bệnh viện 3" },
+  { id: 1, img: "/Banner/doctor-banner-1.webp", alt: "Bệnh viện 1" },
+  { id: 2, img: "/Banner/doctor-banner-2.webp", alt: "Bệnh viện 2" },
+  { id: 3, img: "/Banner/doctor-banner-3.webp", alt: "Bệnh viện 3" },
 ];
 
 /** srcSet/sizes đơn giản cho ảnh local (giúp đỡ mờ trên màn hình DPI cao) */
