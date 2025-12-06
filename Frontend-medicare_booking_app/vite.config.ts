@@ -10,8 +10,10 @@ export default defineConfig({
     port: 5173 ,
   },
   build: {
+    target: "es2019",
     sourcemap: false,
     cssCodeSplit: true,
+    assetsInlineLimit: 0,
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
@@ -26,5 +28,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom", "axios"],
+  },
+  esbuild: {
+    drop: ["console", "debugger"],
   },
 });
