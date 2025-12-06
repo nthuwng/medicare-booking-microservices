@@ -9,4 +9,22 @@ export default defineConfig({
   server: {
     port: 5173 ,
   },
+  build: {
+    sourcemap: false,
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          router: ["react-router", "react-router-dom"],
+          axios: ["axios"],
+          lottie: ["lottie-web"],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-router-dom", "axios"],
+  },
 });
