@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { ScheduleByDoctorCache } from "src/cache/scheduleByDoctorId.cache";
+import { AllTimeSlotCache } from "src/cache/timeslot.cache";
 import { prisma } from "src/config/client";
 import { checkDoctorProfileViaRabbitMQ } from "src/queue/publishers/schedule.publisher";
 import { nowVN, nowTimeStr, todayStr, todayVN } from "src/utils/time";
@@ -167,6 +169,9 @@ const updateTimeSlotByScheduleIdAndTimeSlotId = async (
     data: { currentBooking: { increment: 1 } },
   });
 
+  await ScheduleByDoctorCache.clear();
+  await AllTimeSlotCache.clear();
+
   return schedule;
 };
 
@@ -187,6 +192,10 @@ const updateCancelTimeSlotByScheduleIdAndTimeSlotId = async (
     where: { scheduleId_timeSlotId: { scheduleId, timeSlotId: +timeSlotId } },
     data: { currentBooking: { decrement: 1 } },
   });
+
+  await ScheduleByDoctorCache.clear();
+  await AllTimeSlotCache.clear();
+
   return schedule;
 };
 
