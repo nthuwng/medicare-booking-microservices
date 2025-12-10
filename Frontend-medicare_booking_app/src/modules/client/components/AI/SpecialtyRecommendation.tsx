@@ -2,6 +2,7 @@
 import type { IAiRecommendSpecialty } from "@/types";
 import { Card, Tag, Button, Typography, Space } from "antd";
 import { useCurrentApp } from "@/components/contexts/app.context";
+import { useNavigate } from "react-router-dom";
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -34,8 +35,8 @@ const palette = {
 };
 
 const SpecialtyRecommendation = (props: Props) => {
-  const { text, data, onFindDoctors } = props;
-
+  const { text, data } = props;
+  const navigate = useNavigate();
   const { theme } = useCurrentApp();
   const isDark = theme === "dark";
   const C = isDark ? palette.dark : palette.light;
@@ -63,10 +64,7 @@ const SpecialtyRecommendation = (props: Props) => {
             justifyContent: "space-between",
           }}
         >
-          <Title
-            level={5}
-            style={{ margin: 0, fontSize: 17, color: C.text }}
-          >
+          <Title level={5} style={{ margin: 0, fontSize: 17, color: C.text }}>
             {text}
           </Title>
           <Tag
@@ -97,7 +95,9 @@ const SpecialtyRecommendation = (props: Props) => {
           }}
         >
           <Text style={{ color: C.text }}>
-            <span style={{ color: C.textSoft, fontSize: 16 }}>Chuyên khoa:</span>
+            <span style={{ color: C.textSoft, fontSize: 16 }}>
+              Chuyên khoa:
+            </span>
             <span
               style={{
                 fontWeight: 600,
@@ -115,7 +115,7 @@ const SpecialtyRecommendation = (props: Props) => {
           <Button
             type="primary"
             size="small"
-            onClick={() => onFindDoctors?.(data?.specialty_name ?? "")}
+            onClick={() => navigate(`/booking-options/specialty`)}
             style={{
               background: isDark ? C.primary : undefined,
             }}
