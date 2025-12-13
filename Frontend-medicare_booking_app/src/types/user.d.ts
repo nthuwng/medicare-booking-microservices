@@ -152,6 +152,8 @@ export interface ICreateVNPayPaymentInput {
   appointmentId: string;
   amount: number;
   returnUrl: string;
+  hospitalId: string;
+  patientId: string;
 }
 
 export interface IDoctorProfileResponseMessage {

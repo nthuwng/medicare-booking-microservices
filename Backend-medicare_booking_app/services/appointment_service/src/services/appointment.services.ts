@@ -226,7 +226,9 @@ const createAppointmentService = async (
 
   await createPaymentDefaultViaRabbitMQ(
     appointment.id,
-    String(appointment.totalFee)
+    String(appointment.totalFee),
+    clinicId,
+    patient.id
   );
 
   await publishAppointmentCreatedEvent({

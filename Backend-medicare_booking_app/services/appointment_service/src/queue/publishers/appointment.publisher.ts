@@ -84,9 +84,11 @@ const getPaymentByAppointmentIdViaRabbitMQ = async (appointmentId: string) => {
 
 const createPaymentDefaultViaRabbitMQ = async (
   appointmentId: string,
-  amount: string
+  amount: string,
+  hospitalId: string,
+  patientId: string
 ) => {
-  return await publishCreatePaymentDefault(appointmentId, amount);
+  return await publishCreatePaymentDefault(appointmentId, amount, hospitalId, patientId);
 };
 
 export {

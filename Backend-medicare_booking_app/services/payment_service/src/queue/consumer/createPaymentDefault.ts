@@ -1,4 +1,3 @@
-
 import { createPaymentDefault } from "src/repository/payment";
 import { getChannel } from "../connection";
 
@@ -14,8 +13,15 @@ export const createPaymentDefaultConsumer = async () => {
     if (!msg) return;
 
     try {
-      const { appointmentId, totalFee } = JSON.parse(msg.content.toString());
-      await createPaymentDefault(appointmentId, totalFee);
+      const { appointmentId, totalFee, hospitalId, patientId } = JSON.parse(
+        msg.content.toString()
+      );
+      await createPaymentDefault(
+        appointmentId,
+        totalFee,
+        hospitalId,
+        patientId
+      );
 
       channel.ack(msg);
     } catch (err) {

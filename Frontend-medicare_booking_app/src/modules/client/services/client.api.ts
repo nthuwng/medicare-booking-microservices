@@ -42,15 +42,15 @@ const createBooking = (data: ICreateAppointmentInput) => {
 
 const createVNPayPayment = (data: ICreateVNPayPaymentInput) => {
   const urlBackend = `/api/payment/vnpay/create`;
-  return axios.post<IBackendRes<{ paymentId: string; paymentUrl: string }>>(
+  return axios.post<IBackendRes<{ paymentId: string; paymentUrl: string  }>>(
     urlBackend,
     data
   );
 };
 
-const createCashPayment = (appointmentId: string, amount: string) => {
+const createCashPayment = (appointmentId: string, amount: string, hospitalId: string, patientId: string) => {
   const urlBackend = `/api/payment/cash/create`;
-  return axios.post<IBackendRes<any>>(urlBackend, { appointmentId, amount });
+  return axios.post<IBackendRes<any>>(urlBackend, { appointmentId, amount, hospitalId, patientId });
 };
 
 const verifyVNPayReturn = (queryParams: string) => {

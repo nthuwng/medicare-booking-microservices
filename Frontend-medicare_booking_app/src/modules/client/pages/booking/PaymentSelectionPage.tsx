@@ -83,6 +83,8 @@ const PaymentSelectionPage = () => {
           appointmentId: appointmentData.appointment.id,
           amount: appointmentData.appointment.totalFee,
           returnUrl: `${window.location.origin}/payment-return`,
+          hospitalId: appointmentData.appointment.hospitalId,
+          patientId: appointmentData.appointment.patientId,
         };
 
         // Gọi API tạo payment URL
@@ -111,7 +113,9 @@ const PaymentSelectionPage = () => {
         // Gọi API tạo CASH payment record
         const paymentResponse = await createCashPayment(
           appointmentData.appointment.id,
-          String(appointmentData.appointment.totalFee)
+          String(appointmentData.appointment.totalFee),
+          appointmentData.appointment.hospitalId,
+          appointmentData.appointment.patientId
         );
 
         // Check response success

@@ -101,7 +101,12 @@ const processCancelAndRefund = async (appointmentId: string) => {
   throw new Error(`Unsupported payment gateway: ${payment.gateway}`);
 };
 
-const createPaymentDefault = async (appointmentId: string, amount: string) => {
+const createPaymentDefault = async (
+  appointmentId: string,
+  amount: string,
+  hospitalId: string,
+  patientId: string
+) => {
   const txnRef = `CASH-${appointmentId}-${Date.now()}`;
 
   await prisma.payment.create({
@@ -112,6 +117,8 @@ const createPaymentDefault = async (appointmentId: string, amount: string) => {
       orderInfo: `Thanh toán tiền mặt cho lịch hẹn ${appointmentId}`,
       state: "PENDING" as PaymentState, // Tiền mặt mặc định là chưa thanh toán
       gateway: "CASH" as PaymentGateway,
+      hospitalId: String(hospitalId),
+      patientId,
     },
   });
 };

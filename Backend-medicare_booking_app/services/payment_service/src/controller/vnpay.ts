@@ -20,7 +20,7 @@ const vnpay = new VNPay({
 });
 
 const createVNPayPayment = async (req: Request, res: Response) => {
-  const { appointmentId, amount, returnUrl } = req.body;
+  const { appointmentId, amount, returnUrl , hospitalId, patientId } = req.body;
   // txnRef có thể nhúng appointmentId để tra cứu nhanh
   const txnRef = `APPT-${appointmentId}-${Date.now()}`;
 
@@ -64,6 +64,8 @@ const createVNPayPayment = async (req: Request, res: Response) => {
       orderInfo: `Thanh toán lịch hẹn ${appointmentId}`,
       gateway: "VNPAY" as PaymentGateway,
       state: "PENDING" as PaymentState,
+      hospitalId: hospitalId,
+      patientId: patientId,
     },
   });
 
@@ -272,7 +274,7 @@ const vnpIpn = async (req: Request, res: Response) => {
 };
 
 const createCashPayment = async (req: Request, res: Response) => {
-  const { appointmentId, amount } = req.body;
+  const { appointmentId, amount , hospitalId, patientId } = req.body;
   const txnRef = `CASH-${appointmentId}-${Date.now()}`;
   const checkExisting = await prisma.payment.findFirst({
     where: { appointmentId, gateway: "CASH", amount: Number(amount) },
@@ -293,6 +295,8 @@ const createCashPayment = async (req: Request, res: Response) => {
         orderInfo: `Thanh toán tiền mặt cho lịch hẹn ${appointmentId}`,
         state: "PENDING" as PaymentState, // Tiền mặt mặc định là chưa thanh toán
         gateway: "CASH" as PaymentGateway,
+        hospitalId: hospitalId,
+        patientId: patientId,
       },
     });
     res.json({

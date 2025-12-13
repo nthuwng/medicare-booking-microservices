@@ -20,6 +20,8 @@ model Payment {
   amount          Int // VND (nhân 100 theo chuẩn VNPay, xem ghi chú)
   gateway         PaymentGateway @default(VNPAY)
   state           PaymentState   @default(PENDING)
+  hospitalId      String
+  patientId       String
   orderInfo       String
   bankCode        String?
   payDate         DateTime?
