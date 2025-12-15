@@ -90,3 +90,33 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 
 <img src="./medicare_booking_app_images/Ai.png" align="center"/>
 <p align="center">Màn hình trang ai</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Dat_lich.png" align="center"/>
+<p align="center">Giao diện trang đặt lịch</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Chon_time.png" align="center"/>
+<p align="center">Giao diện phần chọn ngày và khung giờ</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Dien_thong_tin.png" align="center"/>
+<p align="center">Giao diện phần điền thông tin</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Thanh_toan.png" align="center"/>
+<p align="center">Chọn thanh toán vnpay hoặc tiền mặt</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Xem_lich_dat.png" align="center"/>
+<p align="center">Giao diện xem chi tiết lịch đã đặt</p>
+
+</br>
+
+<img src="./medicare_booking_app_images/Trang_nhan_tin.png" align="center"/>
+<p align="center">Giao diện trang nhắn tin</p>
