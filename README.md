@@ -28,6 +28,28 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 
 🛠 Admin: quản lý hệ thống, doanh thu, tài khoản
 
+<a id="so-do-he-thong"></a>
+
+<h2><p>📑 Sơ đồ hệ thống</p></h2>
+
+<a id="so-do-use-case"></a>
+
+<h3><b>🔹Use Case Diagram</b></h3>
+
+![SƠ ĐỒ USE CASE](./medicare_booking_app_images/usecase.png)
+
+<a id="so-do-database"></a>
+
+<h3><b>🔹Database Schema Diagram</b></h3>
+
+![SƠ ĐỒ USE CASE](./medicare_booking_app_images/Database_Diagram.png)
+
+<a id="kien-truc-phan-mem"></a>
+
+<h2><p>📑 Kiến trúc phần mềm</p></h2>
+
+![SƠ ĐỒ USE CASE](./medicare_booking_app_images/Kien_truc_phan_mem.png)
+
 <a id="cong-nghe-su-dung"></a>
 
 <h2><p>📚 Công nghệ sử dụng</p></h2>
@@ -58,25 +80,3 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 <h4><b>DevOps</b></h4>
 
 🐳 Docker & Docker Compose
-
-<a id="so-do-he-thong"></a>
-
-<h2><p>📑 Sơ đồ hệ thống</p></h2>
-
-<a id="so-do-use-case"></a>
-
-<h3><b>🔹Use Case Diagram</b></h3>
-
-![SƠ ĐỒ USE CASE](./medicare_booking_app_images/usecase.png)
-
-<a id="so-do-database"></a>
-
-<h3><b>🔹Database Schema Diagram</b></h3>
-
-![SƠ ĐỒ USE CASE](./medicare_booking_app_images/Database_Diagram.png)
-
-<a id="kien-truc-phan-mem"></a>
-
-<h2><p>📑 Kiến trúc phần mềm</p></h2>
-
-![SƠ ĐỒ USE CASE](./medicare_booking_app_images/Kien_truc_phan_mem.png)
