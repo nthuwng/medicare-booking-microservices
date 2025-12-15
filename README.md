@@ -15,7 +15,8 @@
 </div>
 
 <a id="gioi-thieu"></a>
-<h2>📘 Giới thiệu</h2>
+
+<h2><p>📘 Giới thiệu</p></h2>
 
 MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuyến, quản lý bác sĩ, bệnh nhân, lịch làm việc và thanh toán online. Ứng dụng hướng tới việc số hóa quy trình khám chữa bệnh, giảm tải cho bệnh viện và nâng cao trải nghiệm người dùng.
 
@@ -28,7 +29,8 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 🛠 Admin: quản lý hệ thống, doanh thu, tài khoản
 
 <a id="cong-nghe-su-dung"></a>
-<h1>📚 Công nghệ sử dụng</h1>
+
+<h2><p>📚 Công nghệ sử dụng</p></h2>
 <br/>
 <b>Frontend</b>
 
