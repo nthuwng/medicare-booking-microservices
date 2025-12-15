@@ -14,4 +14,16 @@
 	</p>
 </div>
 
+## 📘 Giới Thiệu
+
+**Medicare** là giải pháp phần mềm giúp kết nối bệnh nhân và bác sĩ một cách nhanh chóng. Ứng dụng giải quyết vấn đề chờ đợi tại các phòng khám bằng tính năng đặt lịch hẹn trước và quản lý hồ sơ bệnh án điện tử.
+
+**Tính năng chính:**
+* 📅 Đặt lịch khám bệnh online.
+* 🔔 Nhắc nhở uống thuốc và tái khám.
+* trực tuyến với bác sĩ.
+* 📂 Quản lý hồ sơ sức khỏe cá nhân.
+
+---
+
 ![SƠ ĐỒ USE CASE](./medicare_booking_app_images/usecase.png)
