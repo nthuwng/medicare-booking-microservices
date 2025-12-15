@@ -5,7 +5,7 @@
 	<p align="center">
 		<a href="#gioi-thieu">📘 Giới Thiệu</a> -
 		<a href="#cong-nghe-su-dung">📚 Công nghệ sử dụng</a> -
-		<a href="#so-do-he-thong">📑 Sơ đồ use-case</a> -
+		<a href="#so-do-he-thong">📑 Sơ đồ hệ thống</a> -
 		<a href="#sơ-đồ-class">✏️ Sơ đồ class</a> -
 		<a href="#sơ-đồ-database">📂 Sơ đồ database</a> -
 		<a href="#kiến-trúc-phần-mềm">📐 Kiến trúc phần mềm</a> - 
@@ -65,3 +65,8 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 <h4><b>🔹Use Case Diagram</b></h4>
 
 ![SƠ ĐỒ USE CASE](./medicare_booking_app_images/usecase.png)
+
+<h4><b>🔹Database Schema Diagram</b></h4>
+
+![SƠ ĐỒ USE CASE](./medicare_booking_app_images/Database_Diagram.png)
+
