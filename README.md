@@ -5,7 +5,7 @@
 	<p align="center">
 		<a href="#gioi-thieu">📘 Giới Thiệu</a> -
 		<a href="#cong-nghe-su-dung">📚 Công nghệ sử dụng</a> -
-		<a href="#sơ-đồ-use-case">📑 Sơ đồ use-case</a> -
+		<a href="#so-do-use-case">📑 Sơ đồ use-case</a> -
 		<a href="#sơ-đồ-class">✏️ Sơ đồ class</a> -
 		<a href="#sơ-đồ-database">📂 Sơ đồ database</a> -
 		<a href="#kiến-trúc-phần-mềm">📐 Kiến trúc phần mềm</a> - 
@@ -59,4 +59,7 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 
 🐳 Docker & Docker Compose
 
+<a id="so-do-use-case"></a>
+
+<h2><p>📑 SƠ ĐỒ USE CASE</p></h2>
 ![SƠ ĐỒ USE CASE](./medicare_booking_app_images/usecase.png)
