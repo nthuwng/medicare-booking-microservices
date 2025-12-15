@@ -9,9 +9,13 @@
 		<a href="#so-do-use-case">✏️ Sơ đồ Use Case</a> -
 		<a href="#so-do-database">📂 Sơ đồ database</a> -
 		<a href="#kien-truc-phan-mem">📐 Kiến trúc phần mềm</a> - 
-		<a href="#hien-thuc">📺 Hiện Thực</a> -
+		<a href="#hien-thuc">📺 Hiện Thực</a>
 	</p>
 </div>
+
+### Website
+
+<a href="http://medicare-booking-app.cloud/">Truy cập website của ứng dụng. Click vào đây</a>
 
 <a id="gioi-thieu"></a>
 
