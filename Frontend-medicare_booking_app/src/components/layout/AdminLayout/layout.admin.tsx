@@ -5,6 +5,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
+import { PiMoneyWavy } from "react-icons/pi";
 import { Users } from "lucide-react";
 import { Layout, Menu, Dropdown, Space } from "antd";
 import { Outlet, useLocation } from "react-router-dom";
@@ -94,6 +95,11 @@ const LayoutAdmin = () => {
       label: <Link to="/admin/time-slot-management">Time Slot</Link>,
       key: "time-slot-management",
       icon: <FaClock size={20} />,
+    },
+    {
+      label: <Link to="/admin/payment-management">Payment</Link>,
+      key: "payment-management",
+      icon: <PiMoneyWavy size={20} />,
     },
   ];
 

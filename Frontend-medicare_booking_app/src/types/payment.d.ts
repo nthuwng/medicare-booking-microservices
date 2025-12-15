@@ -33,3 +33,29 @@ export interface IReturnPaymentCancel {
     refundRequired: boolean;
   };
 }
+
+export interface IPaymentRevenue {
+  hospitalId: string;
+  clinicInfo: {
+    id: number;
+    clinicName: string;
+    city: string;
+    iconPath: string;
+    iconPublicId: string;
+    district: string;
+    street: string;
+    phone: string;
+    description: string;
+  } | null;
+  revenue: {
+    vnpay: {
+      totalAmount: number;
+      count: number;
+    };
+    cash: {
+      totalAmount: number;
+      count: number;
+    };
+    total: number;
+  };
+}

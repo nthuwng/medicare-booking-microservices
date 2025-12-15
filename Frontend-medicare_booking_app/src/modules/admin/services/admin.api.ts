@@ -9,6 +9,7 @@ import type {
   ISpecialty,
   ITimeSlotDetail,
 } from "@/types";
+import type { IPaymentRevenue } from "@/types/payment";
 
 export const getAllSpecialties = (query: string) => {
   const urlBackend = `/api/doctor/specialties?${query}`;
@@ -193,3 +194,8 @@ export const lockUserAPI = (userId: string, lock: boolean) => {
   const urlBackend = `/api/auth/lock-user/${userId}`;
   return axios.put<IBackendRes<any>>(urlBackend, { lock });
 };
+
+export const getAllPayment = () => {
+  const urlBackend = `/api/payment/payments`;
+  return axios.get<IBackendRes<IPaymentRevenue[]>>(urlBackend);
+}

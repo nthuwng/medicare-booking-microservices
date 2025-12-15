@@ -7,6 +7,7 @@ import { initGetDoctorUserIdByDoctorIdConsumer } from "./getUserIdByDoctorId";
 import { initCheckSpecialtyDoctorConsumer } from "./checkSpecialtyName.consumer";
 import { initImportDoctorProfileConsumer } from "./importDoctorProfile.consumer";
 import { initCreateOneDoctorProfileConsumer } from "./createOneDoctor.consumer";
+import { initGetClinicByHospitalIdConsumer } from "./getClinicByHospitalID.consumer";
 
 export const initializeAllRabbitMQConsumers = async () => {
   try {
@@ -19,6 +20,7 @@ export const initializeAllRabbitMQConsumers = async () => {
     await initCheckSpecialtyDoctorConsumer();
     await initImportDoctorProfileConsumer();
     await initCreateOneDoctorProfileConsumer();
+    await initGetClinicByHospitalIdConsumer();
     console.log(
       "✅ All RabbitMQ consumers doctor_service initialized successfully."
     );

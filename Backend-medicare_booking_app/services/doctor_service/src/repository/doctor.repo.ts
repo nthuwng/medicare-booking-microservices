@@ -202,6 +202,15 @@ const importDoctorProfiles = async (doctors: any[]) => {
     message: "Import doctor profiles successfully",
   };
 };
+
+const getClinicByHospitalId = async (hospitalIds: string[]) => {
+  const clinics = await prisma.clinic.findMany({
+    where: {
+      id: { in: hospitalIds.map((id) => Number(id)) },
+    },
+  });
+  return clinics;
+};
 export {
   findDoctorByUserId,
   createDoctor,
@@ -213,4 +222,5 @@ export {
   handleSpecialtyDoctorCheckViaRepository,
   importDoctorProfiles,
   createOneDoctorProfile,
+  getClinicByHospitalId,
 };
