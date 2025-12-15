@@ -3,7 +3,7 @@
     <h1>MEDICARE</h1>
     <h3>🏥 Medicare - Ứng dụng đặt lịch khám và quản lý sức khỏe thông minh 🏥</h3>
 	<p align="center">
-		<a href="#-gioi-thieu">📘 Giới Thiệu</a> -
+		<a href="#gioi-thieu">📘 Giới Thiệu</a> -
 		<a href="#công-nghệ-sử-dụng">📚 Công nghệ sử dụng</a> -
 		<a href="#sơ-đồ-use-case">📑 Sơ đồ use-case</a> -
 		<a href="#sơ-đồ-class">✏️ Sơ đồ class</a> -
@@ -14,6 +14,7 @@
 	</p>
 </div>
 
+<a id="gioi-thieu"></a>
 ## 📘 Giới thiệu
 
 MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuyến, quản lý bác sĩ, bệnh nhân, lịch làm việc và thanh toán online. Ứng dụng hướng tới việc số hóa quy trình khám chữa bệnh, giảm tải cho bệnh viện và nâng cao trải nghiệm người dùng.
