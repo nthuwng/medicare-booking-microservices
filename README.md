@@ -31,33 +31,17 @@ MEDICARE là hệ thống web hỗ trợ đặt lịch khám bệnh trực tuy�
 <a id="cong-nghe-su-dung"></a>
 
 <h2><p>📚 Công nghệ sử dụng</p></h2>
-<h4><b>Frontend</b></h4>
 
-⚛️ ReactJS
-
-🎨 Ant Design
-
-🔌 Socket.io (Realtime)
-
-<h4><b>Backend</b></h4>
-
-🟢 Node.js + Express
-
-🧩 Microservices Architecture
-
-🔐 JWT Authentication
-
-📨 RabbitMQ (Message Queue)
-
-<h4><b>Database</b></h4>
-
-🐬 MySQL (User, Appointment, Payment,...)
-
-🔷 Prisma ORM
-
-<h4><b>DevOps</b></h4>
-
-🐳 Docker & Docker Compose
+<div>
+	<ul>
+		<li>Frontend: Website (ReactJS)</li>
+		<li>Backend: Node.js + Express</li>
+		<li>Database: MySQL, Redis</li>
+		<li>DevOps: Docker & Docker Compose</li>
+		<li>Kiến trúc: Microservices, Event-driven</li>
+		<li>Công nghệ khác: RabbitMQ , Cloudinary (lưu trữ ảnh) , Socket</li>
+	</ul>
+</div>
 
 <a id="so-do-he-thong"></a>
 
