@@ -127,8 +127,8 @@ services:
   # User service
   user-service:
     build:
-      context: ./Backend-medicare_booking_app/services/user_service
-      dockerfile: Dockerfile
+      context: ./Backend-medicare_booking_app
+      dockerfile: services/user_service/Dockerfile
     mem_limit: 300m
     cpus: "0.80"
     ports:
@@ -177,8 +177,8 @@ services:
   # Auth service
   auth-service:
     build:
-      context: ./Backend-medicare_booking_app/services/auth_service
-      dockerfile: Dockerfile
+      context: ./Backend-medicare_booking_app
+      dockerfile: services/auth_service/Dockerfile
     restart: unless-stopped
     mem_limit: 300m
     cpus: "0.80"

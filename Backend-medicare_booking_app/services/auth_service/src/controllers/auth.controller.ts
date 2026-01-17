@@ -31,7 +31,7 @@ import {
   RegisterResponse,
   VerifyTokenResponse,
   RefreshTokenResponse,
-} from "@shared/interfaces/auth/IAuth";
+} from "../../shared/interfaces/auth/IAuth";
 import { UserType } from "@prisma/client";
 
 const postRegisterAPI = async (req: Request, res: Response) => {

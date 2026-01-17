@@ -1,10 +1,10 @@
-import { UserType } from "./../../../../shared/interfaces/common/enums";
+import { UserType } from "../../shared/interfaces/common/enums";
 import {
   JwtPayload,
   JwtPayloadGoogle,
   LoginServiceResponse,
   RegisterServiceResponse,
-} from "@shared/index";
+} from "../../shared/index";
 import bcrypt from "bcrypt";
 import { prisma } from "../config/client";
 import { AuthProvider } from "@prisma/client";

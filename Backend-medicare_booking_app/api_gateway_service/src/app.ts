@@ -12,6 +12,7 @@ app.use(
       "http://localhost",
       "https://medicare-booking-app.cloud",
       "http://medicare-booking-app.cloud",
+      "https://medicare-nginx.onrender.com"
     ],
     credentials: true,
   })

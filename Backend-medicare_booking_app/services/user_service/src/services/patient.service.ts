@@ -6,7 +6,7 @@ import {
   getPatientById,
   getUserIdByPatientId,
 } from "src/repository/patient.repo";
-import { CreatePatientProfileData, UserInfo } from "@shared/index";
+import { CreatePatientProfileData, UserInfo } from "../../shared/index";
 import {
   getAllUserViaRabbitMQ,
   getUserByIdViaRabbitMQ,

@@ -1,4 +1,4 @@
-import { AuthVerifyResponse, UserType } from "@shared/index";
+import { AuthVerifyResponse, UserType } from "../../shared/index";
 import { Request, Response, NextFunction } from "express";
 import { checkAdminViaRabbitMQ, verifyTokenViaRabbitMQ } from "src/queue/publishers/user.publisher";
 

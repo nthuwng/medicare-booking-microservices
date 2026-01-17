@@ -1,6 +1,5 @@
 // src/services/ai.intent.ts
 import { z } from "zod";
-import { GoogleGenAI } from "@google/genai";
 import { intentPrompt } from "src/prompts/intent.prompts";
 import { ai, MODEL_AI } from "src/config/gemini";
 

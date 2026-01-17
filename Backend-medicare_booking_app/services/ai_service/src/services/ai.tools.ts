@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+
 import { ai, MODEL_AI } from "src/config/gemini";
 import {
   promptMedicalQA,

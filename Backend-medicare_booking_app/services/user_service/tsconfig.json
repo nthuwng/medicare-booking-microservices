@@ -17,8 +17,10 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["../../shared/*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
+  "files": ["src/types/express.d.ts"],
   "include": ["src/**/*.ts", "../../shared/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
   "ts-node": {

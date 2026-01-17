@@ -1,6 +1,4 @@
-import { Gender } from "@shared/interfaces/common/enums";
 import { prisma } from "src/config/client";
-import { checkUserExits } from "src/services/patient.service";
 
 const createPatient = async (
   userId: string,

@@ -1,4 +1,4 @@
-import { AuthVerifyResponse } from "@shared/index";
+import { AuthVerifyResponse } from "../../../shared/index";
 import { verifyJwtToken } from "../../services/auth.services";
 import { getChannel } from "../connection";
 

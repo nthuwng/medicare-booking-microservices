@@ -1,22 +1,15 @@
-FROM node:20
+FROM node:20-alpine
 
-# Tạo thư mục làm việc
 WORKDIR /app
 
-# Copy package files và cài đặt dependencies
-COPY package*.json ./
+COPY services/user_service/package*.json ./
 RUN npm install
 
-# Copy Prisma schema và generate Prisma client
-COPY prisma ./prisma/
-RUN npx prisma generate
+COPY shared ./shared
+COPY services/user_service ./
 
-# Copy source code
-COPY . .
-COPY tsconfig.json ./
+RUN npx prisma generate --schema=prisma/schema.prisma
 
-# Mở port container
+
 EXPOSE 8081
-
-# Chạy service
 CMD ["npm", "run", "dev"]

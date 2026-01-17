@@ -5,7 +5,7 @@ import {
   findAdminByUserId,
   getAllAdmin,
 } from "src/repository/admin.repo";
-import { CreateAdminProfileData, UserInfo } from "@shared/index";
+import { CreateAdminProfileData, UserInfo } from "../../shared/index";
 import {
   getAllUserViaRabbitMQ,
   getUserByIdViaRabbitMQ,

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { UserType } from "@shared/index";
+import { UserType } from "../../shared/index";
 import "dotenv/config";
 import { verifyJwtToken } from "src/services/auth.services";
 
